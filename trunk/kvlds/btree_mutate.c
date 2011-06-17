@@ -43,10 +43,10 @@ err0:
  * Search for the key ${k} in the mutable leaf node ${N}.  Return the kvpair
  * in which it belongs.
  */
-struct kvpair *
-btree_mutate_find(struct node * N, struct kvldskey *k)
+struct kvpair_const *
+btree_mutate_find(struct node * N, const struct kvldskey *k)
 {
-	struct kvpair * kv;
+	struct kvpair_const * kv;
 
 	/* Look for the key in the sorted key vector. */
 	if ((kv = btree_find_kvpair(N, k)) != NULL)
@@ -57,6 +57,34 @@ btree_mutate_find(struct node * N, struct kvldskey *k)
 }
 
 /**
+ * btree_mutate_add(N, pos, k, v):
+ * Add the key-value pair ${k}/${v} to the mutable leaf node ${N} in position
+ * ${pos}, and update structures.
+ */
+int
+btree_mutate_add(struct node * N, struct kvpair_const * pos,
+    const struct kvldskey * k, const struct kvldskey * v)
+{
+	size_t mlen;
+
+	/* Update the all-keys-present-match-up-to value. */
+	if (N->nkeys) {
+		mlen = kvldskey_mlen(k, N->u.pairs[0].k);
+		if (mlen < N->mlen_n)
+			N->mlen_n = mlen;
+	} else {
+		N->mlen_n = 0;
+	}
+
+	/* Record the pair. */
+	pos->k = k;
+	pos->v = v;
+
+	/* Grow the hash table if necessary. */
+	return (kvhash_postadd(N->v.H));
+}
+
+/**
  * btree_mutate_immutable(N):
  * Mutations on the leaf node ${N} are done (for now).
  */
@@ -64,7 +92,7 @@ int
 btree_mutate_immutable(struct node * N)
 {
 	size_t nkeys_list, nkeys_hash;
-	struct kvpair * new_pairs;
+	struct kvpair_const * new_pairs;
 	size_t new_nkeys;
 	size_t i, j, k;
 
@@ -85,7 +113,7 @@ btree_mutate_immutable(struct node * N)
 
 	/* Allocate new array of key-value pairs. */
 	new_nkeys = nkeys_list + nkeys_hash;
-	if (IMALLOC(new_pairs, new_nkeys, struct kvpair))
+	if (IMALLOC(new_pairs, new_nkeys, struct kvpair_const))
 		goto err0;
 
 	/* Copy pairs from the hash table to the end of the array. */
@@ -94,25 +122,22 @@ btree_mutate_immutable(struct node * N)
 			new_pairs[j].k = N->v.H->pairs[i].k;
 			new_pairs[j].v = N->v.H->pairs[i].v;
 			j++;
-		} else {
-			kvldskey_free(N->v.H->pairs[i].k);
 		}
 	}
 
 	/* Sort the pairs from the hash table in-place. */
-	kvpair_sort(&new_pairs[nkeys_list], nkeys_hash, N->mlen);
+	kvpair_sort((struct kvpair *)&new_pairs[nkeys_list],
+	    nkeys_hash, N->mlen_n);
 
 	/* Merge pairs from the sorted list into the new array. */
 	for (j = i = 0, k = nkeys_list; i < N->nkeys; i++) {
-		/* If this value was deleted, free the key and move on. */
-		if (N->u.pairs[i].v == NULL) {
-			kvldskey_free(N->u.pairs[i].k);
+		/* Skip keys for which the value was deleted. */
+		if (N->u.pairs[i].v == NULL)
 			continue;
-		}
 
 		/* Move hashed pairs with smaller keys than this one. */
 		while ((k < new_nkeys) && (kvldskey_cmp2(N->u.pairs[i].k,
-		    new_pairs[k].k, N->mlen) > 0)) {
+		    new_pairs[k].k, N->mlen_n) > 0)) {
 			new_pairs[j].k = new_pairs[k].k;
 			new_pairs[j].v = new_pairs[k].v;
 			j++;

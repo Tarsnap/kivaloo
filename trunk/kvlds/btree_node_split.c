@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "kvldskey.h"
 #include "kvpair.h"
@@ -95,25 +96,17 @@ btree_node_split_nparts(struct btree * T, struct node * N)
 		return (nparts_parent(N, breakat));
 }
 
-/* Make a leaf. */
+/* Make a leaf.  Copy pointers to keys. */
 static struct node *
-makeleaf(struct btree * T, size_t nkeys, struct kvpair * pairs)
+makeleaf(struct btree * T, size_t nkeys, struct kvpair_const * pairs)
 {
-	struct kvpair * new_pairs;
+	struct kvpair_const * new_pairs;
 	struct node * N;
-	size_t i;
 
-	/* Allocate new array of pairs. */
-	if (IMALLOC(new_pairs, nkeys, struct kvpair))
+	/* Allocate new array of pairs and copy keys and values. */
+	if (IMALLOC(new_pairs, nkeys, struct kvpair_const))
 		goto err0;
-
-	/* Duplicate keys and values. */
-	for (i = 0; i < nkeys; i++) {
-		new_pairs[i].k = pairs[i].k;
-		new_pairs[i].v = pairs[i].v;
-		kvldskey_ref(new_pairs[i].k);
-		kvldskey_ref(new_pairs[i].v);
-	}
+	memcpy(new_pairs, pairs, nkeys * sizeof(struct kvpair_const));
 
 	/* Construct a leaf node. */
 	if ((N = btree_node_mkleaf(T, nkeys, new_pairs)) == NULL)
@@ -123,10 +116,6 @@ makeleaf(struct btree * T, size_t nkeys, struct kvpair * pairs)
 	return (N);
 
 err1:
-	for (i = 0; i < nkeys; i++) {
-		kvldskey_free(new_pairs[i].v);
-		kvldskey_free(new_pairs[i].k);
-	}
 	free(new_pairs);
 err0:
 	/* Failure! */
@@ -135,7 +124,7 @@ err0:
 
 /* Split a leaf. */
 static int
-split_leaf(struct btree * T, struct node * N, struct kvldskey ** keys,
+split_leaf(struct btree * T, struct node * N, const struct kvldskey ** keys,
     struct node ** parents, size_t * nparts, size_t breakat)
 {
 	size_t i;
@@ -162,9 +151,7 @@ split_leaf(struct btree * T, struct node * N, struct kvldskey ** keys,
 			 * previous key and less than or equal to the next
 			 * key.
 			 */
-			if ((keys[*nparts] = kvldskey_sep(N->u.pairs[i - 1].k,
-			    N->u.pairs[i].k)) == NULL)
-				goto err2;
+			keys[*nparts] = N->u.pairs[i].k;
 
 			/* We've finished this part. */
 			*nparts += 1;
@@ -194,43 +181,50 @@ split_leaf(struct btree * T, struct node * N, struct kvldskey ** keys,
 	/* Success! */
 	return (0);
 
-err2:
-	btree_node_destroy(T, parents[*nparts]);
 err1:
-	for (; *nparts > 0; *nparts -= 1) {
-		kvldskey_free(keys[*nparts - 1]);
+	for (; *nparts > 0; *nparts -= 1)
 		btree_node_destroy(T, parents[*nparts - 1]);
-	}
 
 	/* Failure! */
 	return (-1);
 }
 
-/* Make a parent. */
+/* Free a parent node but not its separator keys or children. */
+static void
+destroy_parent_nokeys(struct btree * T, struct node * N)
+{
+
+	/* Detach the keys from the node. */
+	free(N->u.keys);
+
+	/* Detach the children from the node. */
+	free(N->v.children);
+
+	/* This node has no data to free. */
+	N->nkeys = -1;
+
+	/* Free the node. */
+	btree_node_destroy(T, N);
+}
+
+/* Make a parent.  Copy pointers to keys and children. */
 static struct node *
 makeparent(struct btree * T, int height, size_t nkeys,
-    struct kvldskey ** keys, struct node ** children)
+    const struct kvldskey ** keys, struct node ** children)
 {
-	struct kvldskey ** new_keys;
+	const struct kvldskey ** new_keys;
 	struct node ** new_children;
 	struct node * N;
-	size_t i;
 
-	/* Allocate new key and child arrays. */
-	if (IMALLOC(new_keys, nkeys, struct kvldskey *))
+	/* Allocate new key array and copy pointers to keys. */
+	if (IMALLOC(new_keys, nkeys, const struct kvldskey *))
 		goto err0;
+	memcpy(new_keys, keys, nkeys * sizeof(const struct kvldskey *));
+
+	/* Allocate new child array and copy pointers to children. */
 	if (IMALLOC(new_children, nkeys + 1, struct node *))
 		goto err1;
-
-	/* Duplicate keys. */
-	for (i = 0; i < nkeys; i++) {
-		new_keys[i] = keys[i];
-		kvldskey_ref(new_keys[i]);
-	}
-
-	/* Copy child pointers. */
-	for (i = 0; i <= nkeys; i++)
-		new_children[i] = children[i];
+	memcpy(new_children, children, (nkeys + 1) * sizeof(struct node *));
 
 	/* Construct a parent node. */
 	if ((N = btree_node_mkparent(T, height,
@@ -241,8 +235,6 @@ makeparent(struct btree * T, int height, size_t nkeys,
 	return (N);
 
 err2:
-	for (i = 0; i < nkeys; i++)
-		kvldskey_free(new_keys[i]);
 	free(new_children);
 err1:
 	free(new_keys);
@@ -253,7 +245,7 @@ err0:
 
 /* Split a parent. */
 static int
-split_parent(struct btree * T, struct node * N, struct kvldskey ** keys,
+split_parent(struct btree * T, struct node * N, const struct kvldskey ** keys,
     struct node ** parents, size_t * nparts, size_t breakat)
 {
 	size_t i, j;
@@ -276,9 +268,8 @@ split_parent(struct btree * T, struct node * N, struct kvldskey ** keys,
 			    &N->v.children[i - nkeys - 1])) == NULL)
 				goto err1;
 
-			/* Duplicate the separator key. */
+			/* Grab the separator key. */
 			keys[*nparts] = N->u.keys[i - 1];
-			kvldskey_ref(keys[*nparts]);
 
 			/* We've finished this part. */
 			*nparts += 1;
@@ -317,20 +308,14 @@ split_parent(struct btree * T, struct node * N, struct kvldskey ** keys,
 	}
 
 	/* Destroy the old node, but not its children. */
-	for (i = 0; i <= N->nkeys; i++)
-		N->v.children[i] = NULL;
-	btree_node_destroy(T, N);
+	destroy_parent_nokeys(T, N);
 
 	/* Success! */
 	return (0);
 
 err1:
-	for (; *nparts > 0; *nparts -= 1) {
-		kvldskey_free(keys[*nparts - 1]);
-		for (i = 0; i <= parents[*nparts - 1]->nkeys; i++)
-			parents[*nparts - 1]->v.children[i] = NULL;
-		btree_node_destroy(T, parents[*nparts - 1]);
-	}
+	for (; *nparts > 0; *nparts -= 1)
+		destroy_parent_nokeys(T, parents[*nparts - 1]);
 
 	/* Failure! */
 	return (-1);
@@ -346,8 +331,8 @@ err1:
  * with ${N} unmodified.
  */
 int
-btree_node_split(struct btree * T, struct node * N, struct kvldskey ** keys,
-    struct node ** parents, size_t * nparts)
+btree_node_split(struct btree * T, struct node * N,
+    const struct kvldskey ** keys, struct node ** parents, size_t * nparts)
 {
 	size_t breakat;
 	int rc;

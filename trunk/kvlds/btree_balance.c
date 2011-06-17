@@ -28,7 +28,7 @@ splitchildren(struct btree * T, struct node * N)
 {
 	size_t i, j, nparts;
 	size_t new_nkeys;
-	struct kvldskey ** new_keys;
+	const struct kvldskey ** new_keys;
 	struct node ** new_children;
 	int failed = 0;		/* We haven't failed yet. */
 
@@ -68,7 +68,7 @@ splitchildren(struct btree * T, struct node * N)
 	assert(new_nkeys > N->nkeys);
 
 	/* Allocate new child and key arrays. */
-	if (IMALLOC(new_keys, new_nkeys, struct kvldskey *))
+	if (IMALLOC(new_keys, new_nkeys, const struct kvldskey *))
 		goto err0;
 	if (IMALLOC(new_children, new_nkeys + 1, struct node *))
 		goto err1;
@@ -165,7 +165,7 @@ static struct node *
 splitroot(struct btree * T, struct node * N)
 {
 	size_t nkeys;
-	struct kvldskey ** keys;
+	const struct kvldskey ** keys;
 	struct node ** children;
 	struct node * R;
 	size_t nparts;
@@ -175,7 +175,7 @@ splitroot(struct btree * T, struct node * N)
 	nkeys = btree_node_split_nparts(T, N) - 1;
 
 	/* Allocate vectors for keys and children. */
-	if (IMALLOC(keys, nkeys, struct kvldskey *))
+	if (IMALLOC(keys, nkeys, const struct kvldskey *))
 		goto err0;
 	if (IMALLOC(children, nkeys + 1, struct node *))
 		goto err1;

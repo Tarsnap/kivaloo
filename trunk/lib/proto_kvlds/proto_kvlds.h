@@ -144,11 +144,12 @@ struct proto_kvlds_request {
 	uint64_t ID;
 	uint32_t type;
 	uint32_t range_max;
-	struct kvldskey * key;
+	const struct kvldskey * key;
 #define range_start key
-	struct kvldskey * value;
+	const struct kvldskey * value;
 #define range_end value
-	struct kvldskey * oval;
+	const struct kvldskey * oval;
+	uint8_t * blob;
 };
 
 /**

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "elasticarray.h"
 #include "events.h"
@@ -63,19 +64,13 @@ freedata(struct btree * T, struct node * N)
 	if (N->nkeys != (size_t)(-1)) {
 		/* Leaf or parent? */
 		if (N->type == NODE_TYPE_LEAF) {
-			/* Free key-value pairs. */
-			for (i = 0; i < N->nkeys; i++) {
-				kvldskey_free(N->u.pairs[i].k);
-				kvldskey_free(N->u.pairs[i].v);
-			}
+			/* Free array of key-value pairs. */
 			free(N->u.pairs);
 		} else {
-			/* Free keys. */
-			for (i = 0; i < N->nkeys; i++)
-				kvldskey_free(N->u.keys[i]);
+			/* Free array of keys. */
 			free(N->u.keys);
 
-			/* Free children. */
+			/* Free children and their array. */
 			for (i = 0; i <= N->nkeys; i++)
 				node_free(N->v.children[i]);
 			free(N->v.children);
@@ -83,6 +78,12 @@ freedata(struct btree * T, struct node * N)
 
 		/* This node no longer has any data. */
 		N->nkeys = (size_t)(-1);
+	}
+
+	/* If the node has a serialized buffer, free it. */
+	if (N->pagebuf) {
+		free(N->pagebuf);
+		N->pagebuf = NULL;
 	}
 
 	/* We just removed a reason for keeping the parent(s) present. */
@@ -124,91 +125,6 @@ err0:
 }
 
 /**
- * nodedup(T, N):
- * Create a duplicate of node ${N} in the tree ${T} (but don't attach its
- * parents or children to it).  The node must be in state NODE_STATE_CLEAN
- * and must not have type NODE_TYPE_NP or NODE_TYPE_READ.
- */
-static struct node *
-nodedup(struct btree * T, struct node * N)
-{
-	struct node * N2;
-	size_t i;
-
-	/* Sanity checks. */
-	assert(node_present(N));
-	assert(N->state == NODE_STATE_CLEAN);
-
-	/* Allocate a new node and make it present. */
-	if ((N2 = node_alloc(N->pagenum, N->oldestleaf, N->pagesize)) == NULL)
-		goto err0;
-
-	/* Make the node present. */
-	if (makepresent(T, N2))
-		goto err1;
-
-	/* Copy node data. */
-	N2->pagenum = N->pagenum;
-	N2->oldestleaf = N->oldestleaf;
-	N2->oldestncleaf = N->oldestncleaf;
-	N2->pagesize = N->pagesize;
-	N2->type = N->type;
-	N2->state = N->state;
-	N2->root = N->root;
-	N2->height = N->height;
-	N2->mlen = N->mlen;
-	N2->p_shadow = N->p_shadow;
-	N2->p_dirty = N->p_dirty;
-	N2->nkeys = N->nkeys;
-
-	/* Leaf or parent? */
-	if (N->type == NODE_TYPE_LEAF) {
-		/* Duplicate key-value pairs. */
-		if (IMALLOC(N2->u.pairs, N2->nkeys, struct kvpair))
-			goto err2;
-		for (i = 0; i < N2->nkeys; i++) {
-			N2->u.pairs[i].k = N->u.pairs[i].k;
-			N2->u.pairs[i].v = N->u.pairs[i].v;
-			kvldskey_ref(N2->u.pairs[i].k);
-			kvldskey_ref(N2->u.pairs[i].v);
-		}
-	} else {
-		/* Duplicate keys. */
-		if (IMALLOC(N2->u.keys, N2->nkeys, struct kvldskey *))
-			goto err2;
-		for (i = 0; i < N2->nkeys; i++) {
-			N2->u.keys[i] = N->u.keys[i];
-			kvldskey_ref(N2->u.keys[i]);
-		}
-
-		/* Copy child vector. */
-		if (IMALLOC(N2->v.children, N2->nkeys + 1, struct node *))
-			goto err3;
-		for (i = 0; i <= N2->nkeys; i++)
-			N2->v.children[i] = N->v.children[i];
-	}
-
-	/* Success! */
-	return (N2);
-
-	/* PARENT error path. */
-err3:
-	for (i = 0; i < N2->nkeys; i++)
-		kvldskey_free(N2->u.keys[i]);
-	free(N2->u.keys);
-	goto err2;
-
-	/* LEAF/PARENT error path. */
-err2:
-	pool_rec_free(T->P, N2);
-err1:
-	node_free(N2);
-err0:
-	/* Failure! */
-	return (NULL);
-}
-
-/**
  * btree_node_mknode(T, type, height, nkeys, keys, children, pairs):
  * Create and return a new dirty node with lock count 1 belonging to the
  * B+Tree ${T}, of type ${type}, height ${height}, ${nkeys} keys; if a parent
@@ -217,7 +133,8 @@ err0:
  */
 struct node *
 btree_node_mknode(struct btree * T, int type, int height, size_t nkeys,
-    struct kvldskey ** keys, struct node ** children, struct kvpair * pairs)
+    const struct kvldskey ** keys, struct node ** children,
+    struct kvpair_const * pairs)
 {
 	struct node * N;
 
@@ -238,10 +155,19 @@ btree_node_mknode(struct btree * T, int type, int height, size_t nkeys,
 	N->nkeys = nkeys;
 	if (type == NODE_TYPE_LEAF) {
 		N->u.pairs = pairs;
+		if ((N->nkeys > 0) && (pairs != NULL)) {
+			N->mlen_n = kvldskey_mlen(N->u.pairs[0].k,
+			    N->u.pairs[N->nkeys - 1].k);
+		} else {
+			N->mlen_n = 255;
+		}
 	} else {
 		N->u.keys = keys;
 		N->v.children = children;
 	}
+
+	/* We don't know how far keys in this subtree match. */
+	N->mlen_t = 0;
 
 	/* Success! */
 	return (N);
@@ -505,7 +431,7 @@ btree_node_dirty(struct btree * T, struct node * N)
 	size_t i;
 
 	/* Sanity check the node. */
-	assert((N->type == NODE_TYPE_LEAF) || (N->type == NODE_TYPE_PARENT));
+	assert(node_present(N));
 	assert(N->state == NODE_STATE_CLEAN);
 
 	/* Notify the cleaner. */
@@ -517,24 +443,48 @@ btree_node_dirty(struct btree * T, struct node * N)
 	    (btree_node_dirty(T, N->p_dirty) == NULL))
 		goto err0;
 
-	/* Create a duplicate node. */
-	if ((N_dirty = nodedup(T, N)) == NULL)
+	/* Allocate a new dirty node. */
+	if ((N_dirty = btree_node_mknode(T, N->type, N->height, N->nkeys,
+	    NULL, NULL, NULL)) == NULL)
 		goto err0;
 
-	/* The old node is SHADOW. */
+	/* Copy more node data. */
+	N_dirty->root = N->root;
+	N_dirty->mlen_t = N->mlen_t;
+	N_dirty->mlen_n = N->mlen_n;
+	N_dirty->p_dirty = N->p_dirty;
+
+	/* The old node is now SHADOW. */
 	N->state = NODE_STATE_SHADOW;
 	N->p_dirty = NULL;
 	btree_node_lock(T, N);
 
-	/* The new node is DIRTY. */
-	N_dirty->state = NODE_STATE_DIRTY;
+	/* The new node is dirty. */
+	N_dirty->oldestncleaf = -1;
 	N_dirty->p_shadow = NULL;
-	N_dirty->pagenum = -1;
-	N_dirty->oldestleaf = -1;
-	N_dirty->pagesize = -1;
 
-	/* Tell children (if any) about their new dirty parent. */
-	if (N_dirty->type == NODE_TYPE_PARENT) {
+	/* Leaf or parent? */
+	if (N->type == NODE_TYPE_LEAF) {
+		/* Duplicate key-value pairs. */
+		if (IMALLOC(N_dirty->u.pairs, N->nkeys, struct kvpair_const))
+			goto err1;
+		memcpy(N_dirty->u.pairs, N->u.pairs,
+		    N->nkeys * sizeof(struct kvpair_const));
+	} else {
+		/* Duplicate keys. */
+		if (IMALLOC(N_dirty->u.keys, N->nkeys,
+		    const struct kvldskey *))
+			goto err1;
+		memcpy(N_dirty->u.keys, N->u.keys,
+		    N->nkeys * sizeof(const struct kvldskey *));
+
+		/* Copy child vector. */
+		if (IMALLOC(N_dirty->v.children, N->nkeys + 1, struct node *))
+			goto err2;
+		memcpy(N_dirty->v.children, N->v.children,
+		    (N->nkeys + 1) * sizeof(struct node *));
+
+		/* Tell children (if any) about their new dirty parent. */
 		for (i = 0; i <= N_dirty->nkeys; i++) {
 			if (node_hasplock(N_dirty->v.children[i]))
 				btree_node_unlock(T, N);
@@ -544,15 +494,12 @@ btree_node_dirty(struct btree * T, struct node * N)
 		}
 	}
 
-	/* Tell the dirty parent (if not rooted) about its new child. */
+	/* Update the dirty tree structure. */
 	if (N_dirty->root == 0) {
 		for (i = 0; i <= N_dirty->p_dirty->nkeys; i++)
 			if (N_dirty->p_dirty->v.children[i] == N)
 				N_dirty->p_dirty->v.children[i] = N_dirty;
-	}
-
-	/* If we're dirtying a root, adjust the tree structure. */
-	if (N_dirty->root == 1) {
+	} else {
 		btree_node_unlock(T, T->root_dirty);
 		T->root_dirty = N_dirty;
 		btree_node_lock(T, T->root_dirty);
@@ -561,6 +508,11 @@ btree_node_dirty(struct btree * T, struct node * N)
 	/* Success! */
 	return (N_dirty);
 
+err2:
+	free(N_dirty->u.keys);
+err1:
+	pool_rec_free(T->P, N_dirty);
+	node_free(N_dirty);
 err0:
 	/* Failure! */
 	return (NULL);

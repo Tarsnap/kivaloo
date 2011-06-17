@@ -15,7 +15,7 @@ static int
 rehash(struct kvhash * H)
 {
 	size_t new_nslots;
-	struct kvpair * new_pairs;
+	struct kvpair_const * new_pairs;
 	uint32_t * new_hashes;
 	size_t i, pos;
 
@@ -23,13 +23,13 @@ rehash(struct kvhash * H)
 	new_nslots = H->nslots * 2;
 
 	/* Allocate new arrays. */
-	if (IMALLOC(new_pairs, new_nslots, struct kvpair))
+	if (IMALLOC(new_pairs, new_nslots, struct kvpair_const))
 		goto err0;
 	if (IMALLOC(new_hashes, new_nslots, uint32_t))
 		goto err1;
 
 	/* Nothing in the new table yet. */
-	memset(new_pairs, 0, new_nslots * sizeof(struct kvpair));
+	memset(new_pairs, 0, new_nslots * sizeof(struct kvpair_const));
 
 	/* Scan the old table and move entries. */
 	for (i = 0; i < H->nslots; i++) {
@@ -105,14 +105,14 @@ kvhash_init(void)
 
 	/* We start with 4 slots. */
 	H->nslots = 4;
-	if (IMALLOC(H->pairs, H->nslots, struct kvpair))
+	if (IMALLOC(H->pairs, H->nslots, struct kvpair_const))
 		goto err1;
 	if (IMALLOC(H->hashes, H->nslots, uint32_t))
 		goto err2;
 
 	/* This table is empty. */
 	H->nkeys = 0;
-	memset(H->pairs, 0, H->nslots * sizeof(struct kvpair));
+	memset(H->pairs, 0, H->nslots * sizeof(struct kvpair_const));
 
 	/* Success! */
 	return (H);
@@ -132,7 +132,7 @@ err0:
  * kvpair structure where the key appears or would appear if inserted.  Write
  * the hash value into the corresponding location in the hashes array.
  */
-struct kvpair *
+struct kvpair_const *
 kvhash_search(struct kvhash * H, const struct kvldskey * k)
 {
 	size_t pos;

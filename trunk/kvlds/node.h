@@ -8,7 +8,7 @@
 struct cleaning;
 struct kvhash;
 struct kvldskey;
-struct kvpair;
+struct kvpair_const;
 struct pool_elem;
 struct reading;
 
@@ -39,20 +39,20 @@ struct node {
 	uint32_t pagesize;
 
 	/* Node type. */
-	int type : 3;
+	unsigned int type : 2;
 #define NODE_TYPE_PARENT	0	/* Parent node */
 #define NODE_TYPE_LEAF		1	/* Leaf node */
 #define NODE_TYPE_NP		2	/* Page not present */
 #define NODE_TYPE_READ		3	/* Node is being fetched */
 
 	/* Node state.  Must be CLEAN for !present nodes. */
-	int state : 3;
+	unsigned int state : 2;
 #define NODE_STATE_CLEAN	0	/* The only copy of this node */
 #define NODE_STATE_SHADOW	1	/* Old version of a modified node */
 #define NODE_STATE_DIRTY	2	/* New version of a modified node */
 
 	/* 1 if this node is a root; 0 otherwise or !present. */
-	int root : 2;
+	unsigned int root : 1;
 
 	/*
 	 * 1 if this node is being merged into the next node; 0 otherwise or
@@ -60,16 +60,19 @@ struct node {
 	 * temporarily when a clean node is marked as being required for
 	 * merging prior to the node being dirtied.
 	 */
-	int merging : 2;
+	unsigned int merging : 1;
 
 	/* 1 if the node needs to be considered for merging; 0 otherwise. */
-	int needmerge : 2;
+	unsigned int needmerge : 1;
 
 	/* Height of this node (leaf = 0); -1 if !present. */
 	int8_t height;
 
-	/* Prefix length which all keys under this node have in common. */
-	uint8_t mlen;
+	/* Prefix length which all keys in this subtree have in common. */
+	uint8_t mlen_t;
+
+	/* Prefix length which all keys in this node have in common (LEAF). */
+	uint8_t mlen_n;
 
 	/**
 	 * Invariants on nodes and their parents:
@@ -120,10 +123,10 @@ struct node {
 		struct reading * reading;
 
 		/* N keys iff NODE_TYPE_PARENT. */
-		struct kvldskey ** keys;
+		const struct kvldskey ** keys;
 
 		/* N key-value pairs iff NODE_TYPE_LEAF. */
-		struct kvpair * pairs;
+		struct kvpair_const * pairs;
 	} u;
 
 	union {
@@ -146,6 +149,13 @@ struct node {
 	/* Have we read this page but not finished perfoming callbacks? */
 	int read_callbacks_pending;
 #endif
+
+	/*
+	 * Serialized page if node is CLEAN or SHADOW.  Keys and values
+	 * point into here.  (If DIRTY, keys and values point into SHADOW
+	 * nodes' serialized pages and/or into request structures.)
+	 */
+	uint8_t * pagebuf;
 };
 
 /**

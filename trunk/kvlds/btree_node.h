@@ -10,7 +10,7 @@
 
 /* Opaque types. */
 struct kvldskey;
-struct kvpair;
+struct kvpair_const;
 
 /**
  * btree_node_mknode(T, type, height, nkeys, keys, children, pairs):
@@ -20,7 +20,7 @@ struct kvpair;
  * then the key-value pairs are in ${pairs}.
  */
 struct node * btree_node_mknode(struct btree *, int, int, size_t,
-    struct kvldskey **, struct node **, struct kvpair *);
+    const struct kvldskey **, struct node **, struct kvpair_const *);
 #define btree_node_mkleaf(T, nkeys, pairs)			\
 	btree_node_mknode(T, NODE_TYPE_LEAF, 0, nkeys, NULL, NULL, pairs)
 #define btree_node_mkparent(T, height, nkeys, keys, children)	\
@@ -119,8 +119,8 @@ size_t btree_node_split_nparts(struct btree *, struct node *);
  * by btree_node_split_nparts).  Free the node ${N}.  On failure, return
  * with ${N} unmodified.
  */
-int btree_node_split(struct btree *, struct node *, struct kvldskey **,
-    struct node **, size_t *);
+int btree_node_split(struct btree *, struct node *,
+    const struct kvldskey **, struct node **, size_t *);
 
 /**
  * btree_node_merge(T, c_in, k_in, c_out, k_out, nsep):
@@ -129,7 +129,7 @@ int btree_node_split(struct btree *, struct node *, struct kvldskey **,
  * fails, copy the (unmodified) nodes c_in[0 .. nsep] to c_out[0 .. nsep]
  * and the separator keys k_in[0 .. nsep - 1] to k_out[0 .. nsep - 1].
  */
-int btree_node_merge(struct btree *, struct node **, struct kvldskey **,
-    struct node **, struct kvldskey **, size_t);
+int btree_node_merge(struct btree *, struct node **, const struct kvldskey **,
+    struct node **, const struct kvldskey **, size_t);
 
 #endif /* !_BTREE_NODE_H_ */

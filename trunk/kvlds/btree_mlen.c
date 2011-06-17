@@ -30,9 +30,9 @@ mlen_traverse(struct node * N, const struct kvldskey * start,
 
 	/* Store the matching prefix length for this node. */
 	if ((start == NULL) || (end == NULL))
-		N->mlen = 0;
+		N->mlen_t = 0;
 	else
-		N->mlen = kvldskey_mlen(start, end);
+		N->mlen_t = kvldskey_mlen(start, end);
 }
 
 /**

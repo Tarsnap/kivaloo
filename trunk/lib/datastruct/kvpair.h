@@ -8,6 +8,10 @@ struct kvpair {
 	struct kvldskey * k;
 	struct kvldskey * v;
 };
+struct kvpair_const {
+	const struct kvldskey * k;
+	const struct kvldskey * v;
+};
 
 /**
  * kvpair_cmp(cookie, x, y):

@@ -145,8 +145,8 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 
-	/* Test creating 1000000 key-value pairs. */
-	if (createmany(Q, 1000000))
+	/* Test creating 10000000 key-value pairs. */
+	if (createmany(Q, 10000000))
 		exit(1);
 
 	/* Free the request queue. */

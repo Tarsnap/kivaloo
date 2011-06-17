@@ -26,7 +26,7 @@
  *                    X    - Non-root parent node of height X.
  *                    0x80 - Root leaf node.
  *                    X    - Root parent node of height X - 0x80.
- *      9     1   Length of prefix shared by all keys under this node
+ *      9     1   Length of prefix shared by all keys in this subtree
  * if non-root:
  *     10   ???   DATA
  * if root:
@@ -64,24 +64,31 @@
  */
 
 /**
- * serialize(T, N, buf, buflen):
- * Serialize the node ${N} from the B+tree ${T} into the ${buflen}-byte page
- * buffer ${buf}, padding with zero bytes to the end of the buffer.  The
- * caller must ensure that the serialized page will fit in the provided
- * buffer.
+ * serialize(T, N, buflen):
+ * Serialize the dirty node ${N} into a newly allocated page buffer.  Adjust
+ * key and value pointers to point into this new buffer.
  */
-void
-serialize(struct btree * T, struct node * N, uint8_t * buf, size_t buflen)
+int
+serialize(struct btree * T, struct node * N, size_t buflen)
 {
 	size_t pagelen;
-	uint8_t * p = buf;
+	uint8_t * p;
 	size_t i;
+
+	/* Sanity check: This node should be dirty and have no page buffer. */
+	assert(N->state == NODE_STATE_DIRTY);
+	assert(N->pagebuf == NULL);
 
 	/* Get the page length.  This also sets N->pagelen. */
 	pagelen = serialize_size(N);
 
 	/* Sanity check: The page should fit into the buffer. */
 	assert(pagelen <= buflen);
+
+	/* Allocate a page buffer. */
+	if ((N->pagebuf = malloc(buflen)) == NULL)
+		goto err0;
+	p = N->pagebuf;
 
 	/* Copy magic. */
 	memcpy(p, "KVLDS\0", 6);
@@ -99,7 +106,7 @@ serialize(struct btree * T, struct node * N, uint8_t * buf, size_t buflen)
 	p += 1;
 
 	/* Write the matching prefix length. */
-	*p = N->mlen;
+	*p = N->mlen_t;
 	p += 1;
 
 	/* If this is a root, write the size of the tree. */
@@ -113,18 +120,21 @@ serialize(struct btree * T, struct node * N, uint8_t * buf, size_t buflen)
 		/* Write out the keys. */
 		for (i = 0; i < N->nkeys; i++) {
 			kvldskey_serialize(N->u.pairs[i].k, p);
+			N->u.pairs[i].k = (struct kvldskey *)p;
 			p += kvldskey_serial_size(N->u.pairs[i].k);
 		}
 
 		/* Write out the values. */
 		for (i = 0; i < N->nkeys; i++) {
 			kvldskey_serialize(N->u.pairs[i].v, p);
+			N->u.pairs[i].v = (struct kvldskey *)p;
 			p += kvldskey_serial_size(N->u.pairs[i].v);
 		}
 	} else {
 		/* Write out the keys. */
 		for (i = 0; i < N->nkeys; i++) {
 			kvldskey_serialize(N->u.keys[i], p);
+			N->u.keys[i] = (struct kvldskey *)p;
 			p += kvldskey_serial_size(N->u.keys[i]);
 		}
 
@@ -148,10 +158,17 @@ serialize(struct btree * T, struct node * N, uint8_t * buf, size_t buflen)
 	}
 
 	/* Sanity-check: Make sure we computed the size correctly. */
-	assert(p == buf + pagelen);
+	assert(p == N->pagebuf + pagelen);
 
 	/* Zero the remaining space. */
 	memset(p, 0, buflen - pagelen);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /**
@@ -162,8 +179,8 @@ serialize(struct btree * T, struct node * N, uint8_t * buf, size_t buflen)
 int
 deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 {
-	const uint8_t * p = buf;
-	size_t i, klen;
+	uint8_t * p;
+	size_t i;
 
 	/*
 	 * Clear errno; we will use it to distinguish between internal errors
@@ -177,6 +194,12 @@ deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 	 */
 	assert(N->type == NODE_TYPE_READ);
 	assert(N->state == NODE_STATE_CLEAN);
+
+	/* Copy the serialized page. */
+	if ((N->pagebuf = malloc(buflen)) == NULL)
+		goto err0;
+	memcpy(N->pagebuf, buf, buflen);
+	p = N->pagebuf;
 
 	/* Check magic. */
 	if (buflen < 6)
@@ -206,7 +229,7 @@ deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 	p += 1; buflen -= 1;
 
 	/* Parse matching prefix length. */
-	N->mlen = p[0];
+	N->mlen_t = p[0];
 	p += 1; buflen -= 1;
 
 	/* Skip root data if appropriate. */
@@ -218,29 +241,37 @@ deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 	/* Parse node data. */
 	if (N->type == NODE_TYPE_LEAF) {
 		/* Allocate array of key-value pairs. */
-		if (IMALLOC(N->u.pairs, N->nkeys, struct kvpair))
+		if (IMALLOC(N->u.pairs, N->nkeys, struct kvpair_const))
 			goto err1;
-
-		/* Initialize to NULL to simplify error path. */
-		for (i = 0; i < N->nkeys; i++)
-			N->u.pairs[i].k = N->u.pairs[i].v = NULL;
 
 		/* Parse keys. */
 		for (i = 0; i < N->nkeys; i++) {
-			if ((klen = kvldskey_unserialize(&N->u.pairs[i].k,
-			    p, buflen)) == 0)
+			if (buflen == 0)
 				goto err2;
-			p += klen;
-			buflen -= klen;
+			N->u.pairs[i].k = (struct kvldskey *)p;
+			if (buflen < kvldskey_serial_size(N->u.pairs[i].k))
+				goto err2;
+			p += kvldskey_serial_size(N->u.pairs[i].k);
+			buflen -= kvldskey_serial_size(N->u.pairs[i].k);
 		}
 
 		/* Parse values. */
 		for (i = 0; i < N->nkeys; i++) {
-			if ((klen = kvldskey_unserialize(&N->u.pairs[i].v,
-			    p, buflen)) == 0)
+			if (buflen == 0)
 				goto err2;
-			p += klen;
-			buflen -= klen;
+			N->u.pairs[i].v = (struct kvldskey *)p;
+			if (buflen < kvldskey_serial_size(N->u.pairs[i].v))
+				goto err2;
+			p += kvldskey_serial_size(N->u.pairs[i].v);
+			buflen -= kvldskey_serial_size(N->u.pairs[i].v);
+		}
+
+		/* Figure out how far the keys match. */
+		if (N->nkeys > 0) {
+			N->mlen_n = kvldskey_mlen(N->u.pairs[0].k,
+			    N->u.pairs[N->nkeys - 1].k);
+		} else {
+			N->mlen_n = 255;
 		}
 
 		/* Make sure that the rest of the page is zeros. */
@@ -251,20 +282,18 @@ deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 		}
 	} else {
 		/* Allocate array of keys. */
-		if (IMALLOC(N->u.keys, N->nkeys, struct kvldskey *))
+		if (IMALLOC(N->u.keys, N->nkeys, const struct kvldskey *))
 			goto err1;
-
-		/* Initialize keys to NULL to simplify error path. */
-		for (i = 0; i < N->nkeys; i++)
-			N->u.keys[i] = NULL;
 
 		/* Parse keys. */
 		for (i = 0; i < N->nkeys; i++) {
-			if ((klen = kvldskey_unserialize(&N->u.keys[i],
-			    p, buflen)) == 0)
+			if (buflen == 0)
 				goto err3;
-			p += klen;
-			buflen -= klen;
+			N->u.keys[i] = (struct kvldskey *)p;
+			if (buflen < kvldskey_serial_size(N->u.keys[i]))
+				goto err3;
+			p += kvldskey_serial_size(N->u.keys[i]);
+			buflen -= kvldskey_serial_size(N->u.keys[i]);
 		}
 
 		/* Allocate array of children. */
@@ -285,7 +314,8 @@ deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 				goto err4;
 			N->v.children[i]->p_shadow =
 			    N->v.children[i]->p_dirty = N;
-			p += SERIALIZE_PERCHILD; buflen -= SERIALIZE_PERCHILD;
+			p += SERIALIZE_PERCHILD;
+			buflen -= SERIALIZE_PERCHILD;
 		}
 
 		/* Make sure that the rest of the page is zeros. */
@@ -309,19 +339,14 @@ err4:
 	N->v.children = NULL;
 
 err3:
-	for (i = 0; i < N->nkeys; i++)
-		kvldskey_free(N->u.keys[i]);
 	free(N->u.keys);
 	N->u.keys = NULL;
+	goto err1;
 
 	/*
 	 * LEAF parsing error handling path.
 	 */
 err2:
-	for (i = 0; i < N->nkeys; i++) {
-		kvldskey_free(N->u.pairs[i].v);
-		kvldskey_free(N->u.pairs[i].k);
-	}
 	free(N->u.pairs);
 	N->u.pairs = NULL;
 
@@ -329,11 +354,13 @@ err2:
 	 * LEAF+PARENT merged error handling path.
 	 */
 err1:
+	free(N->pagebuf);
+	N->pagebuf = NULL;
 	if (errno != 0)
 		warnp("Error parsing page");
 	else
 		warn0("Invalid page read");
-
+err0:
 	/* Failure! */
 	return (-1);
 }

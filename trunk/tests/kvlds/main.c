@@ -356,7 +356,7 @@ verify(struct wire_requestqueue * Q,
 		goto err0;
 	};
 	if (op_badval) {
-		warnp("Bad value returned by GET!");
+		warn0("Bad value returned by GET!");
 		goto err0;
 	}
 
@@ -541,7 +541,7 @@ createmany(struct wire_requestqueue * Q, size_t N)
 		return (-1);
 	};
 	if (op_badval) {
-		warnp("Bad value returned by GET!");
+		warn0("Bad value returned by GET!");
 		return (-1);
 	}
 

@@ -2,8 +2,10 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "events.h"
+#include "imalloc.h"
 #include "proto_lbs.h"
 #include "warnp.h"
 
@@ -20,9 +22,6 @@ struct write_cookie {
 
 	/* The B+Tree. */
 	struct btree * T;
-
-	/* Buffer containing serialized pages. */
-	uint8_t * buf;
 };
 
 static int callback_append(void *, int, int, uint64_t);
@@ -49,21 +48,22 @@ ndirty(struct node * N)
 }
 
 /* Serialize the dirty nodes in a (sub)tree. */
-static void
+static int
 serializetree(struct btree * T, struct node * N, size_t pagelen,
-    uint64_t nextblk, uint8_t * buf, uint64_t * pn)
+    uint64_t nextblk, const uint8_t ** bufv, uint64_t * pn)
 {
 	size_t i;
 
 	/* If this node is not dirty, return immediately. */
 	if (N->state != NODE_STATE_DIRTY)
-		return;
+		return (0);
 
 	/* If this node has children, serialize them first. */
 	if (N->type == NODE_TYPE_PARENT) {
 		for (i = 0; i <= N->nkeys; i++)
-			serializetree(T, N->v.children[i], pagelen, nextblk,
-			    buf, pn);
+			if (serializetree(T, N->v.children[i], pagelen,
+			    nextblk, bufv, pn))
+				goto err0;
 	}
 
 	/* Record this node's page number. */
@@ -81,9 +81,17 @@ serializetree(struct btree * T, struct node * N, size_t pagelen,
 		}
 	}
 
-	/* Serialize the page. */
-	serialize(T, N, buf + pagelen * (*pn), pagelen);
-	(*pn) += 1;
+	/* Serialize the page and record the page pointer. */
+	if (serialize(T, N, pagelen))
+		goto err0;
+	bufv[(*pn)++] = N->pagebuf;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /* Mark all dirty nodes in a (sub)tree as clean. */
@@ -191,6 +199,7 @@ btree_sync(struct btree * T, int (* callback)(void *), void * cookie)
 {
 	struct write_cookie * WC;
 	size_t npages;
+	const uint8_t ** bufv;
 	uint64_t pn = 0;
 
 	/* Bake a cookie. */
@@ -203,32 +212,33 @@ btree_sync(struct btree * T, int (* callback)(void *), void * cookie)
 	/* Figure out how many pages we need to write. */
 	npages = ndirty(T->root_dirty);
 
-	/* Allocate space for the serialized pages. */
-	if (npages > SIZE_MAX / T->pagelen) {
-		errno = ENOMEM;
-		goto err1;
-	}
-	if ((WC->buf = malloc(npages * T->pagelen)) == NULL)
+	/* Allocate a vector to hold pointers to pages. */
+	if (IMALLOC(bufv, npages, const uint8_t *))
 		goto err1;
 
-	/* Serialize the pages into the buffer. */
-	serializetree(T, T->root_dirty, T->pagelen, T->nextblk, WC->buf, &pn);
+	/* Serialize pages and record pointers into the vector. */
+	if (serializetree(T, T->root_dirty, T->pagelen, T->nextblk,
+	    bufv, &pn))
+		goto err2;
 
 	/* Sanity check the number of pages serialized. */
 	assert(pn == npages);
 
 	/* Write pages out. */
-	if (proto_lbs_request_append(T->LBS, npages, T->nextblk, T->pagelen,
-	    WC->buf, callback_append, WC)) {
+	if (proto_lbs_request_append_blks(T->LBS, npages, T->nextblk,
+	    T->pagelen, bufv, callback_append, WC)) {
 		warnp("Error writing pages");
 		goto err2;
 	}
+
+	/* Free the page pointers vector. */
+	free(bufv);
 
 	/* Success! */
 	return (0);
 
 err2:
-	free(WC->buf);
+	free(bufv);
 err1:
 	free(WC);
 err0:
@@ -268,7 +278,6 @@ callback_append(void * cookie, int failed, int status, uint64_t blkno)
 	return (0);
 
 err1:
-	free(WC->buf);
 	free(WC);
 
 	/* Failure! */
@@ -317,15 +326,13 @@ callback_unshadow(void * cookie)
 	if (!events_immediate_register(WC->callback, WC->cookie, 0))
 		goto err1;
 
-	/* Free buffer and cookie. */
-	free(WC->buf);
+	/* Free cookie. */
 	free(WC);
 
 	/* Success! */
 	return (0);
 
 err1:
-	free(WC->buf);
 	free(WC);
 
 	/* Failure! */

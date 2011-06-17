@@ -18,7 +18,6 @@ kvldskey_create(const uint8_t * buf, size_t len)
 	/* Allocate structure. */
 	if ((K = malloc(sizeof(struct kvldskey) + len)) == NULL)
 		goto err0;
-	K->refcnt = 1;
 
 	/* Copy data. */
 	K->len = len;
@@ -33,23 +32,6 @@ err0:
 }
 
 /**
- * kvldskey_serialize(K, buf):
- * Serialize ${K} into the buffer ${buf}.
- */
-void
-kvldskey_serialize(const struct kvldskey * K, uint8_t * buf)
-{
-	uint8_t * p = buf;
-
-	/* Key length. */
-	*p = K->len;
-	p += 1;
-
-	/* Key data. */
-	memcpy(p, K->buf, K->len);
-}
-
-/**
  * kvldskey_unserialize(K, buf, buflen):
  * Deserialize ${K} from the ${buflen}-byte buffer ${buf} and return the
  * number of bytes consumed.  Return 0 on error or if the buffer does not
@@ -59,33 +41,22 @@ kvldskey_serialize(const struct kvldskey * K, uint8_t * buf)
 size_t
 kvldskey_unserialize(struct kvldskey ** K, const uint8_t * buf, size_t buflen)
 {
-	const uint8_t * p = buf;
 	size_t len;
 
 	/* Length. */
 	if (buflen < 1)
 		goto err1;
-	len = p[0];
-	p += 1;
-	buflen -= 1;
+	if (buflen < (len = (size_t)(buf[0]) + 1))
+		goto err1;
 
-	/* Allocate structure. */
-	if ((*K = malloc(sizeof(struct kvldskey) + len)) == NULL)
+	/* Allocate structure and copy data. */
+	if ((*K = malloc(len)) == NULL)
 		goto err0;
-	(*K)->refcnt = 1;
-	(*K)->len = len;
-
-	/* Copy key data. */
-	if (buflen < len)
-		goto err2;
-	memcpy((*K)->buf, p, len);
-	p += len;
+	memcpy(*K, buf, len);
 
 	/* Success! */
-	return (p - buf);
+	return (len);
 
-err2:
-	free(*K);
 err1:
 	errno = 0;
 err0:
@@ -101,26 +72,8 @@ err0:
 int
 kvldskey_cmp(const struct kvldskey * x, const struct kvldskey * y)
 {
-	int rc;
-	size_t xlen = x->len;
-	size_t ylen = y->len;
-	const uint8_t * xbuf = x->buf;
-	const uint8_t * ybuf = y->buf;
 
-	do {
-		if ((xlen | ylen) == 0)
-			return (0);
-		else if (xlen == 0)
-			return (-1);
-		else if (ylen == 0)
-			return (1);
-
-		if ((rc = *xbuf - *ybuf) != 0)
-			return (rc);
-
-		xlen--; xbuf++;
-		ylen--; ybuf++;
-	} while (1);
+	return (kvldskey_cmp2(x, y, 0));
 }
 
 /**
@@ -133,26 +86,14 @@ int
 kvldskey_cmp2(const struct kvldskey * x, const struct kvldskey * y,
     size_t mlen)
 {
+	size_t minlen = (x->len < y->len) ? x->len : y->len;
 	int rc;
-	size_t xlen = x->len - mlen;
-	size_t ylen = y->len - mlen;
-	const uint8_t * xbuf = x->buf + mlen;
-	const uint8_t * ybuf = y->buf + mlen;
 
-	do {
-		if ((xlen | ylen) == 0)
-			return (0);
-		else if (xlen == 0)
-			return (-1);
-		else if (ylen == 0)
-			return (1);
-
-		if ((rc = *xbuf - *ybuf) != 0)
+	for (; mlen < minlen; mlen++) {
+		if ((rc = x->buf[mlen] - y->buf[mlen]) != 0)
 			return (rc);
-
-		xlen--; xbuf++;
-		ylen--; ybuf++;
-	} while (1);
+	}
+	return (x->len - y->len);
 }
 
 /**
@@ -188,24 +129,4 @@ kvldskey_mlen(const struct kvldskey * x, const struct kvldskey * y)
 
 	/* Return the matching length. */
 	return (mlen);
-}
-
-/**
- * kvldskey_free(K):
- * Decrement the reference count of ${K} and free ${K} if it becomes zero.
- */
-void
-kvldskey_free(struct kvldskey * K)
-{
-
-	/* Be compatible with free(NULL). */
-	if (K == NULL)
-		return;
-
-	/* Decrement reference count. */
-	K->refcnt -= 1;
-
-	/* Free key structure if it has no references. */
-	if (K->refcnt == 0)
-		free(K);
 }

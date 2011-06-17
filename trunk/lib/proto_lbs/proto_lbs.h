@@ -30,6 +30,21 @@ int proto_lbs_request_get(struct wire_requestqueue *, uint64_t, size_t,
     int (*)(void *, int, int, const uint8_t *), void *);
 
 /**
+ * proto_lbs_request_append_blks(Q, nblks, blkno, blklen, bufv,
+ *     callback, cookie):
+ * Send an APPEND request to write ${nblks} ${blklen}-byte blocks, starting
+ * at position ${blkno}, with data from ${bufv[0]} ... ${bufv[nblks - 1]} to
+ * the request queue ${Q}.  Invoke
+ *    ${callback}(${cookie}, failed, status, blkno)
+ * upon request completion, where failed is 0 on success and 1 on failure,
+ * status is 0 if the append completed and 1 otherwise, and blkno is the
+ * next available block number. 
+ */
+int proto_lbs_request_append_blks(struct wire_requestqueue *,
+    uint32_t, uint64_t, size_t, const uint8_t * const *,
+    int (* callback)(void *, int, int, uint64_t), void *);
+
+/**
  * proto_lbs_request_append(Q, nblks, blkno, blklen, buf, callback, cookie):
  * Send an APPEND request to write ${nblks} ${blklen}-byte blocks, starting
  * at position ${blkno}, with data from ${buf} to the request queue ${Q}.

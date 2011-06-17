@@ -1,0 +1,6 @@
+To build and install kivaloo, run:
+# make BINDIR=/path/to/target/directory install
+
+Kivaloo should build and run on any IEEE Std 1003.1 (POSIX) compliant system
+which includes the Software Development Utilities and Threads options.  If it
+doesn't, this is a bug -- please report it!

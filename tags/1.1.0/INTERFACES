@@ -1,0 +1,195 @@
+Kivaloo daemon interfaces
+-----------------------
+
+Kivaloo components communicate via sockets (either UNIX domain sockets or TCP
+sockets) using a request-response wire protocol supporting out-of-order
+replies.  The protocol uses CRCs to provide some error-detection, but has no
+encryption, authentication, or authorization mechanisms; if required, these
+should be handled externally.
+
+Wire protocol
+-------------
+
+Connections between components carry packets of the form:
+[8 byte request ID]
+[4 byte record length]
+[4 byte CRC of first 12 bytes]
+[record]
+[(4 byte CRC of record) xor (4 byte CRC of first 12 bytes)]
+
+The 8 byte request ID is arbitrary; the header and data depend on the type of
+request or response.  Responses can be sent back out-of-order; the requestor
+is responsible for ensuring that the request IDs are unique in order to be
+able to match up responses with requests.
+
+The CRC function is the 32-bit CRC computed using the Castagnoli polynomial
+0x11EDC6F41 such that 1[data][CRC], with the bit order of [CRC] and [data]
+reversed, is a multiple of the polynomial.  The leading 1 bit ensures that
+0{32} is not the CRC of 0*, and the xoring of header and record CRCs makes it
+possible to detect certain other error types (e.g., if a packet has the
+header from one packet and the record from a different packet).
+
+Request records start with a 4 byte request type number.  All integers are
+big-endian unless specified otherwise.
+
+Block store interface
+---------------------
+
+PARAMS:	Request type = 0x00000000
+
+	Request:
+	[4 byte request type]
+
+	Response:
+	[4 byte block size]
+	[8 byte next block #]
+
+GET:	Request type = 0x00000001
+
+	Request:
+	[4 byte request type]
+	[8 byte block number]
+
+	Response if block exists:
+	[4 byte status code = 0]
+	[1 block of data]
+
+	Response if block does not exist:
+	[4 byte status code = 1]
+
+APPEND:	Request type = 0x00000002
+
+	Request:
+	[4 byte request type]
+	[4 byte number of blocks]
+	[8 byte starting block #]
+	[1 or more blocks of data]
+
+	Response if the starting block # is correct:
+	[4 byte status code = 0]
+	[8 byte next block #]
+
+	Response if the starting block # is incorrect:
+	[4 byte status code = 1]
+
+FREE:	Request type = 0x00000003
+
+	Request:
+	[4 byte request type]
+	[8 byte first block # to keep]
+
+	Response:
+	[4-byte status code = 0]
+
+Key-value data store interface
+------------------------------
+
+PARAMS:	Request type = 0x00000100
+
+	Request:
+	[4 byte request type]
+
+	Response:
+	[4 byte maximum key length]
+	[4 byte maximum value length]
+
+SET:	Request type = 0x00000110
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[1 byte value length][X byte value]
+
+	Response (value set):
+	[4 byte status code = 0]
+
+CAS:	Request type = 0x00000111
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[1 byte oval length][X byte oval]
+	[1 byte value length][X byte value]
+
+	Response (value set):
+	[4 byte status code = 0]
+
+	Response (value not set):
+	[4 byte status code = 1]
+
+ADD:	Request type = 0x00000112
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[1 byte value length][X byte value]
+
+	Response (value set):
+	[4 byte status code = 0]
+
+	Response (value not set):
+	[4 byte status code = 1]
+
+MODIFY:	Request type = 0x00000113
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[1 byte value length][X byte value]
+
+	Response (value set):
+	[4 byte status code = 0]
+
+	Response (value not set):
+	[4 byte status code = 1]
+
+DELETE:	Request type = 0x00000120
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+
+	Response:
+	[4 byte status code = 0]
+
+CAD:	Request type = 0x00000121
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[1 byte oval length][X byte oval]
+
+	Response (value deleted):
+	[4 byte status code = 0]
+
+	Response (value not deleted):
+	[4 byte status code = 1]
+
+GET:	Request type = 0x00000130
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+
+	Response (value present):
+	[4 byte status code = 0]
+	[1 byte value length][X byte value]
+
+	Response (value not present):
+	[4 byte status code = 1]
+
+RANGE:	Request type = 0x00000131
+
+	Request:
+	[4 byte request type]
+	[4 byte maximum total size of returned key-value pairs]
+	[1 byte start length][X byte start]
+	[1 byte end length][X byte end]
+
+	Response:
+	[4 byte status code = 0]
+	[4 byte number of returned key-value pairs]
+	[1 byte next length][X byte next]
+	[1 byte key length][X byte key][1 byte value length][X byte value]
+	...
+	[1 byte key length][X byte key][1 byte value length][X byte value]

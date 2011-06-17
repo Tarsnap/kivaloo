@@ -1,0 +1,63 @@
+LBS design
+==========
+
+The lbs block store is invoked as
+
+# kivaloo-lbs -s <lbs socket> -d <storage dir> -b <block size> [-1] [-L]
+      [-n <# of readers>] [-p <pidfile>] [-l <extra read latency in ns>]
+
+It creates a socket <lbs socket> on which it listens for incoming connections
+and accepts one at a time.  It stores data in files under the directory
+<storage dir>, using aligned I/Os of size <block size> or multiples thereof.
+At most one APPEND operation and at most one FREE operation will be performed
+at a time; but an unlimited number of GET operations may be pending and as
+many as <# of readers> will be performed simultaneously.  The process ID will
+be written to <pidfile> or to <lbs socket>.pid if the -p option is not
+specified.  (Note that if <lbs socket> is IP:port or hostname:port rather
+than an absolute path, the default pid file will be in the current directory.)
+
+As debugging aids, the -1 option will cause lbs to exit after handling a
+single connection; the -l option will cause lbs read operations to sleep the
+specified duration before returning results; and the -L option will cause lbs
+to operate in data-loss mode, i.e., without using fsync.
+
+Overview
+--------
+
+LBS works with a hybrid events/threaded model.  A master thread runs in an
+event loop to handle communication, but hands off potentially-blocking disk
+operations to worker threads -- one thread for APPEND operations, one thread
+for FREE operations, and multiple threads for READ operations.  When a worker
+thread has completed an operation, it wakes up the master thread, which sends
+a reponse to the client and schdules more work for the thread (if there is
+work queued awaiting an available thread).
+
+The standard pthreads routines are used for thread management and locking:
+pthread_thread_create for creating threads, pthread_mutex_(lock|unlock) for
+controlling access to a thread's control data; pthread_cond_(wait|signal) for
+waking up a thread when it has work to do; and pthread_rwlock_(rd|wr|un)lock
+for controlling access to back-end storage state (i.e., information about
+which blocks are stored in which files).
+
+Code structure
+--------------
+
+main.c		-- Processes command line, creates a listening socket,
+		   daemonizes, accepts one connection at once, and runs the
+		   event loop.
+dispatch.c	-- Reads requests from a connection and drops the connection
+		   if one cannot be read.
+dispatch_request.c
+		-- Handles request packets, either sending a response back
+		   immediately or handing the request off to a worker thread.
+dispatch_response.c
+		-- Sends responses after worker threads finish work.
+worker.c	-- Creates, assigns work to, runs, and returns work completed
+		   by worker threads.
+storage.c	-- Back-end work management: Map block read/write/free to
+		   operations on files.
+storage_findfiles.c
+		-- Look through the storage directory and return a list of
+		   block file names and sizes.  (Initialization only.)
+storage_util.c	-- Utility functions for storage.c.
+disk.c		-- Reads and writes files, and fsyncs directories.

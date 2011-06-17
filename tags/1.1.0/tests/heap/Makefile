@@ -1,0 +1,20 @@
+PROG=	test_heap
+SRCS=	main.c
+
+.PATH	:	../../lib/datastruct
+SRCS	+=	ptrheap.c
+SRCS	+=	elasticarray.c
+IDIRS	+=	-I ../../lib/datastruct
+
+test:	test_heap
+	@echo -n "Heapsorting main.c..."
+	@./test_heap < main.c > main.c.sorted
+	@if sort < main.c | cmp - main.c.sorted; then	\
+		echo " PASSED!";			\
+		rm main.c.sorted;			\
+	else						\
+		echo " FAILED!";			\
+	fi
+
+.include <bsd.prog.mk>
+

@@ -1,0 +1,36 @@
+MUX design
+==========
+
+The request multiplexer is invoked as
+
+# kivaloo-mux -t <target socket> -s <source socket> [-s <source socket> ...]
+      [-n <max # connections>] [-p <pidfile>]
+
+It creates socket(s) at the addresses <source socket> on which it listens for
+incoming connections.  It opens a single connection to <target socket> and
+forwards requests and responses back and forth.
+
+No attempt is made to confirm that requests are appropriate for the service
+being connected to or even that requests are valid; the user is responsible
+for ensuring this.  If the target service closes the connection from the
+multiplexer (e.g., if an invalid request is sent) then the multiplexer will
+exit (thus closing all the connections it has accepted).
+
+The other options are:
+  -n <max # connections>
+	Accept up to <max # connections> connections at once.  Defaults to an
+	unlimited number of connections.
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <source socket>.pid based on the first '-s <source socket>' option
+	specified.  (Note that if <kvlds socket> is not an absolute path, the
+	default pid file location is in the current directory.)
+
+Code structure
+--------------
+
+main.c		-- Processes command line, connects to the target, creates
+		   listening sockets, daemonizes, and runs the event loop.
+dispatch.c	-- Accepts incoming connections, reads requests from them,
+		   forwards requests to the target, reads responses, and
+		   sends the responses back over the appropriate connection.

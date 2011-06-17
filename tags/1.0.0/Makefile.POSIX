@@ -1,0 +1,53 @@
+.POSIX:
+
+PROGS=		lbs kvlds mux
+BENCH=		bench/mkpairs bench/bulk_insert bench/bulk_update \
+		bench/bulk_extract bench/hotspot_read bench/random_read \
+		bench/random_mixed
+BINDIR_DEFAULT=	/usr/local/bin
+CFLAGS_DEFAULT=	-O2
+
+all:
+	if [ -z "${CFLAGS}" ]; then			\
+		CFLAGS=${CFLAGS_DEFAULT};		\
+	else						\
+		CFLAGS="${CFLAGS}";			\
+	fi;						\
+	for D in ${PROGS} ${BENCH}; do		\
+		( cd $${D} && make CFLAGS="$${CFLAGS}" all ) || exit 2;	\
+	done
+
+install:
+	if [ -z "${CFLAGS}" ]; then			\
+		CFLAGS=${CFLAGS_DEFAULT};		\
+	else						\
+		CFLAGS="${CFLAGS}";			\
+	fi;						\
+	if [ -z "${BINDIR}" ]; then			\
+		BINDIR=${BINDIR_DEFAULT};		\
+	else						\
+		BINDIR="${BINDIR}";			\
+	fi;						\
+	for D in ${PROGS}; do				\
+		( cd $${D} && make BINDIR="$${BINDIR}" CFLAGS="$${CFLAGS}" install ) || exit 2;	\
+	done
+
+install-bench:
+	if [ -z "${CFLAGS}" ]; then			\
+		CFLAGS=${CFLAGS_DEFAULT};		\
+	else						\
+		CFLAGS="${CFLAGS}";			\
+	fi;						\
+	if [ -z "${BINDIR}" ]; then			\
+		BINDIR=${BINDIR_DEFAULT};		\
+	else						\
+		BINDIR="${BINDIR}";			\
+	fi;						\
+	for D in ${BENCH}; do				\
+		( cd $${D} && make BINDIR="$${BINDIR}" CFLAGS="$${CFLAGS}" install ) || exit 2;	\
+	done
+
+clean:
+	for D in ${PROGS} ${BENCH}; do		\
+		( cd $${D} && make clean ) || exit 2;	\
+	done

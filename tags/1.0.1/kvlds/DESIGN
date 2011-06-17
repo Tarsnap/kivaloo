@@ -1,0 +1,237 @@
+KVLDS design
+============
+
+The kvlds log-structured key-value store is invoked as
+
+# kivaloo-kvlds -s <kvlds socket> -l <lbs socket> [-C <npages> | -c <pagemem>]
+      [-k <max key length>] [-v <max value length>] [-p <pidfile>]
+      [-S <storage:I/O cost ratio>] [-w <commit delay time>]
+      [-g <min forced commit size>] [-1]
+
+It creates a socket at the address <kvlds socket> on which it listens for
+incoming connections and accepts one at a time.  It connects to a block store
+at the address <lbs socket> and uses that for backing storage.  These socket
+addresses may be expressed in the form hostname:port (if the hostname resolves
+to multiple addresses, only the first will be listened on), [ip]:port, or
+/path/to/unix/socket.
+
+The other options are:
+  -C <npages>
+	Hold up to <npages> B+Tree nodes in RAM at once.  May not be
+	specified if -c <pagemem> is specified.
+  -c <pagemem>
+	Hold <pagemem> / <page size> B+Tree nodes in RAM at once.  May not be
+	specified if -C <npages> is specified.  Defaults to -c 128M.  Note
+	that the total RAM used may exceed the -c option by as much as a
+	factor of 2 depending on the memory allocator used and the average
+	key and value lengths.
+  -k <max key length>
+	Reject an attempt to write keys longer than <max key length> bytes.
+	Defaults to -k 64, -k 128, or -k 255 for block sizes of 512+,
+	1024+, and 2048+ respectively.
+  -v <max value length>
+	Reject an attempt to store values longer than <max value length>
+	bytes.  Defaults to -v 96, -v 192, or -v 255 for block sizes of
+	512+, 1024+, and 2048+ respectively.
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <kvlds socket>.pid.  (Note that if <kvlds socket> is not an
+	absolute path, the default pid file location is in the current
+	directory.)
+  -S <storage:I/O cost ratio>
+	Cost of one GB-month of storage divided by the cost of 10^6 I/Os.
+	Used to control how aggressive the background log cleaner is.  Good
+	values range from 0.08 (3 TB SATA with 100 random I/Os per second)
+	up to 1600 (40 GB SSD with 25k random I/Os per second).  Setting
+	-S 0 disables background log cleaning.  Defaults to 1.0 (which is a
+	good value for Amazon EBS).
+  -w <commit delay time>
+	Wait up to <commit delay time> seconds before triggering a group
+	commit.  This may be useful in cases where block store writes are
+	expensive.  Defaults to -w 0.
+  -g <min forced commit size>
+	Force a group commit when <min forced commit size> operations are
+	pending even if the commit delay timer hasn't expired.  This can be
+	used to obtain high performance bulk writes despite the -w option.
+  -1
+	Exit after handling one connection.
+
+Definitions
+-----------
+
+* A "node" is a B+Tree node.
+* A "page" is the serialization of a node.
+* A "block" is the storage into which a page is written.
+
+Balancing conditions
+--------------------
+
+We use relaxed balancing conditions in order to reduce the frequency with
+which nodes are split and joined.  We claim without proof that this provides
+a worst-case amortized number of rebalancing operations per request within a
+constant factor of the average case, in contrast to standard B+tree balancing
+conditions which can result in rebalancing being required after every
+operation.
+
+1. A parent has at least one child.  (In a normal B+Tree, there is usually a
+   higher occupancy required.)
+2. A non-leaf root has at least two children.  (As with normal B+Trees.)
+3. The serialization of any node is at most equal to the block size.  (As
+   with normal B+Trees.)
+4. Any pair of adjacent children of a parent node, if merged, would produce a
+   node with serialized size greater than 2/3 of the LBS block size.  (In
+   a normal B+Tree there is a minimum occupancy ratio for each individual
+   node.)
+
+Note that a leaf node may be empty (but will usually end up being merged with
+an adjacent node before long).
+
+Key/value size bounds
+---------------------
+
+In order for the node-splitting algorithm (in btree_node_split.c) to work,
+we require that adding another key-value pair to a node which is below the
+split threshold (pagelen * 2/3) will not take it above the maximum size;
+i.e., that
+  serialized key length + serialized value length <= pagelen / 3
+
+If a parent node with 3 maximum-length keys (and 4 children) has serialized
+size at most 2/3 of the LBS block size, then the number of non-overlapping
+pairs of adjacent parent nodes doubles at each level (each pair of adjacent
+parent nodes must have at least 5 children in total between them forming two
+non-overlapping pairs).  Any lesser bound is not sufficient to guarantee that
+the tree will have logarithmic height; consequently we require
+  serialized key length
+      <= (pagelen * 2/3 - overhead - 4 * serialized child pointer length) / 3
+
+Some reasonable combinations of page sizes and maximum key/value lengths:
+
+  Block size    Key length    Value length
+  ----------    ----------    ------------
+      512           32             128
+      512           64             96
+     1024           64             255
+     1024          128             192
+     2048+         255             255
+
+Log-structured B+Tree
+---------------------
+
+Following standard practice for log-structured B+Trees, kvlds uses COW
+(copy-on-write) semantics.  When a modifying request affects a node for the
+first time, the node and its ancestors are "dirtied": The existing nodes are
+marked as "shadow", and newly created copies is marked as "dirty".
+
+While modifying requests are being processed, there are two overlapping trees:
+The "shadow tree" and the "dirty tree".  After a batch of modifying requests
+have been processed, dirty nodes are written out to the block store and then
+marked as clean; shadow nodes are freed.
+
+Non-modifying requests are performed within the shadow tree (i.e., on the
+most recent *committed* data).
+
+Node locking
+------------
+
+A subset of the dirty and shadow trees is kept in RAM.  Nodes can be locked
+into RAM; those which are not locked may be evicted when a new node is
+allocated or loaded from the backing storage.
+
+Nodes are locked:
+* If they are roots.
+* If they are not clean.
+* If they have paged-in children.
+* If they are clean leaf nodes owned by the log cleaner.
+* If they are owned by the modifying-request processing code.
+* If there is a btree_node_descend call in progress on the node.
+
+Note that btree_node_descend calls "complete" (in the sense of invoking their
+callbacks) via priority 0 immediate events once the node in question is paged
+in; so if a priority 1+ immediate event is run and a node is paged in, said
+node is guaranteed to not have any in-progress btree_node_descend calls.
+
+Tree dancing
+------------
+
+KVLDS performs B+Tree operations in batches, rebalancing after each batch
+before syncing.  This extends the widely-used "group commit" method and
+improves performance in the context of non-zero latency disk operations, but
+makes the rebalancing more complex.
+
+Define: A node is *splittable* if it has serialized size greater than the LBS
+block size.
+Define: A series of adjacent nodes x[0]..x[i-1] with the same parent are
+*mergable* if merging them would produce a node with serialized size at most
+2/3 of the LBS block size.
+
+The algorithm used for rebalancing is as follows:
+1. Split: Traverse the dirty subtree in depth-first postorder, splitting any
+   nodes which are splittable.  (If the root needs to be split, add a new
+   root.)
+2. Merge: Traverse the dirty subtree in depth-first postorder, merging any
+   mergable sets of nodes to create a new DIRTY node.  If a (non newly
+   created) DIRTY node has no DIRTY children, mark it as MERGED.
+3. If the root node is not marked as MERGED, goto 2.
+4. Deroot: While the tree root is a parent with only one child, delete the
+   root and promote the child to roothood.
+
+If a tree starts out satisfying the balacing conditions, has key-value pairs
+added/modified/deleted in its leaf nodes, and then is rebalanced, it will end
+up satisfying the balancing conditions:
+1. Modifying leaf nodes does not affect parent nodes; Split and Deroot
+   never reduce the number of children of a parent node; and Merge will never
+   reduce the number of children below 1.
+2. Deroot restores this condition, and is the last step.
+3. In the Split stage, the only time a node size increases is when one of
+   its children is split.  Because we operate in depth-first postorder, nodes
+   are considered for splitting after the last time (in the Split stage)
+   when their size might be increased; hence after the end of the Split
+   stage, this condition is satisfied.
+   In the Merge stages, we never merge nodes if it would create a new node
+   larger than 2/3 of the LBS block size; thus we will not cause this
+   condition to be violated.
+   The Deroot stage does not increase the size of a node, and thus cannot
+   cause this condition to be violated.
+4. Any mergable nodes after a Merge stage has been performed will be children
+   of a newly created node.  Said node will be DIRTY; so its ancestors up to
+   the root will be DIRTY; and it will be visited on the next Merge pass and
+   the mergable nodes will be merged.  Thus this condition will be satisfied
+   at the end of step 3.
+   The Deroot stage does not act on nodes with siblings, so it cannot cause
+   any nodes to become mergable.
+
+We claim, without proof, that the Merge stage will be run at most O(h)
+times; and at most O(N h) nodes will be modified, where N is the number of
+leaves touched and h is the height of the tree.
+
+Code structure
+--------------
+
+main.c		-- Processes command line, creates a listening socket,
+		   connects to LBS, daemonizes, accepts one connection at
+		   once, and runs the event loop.
+dispatch.c	-- Reads requests, queues and launches non-modifying requests
+		   (via dispatch_nmr.c), queues modifying requests, dequeues
+		   and launches batches of modifying requests (via
+		   dispatch_mr.c).
+dispatch_nmr.c	-- Takes a non-modifying request, feeds it through a B+Tree,
+		   and sends a response to the client.
+dispatch_mr.c	-- Takes a batch of modifying requests, feeds them through a
+		   B+Tree, and sends responses to the client.
+btree.c		-- Creates and manages a cache of the B+Tree.
+btree_cleaning.c
+		-- Cleans the log by selectively dirtying old nodes.
+btree_balance.c	-- Restore B+Tree nature by splitting/merging nodes after
+		   modifications have been made.
+btree_sync.c	-- Flushes modifications out to backing storage.
+btree_find.c	-- Finds a leaf within a tree or a key within a node.
+btree_node.c	-- Creates, fetches, and manages B+Tree nodes.
+btree_node_split.c
+		-- Splits a node into pieces which are small enough to be
+		   serialized into a single page.
+btree_node_merge.c
+		-- Merges 2 or more nodes into a single node.
+btree_mutate.c	-- Performs individual modifications on B+Tree leaves.
+btree_sanity.c	-- Runs sanity checks on the tree.  For debugging only.
+serialize.c	-- Converts between nodes and (serialized) pages.
+node.c		-- Creates and destroys detached nodes.

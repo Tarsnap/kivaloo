@@ -1,0 +1,143 @@
+Kivaloo design
+==============
+
+Introduction
+------------
+
+Kivaloo (pronounced "kee-va-lieu") is a collection of utilities which
+together form a data store associating keys of up to 255 bytes with values
+of up to 255 bytes.
+
+At present, kivaloo comprises a block store (lbs) providing log-structured
+storage within a local filesystem; a key-value store (kvlds) which manages a
+log-structured B+Tree and services requests upon it from a single connection;
+and a request multiplexer (mux) which accepts multiple connections and routes
+requests and responses to and from a single "upstream" connection.
+
+It is likely that other components will be added in the future to add more
+features (e.g., replication) or provide alternatives (e.g., other forms of
+underlying storage).
+
+Design goals
+------------
+
+Kivaloo is designed with the following goals:
+1. Consistency.
+2. Durability.
+3. High throughput for bulk writes.
+4. Support for range requests.
+5. Fast restarting.
+6. Efficient storage of cold data (e.g., 10^6 key-value pairs per op/s).
+7. Architectural flexibility.
+
+Kivaloo achieves these goals via the following design decisions:
+(a) Operations are only acknowledged after data has been written to disk and
+    fsync has been called as required. (1 & 2)
+(b) Data is stored in a B+tree. (4 & 5)
+(c) The B+tree is append-only. (3)
+(d) Updates are performed in batches (aka. "group commit"). (3)
+(e) All non-polylog state in RAM is in the form of cached B+tree pages which
+    can be reloaded from disk as needed. (5)
+(f) Cleaning is performed continuously in the background, at a rate based on
+    the number of dirty pages and the cost of I/O. (6)
+(g) Components interact via sockets using well-defined interfaces.
+
+Kivaloo is *not* designed for the following, and design/implementation
+choices are made which make kivaloo unable to satisfy these non-goals:
+1. Low latency (incompatible with goal #5).
+2. Multiple columns (would reduce key-value storage performance).
+3. Indexing of values (build your own indexes).
+4. Large values (store them elsewhere and only keep the metadata in kivaloo).
+5. Client authentication (build it yourself).
+
+Operations
+----------
+
+The operations provided by kivaloo (via a stack of lbs/kvlds/mux*) are:
+* PARAMS():
+	Return the maximum permitted key and value lengths (up to 255 bytes,
+	but possibly less).
+* SET(key, value):
+	Associate the value "value" with the key "key", replacing the
+	previous value if one exists.
+* CAS(key, oval, value):
+	If the value "oval" is currently associated with the key "key",
+	replace it with "value"; otherwise, do nothing.
+* ADD(key, value):
+	If there is no value currently associated with the key "key",
+	associate the value "value"; otherwise, do nothing.
+* MODIFY(key, value):
+	If there a value currently associated with the key "key",
+	replace it with the value "value"; otherwise, do nothing.
+* DELETE(key):
+	Delete the value (if any) associated with the key "key".
+* CAD(key, oval):
+	If the value "oval" is currently associated with the key "key",
+	delete it; otherwise, do nothing.
+* GET(key):
+	Return the value (if any) associated with the key "key".
+* RANGE(start, end, max):
+	Return up to "max" bytes of key-value pairs with keys satisfying
+	"start" <= key < "end", along with a value "next" such that all keys
+	between "start" and "next" were returned.  If "end" or "next" is the
+	empty key, it is compared as being greater than all possible keys
+	(even though it is normally compared as being less than all other
+	keys).  The server may return fewer key-value pairs than requested,
+	and may return one pair even if the key-value pair is larger than
+	"max" bytes.
+Of these, SET/CAS/ADD/MODIFY/DELETE/CAD are referred to as "modifying
+requests" (often abbreviated MR) while GET/RANGE are referred to as
+"non-modifying requests" (often abbreviated NMR).
+
+Any number of requests may be pending at once, and responses may come out of
+order.  The kivaloo wire protocol uses sequence numbers to associate each
+response with the corresponding request.
+
+Block store operations
+----------------------
+
+The operations required of the underlying block store are:
+* PARAMS():
+	Return the block size (which must be at least 512 bytes and at most
+	131072 bytes) and the first unused block number, which will be zero
+	if there are no blocks.
+* GET(blkno):
+	Return the data for block number "blkno".
+* APPEND(blkno, nblk, data):
+	If "blkno" is the the first unused block number (as returned by PARAM
+	or a previous APPEND request) then the "nblk"s blocks of data "data"
+	to blocks number "blkno", "blkno"+1, ... "blkno"+"nblk"-1.  Returns
+	the next available block number, which it not required to be
+	"blkno"+"nblk".  If the value "blkno" is incorrect, an error status
+	is returned.
+* FREE(blkno):
+	Optionally delete blocks with numbers less than "blkno".  (The block
+	store may ignore this entirely or delete only some of the blocks, but
+	should eventually delete most blocks in order to not waste storage
+	space.)
+
+Any number of GET requests may be pending at once; it is impossible to issue
+more than one valid APPEND request at once (since the new "next block" value
+is not known until the earlier request completes); issuing multiple FREE or
+PARAMS requests is possible but pointless.
+
+Consistency guarantees
+----------------------
+
+Requests are serializable to a schedule consistent with the following weak
+ordering criteria on requests X and Y to which responses were sent:
+* If a response to request X is received before request Y is sent, then X
+  occurs before Y.
+* If requests X and Y are both modifying requests and they have the same key
+  and they were sent over the same connection, then X occurs before Y.
+
+Providing that fsync flushes data to permanent storage, the above semantics
+hold even in the presence of arbirary killing and restarting of components;
+i.e., kivaloo is poweroff-safe.
+
+Configuration
+-------------
+
+Kivaloo does not use any configuration files.  All required options are
+specified at the command line.  (Of course, there is nothing to stop people
+from writing wrapper scripts.)

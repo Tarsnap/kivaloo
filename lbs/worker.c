@@ -42,10 +42,6 @@ workthread(void * cookie)
 {
 	struct workctl * ctl = cookie;
 	int rc;
-	int op;
-	uint64_t blkno;
-	size_t nblks;
-	uint8_t * buf;
 
 	/* Grab the mutex. */
 	if ((rc = pthread_mutex_lock(&ctl->mtx)) != 0) {
@@ -73,52 +69,31 @@ workthread(void * cookie)
 		if (ctl->suicide)
 			break;
 
-		/* Grab a copy of the work. */
-		op = ctl->op;
-		blkno = ctl->blkno;
-		nblks = ctl->nblks;
-		buf = ctl->buf;
-
-		/* Release the mutex while we work. */
-		if ((rc = pthread_mutex_unlock(&ctl->mtx)) != 0) {
-			warn0("pthread_mutex_unlock: %s", strerror(rc));
-			exit(1);
-		}
-
 		/* Do the work. */
-		switch (op) {
+		switch (ctl->op) {
 		case 0:	/* Read */
-			if ((nblks = storage_read(ctl->sstate,
-			    blkno, buf)) == (size_t)(-1)) {
+			if ((ctl->nblks = storage_read(ctl->sstate,
+			    ctl->blkno, ctl->buf)) == (size_t)(-1)) {
 				warnp("Failure reading block");
 				exit(1);
 			}
 			break;
 		case 1:	/* Write */
 			if (storage_write(ctl->sstate,
-			    blkno, nblks, buf)) {
+			    ctl->blkno, ctl->nblks, ctl->buf)) {
 				warnp("Failure writing blocks");
 				exit(1);
 			}
 			break;
 		case 2:	/* Delete */
-			if (storage_delete(ctl->sstate, blkno)) {
+			if (storage_delete(ctl->sstate, ctl->blkno)) {
 				warnp("Failure deleting blocks");
 				exit(1);
 			}
 			break;
 		default:
-			warn0("Invalid op: %d", op);
+			warn0("Invalid op: %d", ctl->op);
 		}
-
-		/* Pick up the mutex again now that we've finished working. */
-		if ((rc = pthread_mutex_lock(&ctl->mtx)) != 0) {
-			warn0("pthread_mutex_lock: %s", strerror(rc));
-			exit(1);
-		}
-
-		/* Record the number of blocks processed. */
-		ctl->nblks = nblks;
 
 		/* We've done the work; notify the master thread. */
 		ctl->workdone = 1;

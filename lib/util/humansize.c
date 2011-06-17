@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "asprintf.h"
 #include "warnp.h"
 
 #include "humansize.h"

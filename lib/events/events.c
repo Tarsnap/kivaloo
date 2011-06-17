@@ -109,7 +109,7 @@ events_run(void)
 	if (events_timer_min(&tv))
 		goto err0;
 	if (events_network_select(tv))
-		goto err0;
+		goto err1;
 	free(tv);
 
 	/*
@@ -158,6 +158,8 @@ done:
 	/* Success! */
 	return (rc);
 
+err1:
+	free(tv);
 err0:
 	/* Failure! */
 	return (-1);

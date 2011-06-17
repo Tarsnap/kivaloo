@@ -17,7 +17,7 @@
  * 2. (pairs[i].k == NULL) ==> (pairs[i].v == NULL).
  */
 struct kvhash {
-	struct kvpair * pairs;
+	struct kvpair_const * pairs;
 	uint32_t * hashes;
 	size_t nkeys;
 	size_t nslots;
@@ -35,7 +35,7 @@ struct kvhash * kvhash_init(void);
  * kvpair structure where the key appears or would appear if inserted.  Write
  * the hash value into the corresponding location in the hashes array.
  */
-struct kvpair * kvhash_search(struct kvhash *, const struct kvldskey *);
+struct kvpair_const * kvhash_search(struct kvhash *, const struct kvldskey *);
 
 /**
  * kvhash_postadd(H):

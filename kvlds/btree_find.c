@@ -31,7 +31,7 @@ MPOOL(findleaf, struct findleaf_cookie, 4096);
  * Search for the key ${k} in the B+Tree node ${N}.  Return a pointer to the
  * key-value pair, or NULL if the key is not present.
  */
-struct kvpair *
+struct kvpair_const *
 btree_find_kvpair(struct node * N, const struct kvldskey * k)
 {
 	size_t min, max, mid;
@@ -51,7 +51,7 @@ btree_find_kvpair(struct node * N, const struct kvldskey * k)
 	while (min != max) {
 		/* Compare to the midpoint. */
 		mid = min + (max - min) / 2;
-		rc = kvldskey_cmp2(k, N->u.pairs[mid].k, N->mlen);
+		rc = kvldskey_cmp2(k, N->u.pairs[mid].k, N->mlen_t);
 
 		/* Adjust endpoints. */
 		if (rc < 0) {
@@ -92,7 +92,7 @@ btree_find_child(struct node * N, const struct kvldskey * k)
 	while (min != max) {
 		/* Compare to the midpoint. */
 		mid = min + (max - min) / 2;
-		rc = kvldskey_cmp2(k, N->u.keys[mid], N->mlen);
+		rc = kvldskey_cmp2(k, N->u.keys[mid], N->mlen_t);
 
 		/* Adjust endpoints. */
 		if (rc < 0) {
@@ -138,8 +138,8 @@ findleaf(void * cookie)
 		/* Iterate into the child. */
 		if ((C->e != NULL) && (i < C->N->nkeys)) {
 			kvldskey_free(C->e);
-			C->e = C->N->u.keys[i];
-			kvldskey_ref(C->e);
+			if ((C->e = kvldskey_dup(C->N->u.keys[i])) == NULL)
+				goto err0;
 		}
 		NP = C->N;
 		C->N = C->N->v.children[i];

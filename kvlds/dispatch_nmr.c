@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "events.h"
@@ -100,7 +101,7 @@ static int
 callback_get_gotleaf(void * cookie, struct node * N)
 {
 	struct nmr_cookie * C = cookie;
-	struct kvpair * kv;
+	struct kvpair_const * kv;
 
 	/* Find the key in this node. */
 	kv = btree_find_kvpair(N, C->R->key);
@@ -157,7 +158,7 @@ callback_range_gotnode(void * cookie, struct node * N,
 	C->end = end;
 
 	/* Record how far all keys in the range must match. */
-	C->mlen = N->mlen;
+	C->mlen = N->mlen_t;
 
 	/* Create a heap for holding key-value pairs. */
 	if ((C->H = ptrheap_init(kvpair_cmp, NULL, (void *)&C->mlen)) == NULL)
@@ -206,8 +207,8 @@ callback_range_gotnode(void * cookie, struct node * N,
 		/* Adjust our end pointer if we didn't do all the leaves. */
 		if (i < N->nkeys + 1) {
 			kvldskey_free(C->end);
-			C->end = N->u.keys[i - 1];
-			kvldskey_ref(C->end);
+			if ((C->end = kvldskey_dup(N->u.keys[i - 1])) == NULL)
+				goto err0;
 		}
 		break;
 	}
@@ -257,20 +258,20 @@ callback_range_gotleaf(void * cookie, struct node * N)
 		/* Add the pair to the heap. */
 		if ((kv = malloc(sizeof(struct kvpair))) == NULL)
 			goto err0;
-		kv->k = N->u.pairs[i].k;
-		kv->v = N->u.pairs[i].v;
-		kvldskey_ref(kv->k);
-		kvldskey_ref(kv->v);
-		if (ptrheap_add(C->H, kv))
+		if ((kv->k = kvldskey_dup(N->u.pairs[i].k)) == NULL)
 			goto err1;
+		if ((kv->v = kvldskey_dup(N->u.pairs[i].v)) == NULL)
+			goto err2;
+		if (ptrheap_add(C->H, kv))
+			goto err3;
 		C->nkeys += 1;
 	}
 
 	/* If we exited early, adjust the end pointer. */
 	if (i < N->nkeys) {
 		kvldskey_free(C->end);
-		C->end = N->u.pairs[i].k;
-		kvldskey_ref(C->end);
+		if ((C->end = kvldskey_dup(N->u.pairs[i].k)) == NULL)
+			goto err0;
 	}
 
 	/* Release the lock picked up by btree_node_descend. */
@@ -288,9 +289,11 @@ callback_range_gotleaf(void * cookie, struct node * N)
 	/* Success! */
 	return (0);
 
-err1:
+err3:
 	kvldskey_free(kv->v);
+err2:
 	kvldskey_free(kv->k);
+err1:
 	free(kv);
 err0:
 	/* Failure! */
@@ -301,7 +304,7 @@ err0:
 static int
 rangedone(struct nmr_cookie * C)
 {
-	struct kvldskey * next;
+	const struct kvldskey * next;
 	struct kvldskey ** keys;
 	struct kvldskey ** values;
 	struct kvpair * kv;

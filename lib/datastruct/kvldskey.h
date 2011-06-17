@@ -4,11 +4,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ctassert.h"
+
 struct kvldskey {
-	uint8_t refcnt;
 	uint8_t len;
 	uint8_t buf[];
 };
+
+/*
+ * Make sure that struct kvldskey is packed.  It's hard to imagine a compiler
+ * which would add padding between len and buf, but it's technically allowed.
+ */
+CTASSERT(sizeof(struct kvldskey) == 1);
 
 /**
  * kvldskey_create(buf, buflen):
@@ -20,13 +27,13 @@ struct kvldskey * kvldskey_create(const uint8_t *, size_t);
  * kvldskey_serial_size(K):
  * Return the size in bytes of the serialization of ${K}.
  */
-#define kvldskey_serial_size(K) ((K)->len + 1)
+#define kvldskey_serial_size(K) ((size_t)((K)->len) + 1)
 
 /**
  * kvldskey_serialize(K, buf):
  * Serialize ${K} into the buffer ${buf}.
  */
-void kvldskey_serialize(const struct kvldskey *, uint8_t *);
+#define kvldskey_serialize(K, buf) memcpy((buf), (K), (K)->len + 1)
 
 /**
  * kvldskey_unserialize(K, buf, buflen):
@@ -38,13 +45,10 @@ void kvldskey_serialize(const struct kvldskey *, uint8_t *);
 size_t kvldskey_unserialize(struct kvldskey **, const uint8_t *, size_t);
 
 /**
- * kvldskey_ref(K):
- * Add a reference to the key ${K}.
+ * kvldskey_dup(K):
+ * Duplicate the key ${K}.
  */
-#define kvldskey_ref(K)	do {		\
-	assert((K)->refcnt < 255);	\
-	(K)->refcnt += 1;		\
-} while (0)
+#define kvldskey_dup(K) kvldskey_create((K)->buf, (K)->len)
 
 /**
  * kvldskey_cmp(x, y):
@@ -68,20 +72,9 @@ int kvldskey_cmp2(const struct kvldskey *, const struct kvldskey *, size_t);
 size_t kvldskey_mlen(const struct kvldskey *, const struct kvldskey *);
 
 /**
- * kvldskey_sep(x, y):
- * For keys ${x} < ${y}, return a new key ${S} such that ${x} < ${S} <= ${y}.
- */
-static inline struct kvldskey *
-kvldskey_sep(const struct kvldskey * x, const struct kvldskey * y)
-{
-
-	return (kvldskey_create(y->buf, kvldskey_mlen(x, y) + 1));
-}
-
-/**
  * kvldskey_free(K):
- * Decrement the reference count of ${K} and free ${K} if it becomes zero.
+ * Free the key ${K}.
  */
-void kvldskey_free(struct kvldskey *);
+#define kvldskey_free(K) free(K)
 
 #endif /* !_KVLDSKEY_H_ */

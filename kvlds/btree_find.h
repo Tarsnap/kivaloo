@@ -4,7 +4,7 @@
 /* Opaque types. */
 struct btree;
 struct kvldskey;
-struct kvpair;
+struct kvpair_const;
 struct node;
 
 /**
@@ -12,7 +12,8 @@ struct node;
  * Search for the key ${k} in the B+Tree node ${N}.  Return a pointer to the
  * key-value pair, or NULL if the key is not present.
  */
-struct kvpair * btree_find_kvpair(struct node *, const struct kvldskey *);
+struct kvpair_const * btree_find_kvpair(struct node *,
+    const struct kvldskey *);
 
 /**
  * btree_find_child(N, k):

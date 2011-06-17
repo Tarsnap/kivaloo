@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "kvldskey.h"
 #include "kvpair.h"
@@ -15,8 +16,8 @@ merge_leaf(struct btree * T, struct node ** c_in, struct node ** c_out,
     size_t nsep)
 {
 	size_t nkeys;
-	size_t i, j, k;
-	struct kvpair * pairs;
+	size_t i, j;
+	struct kvpair_const * pairs;
 	struct node * N;
 
 	/* The input nodes are dirty leaves. */
@@ -30,18 +31,13 @@ merge_leaf(struct btree * T, struct node ** c_in, struct node ** c_out,
 		nkeys += c_in[i]->nkeys;
 
 	/* Allocate array of pair structures. */
-	if (IMALLOC(pairs, nkeys, struct kvpair))
+	if (IMALLOC(pairs, nkeys, struct kvpair_const))
 		goto err0;
 
-	/* Duplicate key-value pairs. */
-	for (j = i = 0; i <= nsep; i++) {
-		for (k = 0; k < c_in[i]->nkeys; j++, k++) {
-			pairs[j].k = c_in[i]->u.pairs[k].k;
-			pairs[j].v = c_in[i]->u.pairs[k].v;
-			kvldskey_ref(pairs[j].k);
-			kvldskey_ref(pairs[j].v);
-		}
-	}
+	/* Copy in pointers to keys and values. */
+	for (j = i = 0; i <= nsep; j += c_in[i]->nkeys, i++)
+		memcpy(&pairs[j], c_in[i]->u.pairs,
+		    c_in[i]->nkeys * sizeof(struct kvpair_const));
 
 	/* Create a node. */
 	if ((N = btree_node_mkleaf(T, nkeys, pairs)) == NULL)
@@ -62,10 +58,6 @@ merge_leaf(struct btree * T, struct node ** c_in, struct node ** c_out,
 	return (0);
 
 err1:
-	for (j = 0; j < nkeys; j++) {
-		kvldskey_free(pairs[j].v);
-		kvldskey_free(pairs[j].k);
-	}
 	free(pairs);
 err0:
 	/* Failure! */
@@ -73,12 +65,12 @@ err0:
 }
 
 static int
-merge_parent(struct btree * T, struct node ** c_in, struct kvldskey ** k_in,
-    struct node ** c_out, size_t nsep)
+merge_parent(struct btree * T, struct node ** c_in,
+    const struct kvldskey ** k_in, struct node ** c_out, size_t nsep)
 {
 	size_t nkeys;
-	size_t i, j, k;
-	struct kvldskey ** keys;
+	size_t i, j;
+	const struct kvldskey ** keys;
 	struct node ** children;
 	struct node * N;
 
@@ -94,30 +86,28 @@ merge_parent(struct btree * T, struct node ** c_in, struct kvldskey ** k_in,
 	nkeys -= 1;
 
 	/* Allocate key and child arrays. */
-	if (IMALLOC(keys, nkeys, struct kvldskey *))
+	if (IMALLOC(keys, nkeys, const struct kvldskey *))
 		goto err0;
 	if (IMALLOC(children, nkeys + 1, struct node *))
 		goto err1;
 
 	/* Copy keys into new array. */
-	for (j = i = 0; i <= nsep; i++, j++) {
+	for (j = i = 0; i < nsep; i++) {
 		/* Separator keys within a merging node. */
-		for (k = 0; k < c_in[i]->nkeys; k++, j++) {
-			keys[j] = c_in[i]->u.keys[k];
-			kvldskey_ref(keys[j]);
-		}
+		memcpy(&keys[j], c_in[i]->u.keys,
+		    c_in[i]->nkeys * sizeof(const struct kvldskey *));
+		j += c_in[i]->nkeys;
 
 		/* Separator keys between merging nodes. */
-		if (i < nsep) {
-			keys[j] = k_in[i];
-			kvldskey_ref(keys[j]);
-		}
+		keys[j++] = k_in[i];
 	}
+	memcpy(&keys[j], c_in[i]->u.keys,
+	    c_in[i]->nkeys * sizeof(const struct kvldskey *));
 
 	/* Copy children into new array. */
-	for (j = i = 0; i <= nsep; i++)
-		for (k = 0; k <= c_in[i]->nkeys; k++)
-			children[j++] = c_in[i]->v.children[k];
+	for (j = i = 0; i <= nsep; j += c_in[i]->nkeys + 1, i++)
+		memcpy(&children[j], c_in[i]->v.children,
+		    (c_in[i]->nkeys + 1) * sizeof(struct node *));
 
 	/* Create a node. */
 	if ((N = btree_node_mkparent(T, c_in[0]->height,
@@ -144,8 +134,9 @@ merge_parent(struct btree * T, struct node ** c_in, struct kvldskey ** k_in,
 
 	/* Destroy old nodes (but not their children). */
 	for (i = 0; i <= nsep; i++) {
-		for (k = 0; k <= c_in[i]->nkeys; k++)
-			c_in[i]->v.children[k] = NULL;
+		free(c_in[i]->u.keys);
+		free(c_in[i]->v.children);
+		c_in[i]->nkeys = -1;
 		btree_node_destroy(T, c_in[i]);
 	}
 
@@ -156,8 +147,6 @@ merge_parent(struct btree * T, struct node ** c_in, struct kvldskey ** k_in,
 	return (0);
 
 err2:
-	for (j = 0; j < nkeys; j++)
-		kvldskey_free(keys[j]);
 	free(children);
 err1:
 	free(keys);
@@ -175,8 +164,8 @@ err0:
  */
 int
 btree_node_merge(struct btree * T,
-    struct node ** c_in, struct kvldskey ** k_in,
-    struct node ** c_out, struct kvldskey ** k_out, size_t nsep)
+    struct node ** c_in, const struct kvldskey ** k_in,
+    struct node ** c_out, const struct kvldskey ** k_out, size_t nsep)
 {
 	size_t i;
 	int rc;
@@ -191,22 +180,16 @@ btree_node_merge(struct btree * T,
 	else
 		rc = merge_parent(T, c_in, k_in, c_out, nsep);
 
-	/* If we succeeded, free separator keys and update the tree size. */
+	/* If we succeeded, update the tree size. */
 	if (!rc) {
-		/* Free separator keys. */
-		for (i = 0; i < nsep; i++)
-			kvldskey_free(k_in[i]);
-
 		/* The tree has shrunk. */
 		T->nnodes -= nsep;
 	}
 
 	/* If we failed, copy the nodes and keys. */
 	if (rc) {
-		for (i = 0; i <= nsep; i++)
-			c_out[i] = c_in[i];
-		for (i = 0; i < nsep; i++)
-			k_out[i] = k_in[i];
+		memcpy(c_out, c_in, (nsep + 1) * sizeof(struct node *));
+		memcpy(k_out, k_in, nsep * sizeof(const struct kvldskey *));
 	}
 
 	/* Return code from merge_(leaf|parent). */

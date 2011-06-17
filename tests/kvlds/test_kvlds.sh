@@ -158,9 +158,9 @@ rm -r $STOR
 kdump -Ts -f ktrace-kvlds.out |			\
     grep ' kvlds ' > kdump-kvlds.out
 sh ../tools/memleak/memleak.sh kdump-kvlds.out kvlds.leak 2>leak.tmp
-rm ktrace-kvlds.out kdump-kvlds.out
 if grep -q 'leaked 0 bytes' leak.tmp; then
 	echo " PASSED!"
+	rm ktrace-kvlds.out kdump-kvlds.out
 	rm kvlds.leak
 else
 	cat leak.tmp | tr -d '\n'
@@ -173,9 +173,9 @@ echo -n "Checking for memory leaks in KVLDS client code..."
 kdump -Ts -f ktrace-test_kvlds.out |		\
     grep ' test_kvlds ' > kdump-test_kvlds.out
 sh ../tools/memleak/memleak.sh kdump-test_kvlds.out test_kvlds.leak 2>leak.tmp
-rm ktrace-test_kvlds.out kdump-test_kvlds.out
 if grep -q 'leaked 0 bytes' leak.tmp; then
 	echo " PASSED!"
+	rm ktrace-test_kvlds.out kdump-test_kvlds.out
 	rm test_kvlds.leak
 else
 	cat leak.tmp | tr -d '\n'

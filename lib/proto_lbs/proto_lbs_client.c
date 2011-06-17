@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "imalloc.h"
 #include "sysendian.h"
 #include "warnp.h"
 #include "wire.h"
@@ -207,21 +208,24 @@ failed:
 }
 
 /**
- * proto_lbs_request_append(Q, nblks, blkno, blklen, buf, callback, cookie):
+ * proto_lbs_request_append_blks(Q, nblks, blkno, blklen, bufv,
+ *     callback, cookie):
  * Send an APPEND request to write ${nblks} ${blklen}-byte blocks, starting
- * at position ${blkno}, with data from ${buf} to the request queue ${Q}.
- * Invoke
+ * at position ${blkno}, with data from ${bufv[0]} ... ${bufv[nblks - 1]} to
+ * the request queue ${Q}.  Invoke
  *    ${callback}(${cookie}, failed, status, blkno)
  * upon request completion, where failed is 0 on success and 1 on failure,
  * status is 0 if the append completed and 1 otherwise, and blkno is the
  * next available block number. 
  */
 int
-proto_lbs_request_append(struct wire_requestqueue * Q,
-    uint32_t nblks, uint64_t blkno, size_t blklen, const uint8_t * buf,
+proto_lbs_request_append_blks(struct wire_requestqueue * Q,
+    uint32_t nblks, uint64_t blkno, size_t blklen,
+    const uint8_t * const * bufv,
     int (* callback)(void *, int, int, uint64_t), void * cookie)
 {
 	struct append_cookie * C;
+	size_t i;
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct append_cookie))) == NULL)
@@ -237,7 +241,8 @@ proto_lbs_request_append(struct wire_requestqueue * Q,
 	be32enc(&C->buf[0], PROTO_LBS_APPEND);
 	be32enc(&C->buf[4], nblks);
 	be64enc(&C->buf[8], blkno);
-	memcpy(&C->buf[16], buf, nblks * blklen);
+	for (i = 0; i < nblks; i++)
+		memcpy(&C->buf[16 + i * blklen], bufv[i], blklen);
 
 	/* Send request. */
 	if (wire_requestqueue_add(Q, C->buf, 16 + nblks * blklen,
@@ -251,6 +256,50 @@ err2:
 	free(C->buf);
 err1:
 	free(C);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * proto_lbs_request_append(Q, nblks, blkno, blklen, buf, callback, cookie):
+ * Send an APPEND request to write ${nblks} ${blklen}-byte blocks, starting
+ * at position ${blkno}, with data from ${buf} to the request queue ${Q}.
+ * Invoke
+ *    ${callback}(${cookie}, failed, status, blkno)
+ * upon request completion, where failed is 0 on success and 1 on failure,
+ * status is 0 if the append completed and 1 otherwise, and blkno is the
+ * next available block number. 
+ */
+int
+proto_lbs_request_append(struct wire_requestqueue * Q,
+    uint32_t nblks, uint64_t blkno, size_t blklen, const uint8_t * buf,
+    int (* callback)(void *, int, int, uint64_t), void * cookie)
+{
+	const uint8_t ** bufv;
+	size_t i;
+
+	/* Allocate vector of pointers to blocks. */
+	if (IMALLOC(bufv, nblks, const uint8_t *))
+		goto err0;
+
+	/* Fill in vector. */
+	for (i = 0; i < nblks; i++)
+		bufv[i] = &buf[i * blklen];
+
+	/* Send the request. */
+	if (proto_lbs_request_append_blks(Q, nblks, blkno, blklen, bufv,
+	    callback, cookie))
+		goto err1;
+
+	/* Free the vector. */
+	free(bufv);
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(bufv);
 err0:
 	/* Failure! */
 	return (-1);

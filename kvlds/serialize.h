@@ -28,13 +28,11 @@ struct node;
 #define SERIALIZE_PERCHILD	20
 
 /**
- * serialize(T, N, buf, buflen):
- * Serialize the node ${N} from the B+tree ${T} into the ${buflen}-byte page
- * buffer ${buf}, padding with zero bytes to the end of the buffer.  The
- * caller must ensure that the serialized page will fit in the provided
- * buffer.
+ * serialize(T, N, buflen):
+ * Serialize the dirty node ${N} into a newly allocated page buffer.  Adjust
+ * key and value pointers to point into this new buffer.
  */
-void serialize(struct btree *, struct node *, uint8_t *, size_t);
+int serialize(struct btree *, struct node *, size_t);
 
 /**
  * deserialize(N, buf, buflen):

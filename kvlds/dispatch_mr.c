@@ -3,7 +3,6 @@
 
 #include "events.h"
 #include "imalloc.h"
-#include "kvhash.h"
 #include "kvldskey.h"
 #include "kvpair.h"
 #include "mpool.h"
@@ -207,7 +206,7 @@ batch_dirty(struct batch * B)
 	struct nodepair * shadowdirty;
 	size_t Nsd;
 	size_t i;
-	struct kvpair * kv;
+	struct kvpair_const * kv;
 
 	/* Allocate array to hold (shadow node, dirty node) pairs. */
 	if (IMALLOC(shadowdirty, B->nreqs, struct nodepair))
@@ -317,7 +316,7 @@ batch_run(struct batch * B)
 	struct proto_kvlds_request * R;
 	struct node * leaf;
 	size_t i;
-	struct kvpair * pos;
+	struct kvpair_const * pos;
 	const struct kvldskey * val;
 	int op;
 
@@ -345,10 +344,7 @@ batch_run(struct batch * B)
 		switch (R->type) {
 		case PROTO_KVLDS_SET:
 			/* Add or modify as required. */
-			if (val != NULL)
-				op = OP_MODIFY;
-			else
-				op = OP_ADD;
+			op = OP_ADD;
 			break;
 		case PROTO_KVLDS_CAS:
 			/*
@@ -388,16 +384,17 @@ batch_run(struct batch * B)
 		/* Actually perform the operation (if required). */
 		switch (op) {
 		case OP_ADD:
-			/* If the key is not present, add the pair. */
+			/*
+			 * If the key is not present, add the pair.  (Note
+			 * that the key might be present even if there is no
+			 * value associated with it, since at this point a
+			 * deleted key-value pair is represented as a value
+			 * of NULL.)
+			 */
 			if (pos->k == NULL) {
-				/* Add pair. */
-				pos->k = R->key;
-				pos->v = R->value;
-				kvhash_postadd(leaf->v.H);
-
-				/* The B+Tree now owns these. */
-				R->key = NULL;
-				R->value = NULL;
+				if (btree_mutate_add(leaf, pos,
+				    R->key, R->value))
+					goto err0;
 				break;
 			}
 
@@ -405,15 +402,10 @@ batch_run(struct batch * B)
 			/* FALLTHROUGH. */
 		case OP_MODIFY:
 			/* Modify the key. */
-			kvldskey_free(pos->v);
 			pos->v = R->value;
-
-			/* The B+Tree now owns this value. */
-			R->value = NULL;
 			break;
 		case OP_DELETE:
 			/* Delete the key. */
-			kvldskey_free(pos->v);
 			pos->v = NULL;
 			break;
 		}

@@ -29,6 +29,7 @@ node_alloc(uint64_t pagenum, uint64_t oldestleaf, uint32_t pagesize)
 	N->needmerge = 1;
 	N->height = -1;
 	N->nkeys = (size_t)(-1);
+	N->pagebuf = NULL;
 
 	/* Success! */
 	return (N);

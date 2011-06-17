@@ -122,7 +122,7 @@ test:	all
 bench:	all
 	jot 10 |			\
 	    while read X; do		\
-		make test 2>&1;		\
+		make NODISK=YES test 2>&1;		\
 	done |				\
 	    grep real |			\
 	    awk '{print $$1}' |		\
@@ -149,7 +149,7 @@ prof:	all
 	./test_kvldsperf `pwd`/stor/${TARGETSOCK} 2>/dev/null || true
 	if [ -f mux.gmon ]; then gprof ../../mux/mux mux.gmon > mux.gprof; fi 
 .else
-	sleep 1
+	sleep 5
 	if [ -f kvlds.gmon ]; then gprof ../../kvlds/kvlds kvlds.gmon > kvlds-ADD.gprof; fi 
 .endif
 	rm -f stor/sock*
@@ -164,7 +164,7 @@ prof:	all
 	kill `cat stor/sock_lbs.pid`
 	./test_kvldsperf `pwd`/stor/${TARGETSOCK} 2>/dev/null || true
 .else
-	sleep 1
+	sleep 5
 	if [ -f kvlds.gmon ]; then gprof ../../kvlds/kvlds kvlds.gmon > kvlds-MODIFY.gprof; fi 
 .endif
 	rm -r stor

@@ -41,7 +41,6 @@ static struct proto_kvlds_request *
 proto_kvlds_request_parse(const struct wire_packet * P)
 {
 	struct proto_kvlds_request * R;
-	size_t klen;
 	size_t bufpos;
 
 	/* Allocate KVLDS request structure. */
@@ -60,6 +59,16 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 	R->type = be32dec(&P->buf[0]);
 	bufpos = 4;
 
+/* Macro for extracting a key and advancing the buffer position. */
+#define GRABKEY(dest, buf, buflen, bufpos, invalid) do {	\
+	if (bufpos == buflen)					\
+		goto invalid;					\
+	dest = (struct kvldskey *)&buf[bufpos];			\
+	bufpos += kvldskey_serial_size(dest);			\
+	if (bufpos > buflen)					\
+		goto invalid;					\
+} while (0);
+
 	/* Parse packet. */
 	switch (R->type) {
 	case PROTO_KVLDS_PARAMS:
@@ -68,57 +77,33 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 	case PROTO_KVLDS_DELETE:
 	case PROTO_KVLDS_GET:
 		/* Parse key. */
-		if ((klen = kvldskey_unserialize(&R->key, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
 		break;
 	case PROTO_KVLDS_SET:
 	case PROTO_KVLDS_ADD:
 	case PROTO_KVLDS_MODIFY:
 		/* Parse key. */
-		if ((klen = kvldskey_unserialize(&R->key, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
 
 		/* Parse value. */
-		if ((klen = kvldskey_unserialize(&R->value, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->value, P->buf, P->len, bufpos, err2);
 		break;
 	case PROTO_KVLDS_CAD:
 		/* Parse key. */
-		if ((klen = kvldskey_unserialize(&R->key, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
 
 		/* Parse oval. */
-		if ((klen = kvldskey_unserialize(&R->oval, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->oval, P->buf, P->len, bufpos, err2);
 		break;
 	case PROTO_KVLDS_CAS:
 		/* Parse key. */
-		if ((klen = kvldskey_unserialize(&R->key, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
+
+		/* Parse oval. */
+		GRABKEY(R->oval, P->buf, P->len, bufpos, err2);
 
 		/* Parse value. */
-		if ((klen = kvldskey_unserialize(&R->oval, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
-
-		/* Parse value. */
-		if ((klen = kvldskey_unserialize(&R->value, &P->buf[bufpos],
-		    P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->value, P->buf, P->len, bufpos, err2);
 		break;
 	case PROTO_KVLDS_RANGE:
 		/* Parse maximum key-value pairs length. */
@@ -130,16 +115,10 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 		bufpos += 4;
 
 		/* Parse start key. */
-		if ((klen = kvldskey_unserialize(&R->range_start,
-		    &P->buf[bufpos], P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->range_start, P->buf, P->len, bufpos, err2);
 
 		/* Parse end key. */
-		if ((klen = kvldskey_unserialize(&R->range_end,
-		    &P->buf[bufpos], P->len - bufpos)) == 0)
-			goto err2;
-		bufpos += klen;
+		GRABKEY(R->range_end, P->buf, P->len, bufpos, err2);
 		break;
 	default:
 		warn0("Unrecognized request type received: 0x%08" PRIx32,
@@ -150,6 +129,9 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 	/* Did we reach the end of the packet? */
 	if (bufpos != P->len)
 		goto err2;
+
+	/* This buffer now belongs to the request structure. */
+	R->blob = P->buf;
 
 	/* Success! */
 	return (R);
@@ -213,7 +195,6 @@ gotpacket(void * cookie, struct wire_packet * P)
 		goto failed1;
 
 	/* Free the packet. */
-	free(P->buf);
 	wire_packet_free(P);
 
 	/* Perform the callback. */
@@ -268,10 +249,8 @@ void
 proto_kvlds_request_free(struct proto_kvlds_request * R)
 {
 
-	/* Free the kvlds keys. */
-	kvldskey_free(R->value);
-	kvldskey_free(R->oval);
-	kvldskey_free(R->key);
+	/* Free the packet buffer (into which the keys point). */
+	free(R->blob);
 
 	/* Return the request structure to the pool. */
 	mpool_request_free(R);

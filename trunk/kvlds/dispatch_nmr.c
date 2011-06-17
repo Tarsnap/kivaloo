@@ -56,6 +56,10 @@ dispatch_nmr_launch(struct btree * T, struct proto_kvlds_request * R,
 {
 	struct nmr_cookie * C;
 
+	/* Sanity-check: The NMR type must be reasonable. */
+	assert((R->type == PROTO_KVLDS_GET) ||
+	    (R->type == PROTO_KVLDS_RANGE));
+
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct nmr_cookie))) == NULL)
 		goto err0;

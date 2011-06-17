@@ -122,6 +122,7 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 	C.Q = Q;
 	C.f = f;
 	C.Nip = 0;
+	C.generation = 0;
 	C.failed = 0;
 	C.done = 0;
 	C.N = 0;

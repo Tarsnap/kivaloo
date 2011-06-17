@@ -96,7 +96,7 @@ events_network_register(int (*func)(void *), void * cookie, int s, int op)
 		goto err0;
 
 	/* Sanity-check socket number. */
-	if ((s < 0) || (s > (int)FD_SETSIZE)) {
+	if ((s < 0) || (s >= (int)FD_SETSIZE)) {
 		warn0("Invalid file descriptor for network event: %d", s);
 		goto err0;
 	}
@@ -153,7 +153,7 @@ events_network_cancel(int s, int op)
 		goto err0;
 
 	/* Sanity-check socket number. */
-	if ((s < 0) || (s > (int)FD_SETSIZE)) {
+	if ((s < 0) || (s >= (int)FD_SETSIZE)) {
 		warn0("Invalid file descriptor for network event: %d", s);
 		goto err0;
 	}

@@ -61,7 +61,7 @@ rehash(struct kvhash * H)
 	return (0);
 
 err1:
-	free(H->pairs);
+	free(new_pairs);
 err0:
 	/* Failure! */
 	return (-1);

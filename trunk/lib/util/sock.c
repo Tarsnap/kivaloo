@@ -158,7 +158,7 @@ sock_resolve_ipv6(const char * addr, in_port_t p)
 	sin6->sin6_port = htons(p);
 	if (inet_pton(AF_INET6, addr, &sin6->sin6_addr) != 1) {
 		warn0("Error parsing IP address: %s", addr);
-		goto err0;
+		goto err1;
 	}
 
 	/* Allocate and populate our wrapper. */
@@ -203,7 +203,7 @@ sock_resolve_ipv4(const char * addr, in_port_t p)
 	sin->sin_port = htons(p);
 	if (inet_pton(AF_INET, addr, &sin->sin_addr) != 1) {
 		warn0("Error parsing IP address: %s", addr);
-		goto err0;
+		goto err1;
 	}
 
 	/* Allocate and populate our wrapper. */

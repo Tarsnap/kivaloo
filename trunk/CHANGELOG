@@ -1,3 +1,6 @@
+kivaloo-1.1.1
+* minor cleanups courtesy of Coverity Prevent.
+
 kivaloo-1.1.0
 * struct kvldskey is no longer reference counted.
 * struct kvldskey is asserted to be identical to its serialization.

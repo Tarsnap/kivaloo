@@ -262,7 +262,7 @@ batch_dirty(struct batch * B)
 		shadowdirty[Nsd].shadow = req->leaf;
 		if ((shadowdirty[Nsd].dirty =
 		    btree_node_dirty(B->T, req->leaf)) == NULL)
-			goto err0;
+			goto err1;
 		Nsd += 1;
 	}
 

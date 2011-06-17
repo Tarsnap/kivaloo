@@ -160,15 +160,13 @@ disk_write(const char * path, int create, size_t nbytes, const uint8_t * buf,
 		}
 
 		/* If we hit EINTR, try again. */
-		if ((fd == -1) && (errno == EINTR))
-			continue;
+	} while ((fd == -1) && (errno == EINTR));
 
-		/* If we had an error, fail. */
-		if (fd == -1) {
-			warnp("open(%s)", path);
-			goto err0;
-		}
-	} while (0);
+	/* If we failed to open the file, error out. */
+	if (fd == -1) {
+		warnp("open(%s)", path);
+		goto err0;
+	}
 
 	/* Write from the buffer. */
 	for (bufpos = 0; bufpos < nbytes; bufpos += lenwrit) {

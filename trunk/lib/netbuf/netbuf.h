@@ -64,7 +64,7 @@ int netbuf_write_destroy(struct netbuf_write *);
 /**
  * netbuf_write_free(W):
  * Free the writer ${W}.  The writer must have been previously destroyed by a
- * call to netbuf_write_free.
+ * call to netbuf_write_destroy.
  */
 void netbuf_write_free(struct netbuf_write *);
 

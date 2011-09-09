@@ -201,7 +201,7 @@ static int
 readreq(struct sock_active * S)
 {
 
-	/* We shoudln't be reading yet. */
+	/* We shouldn't be reading yet. */
 	assert(S->read_cookie == NULL);
 
 	/* Read a request. */

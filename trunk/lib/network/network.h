@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "sock.h"
+
 /**
  * network_accept(fd, callback, cookie):
  * Asynchronously accept a connection on the socket ${fd}, which must be

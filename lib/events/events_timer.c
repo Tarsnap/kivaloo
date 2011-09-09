@@ -72,6 +72,25 @@ err0:
 }
 
 /**
+ * events_timer_register_double(func, cookie, timeo):
+ * As events_timer_register, but ${timeo} is a double-precision floating point
+ * value specifying a number of seconds.
+ */
+void *
+events_timer_register_double(int (*func)(void *), void * cookie,
+    double timeo)
+{
+	struct timeval tv;
+
+	/* Convert timeo to a struct timeval. */
+	tv.tv_sec = timeo;
+	tv.tv_usec = (timeo - tv.tv_sec) * 1000000.0;
+
+	/* Schedule the timeout. */
+	return (events_timer_register(func, cookie, &tv));
+}
+
+/**
  * events_timer_cancel(cookie):
  * Cancel the timer for which the cookie ${cookie} was returned by
  * events_timer_register.

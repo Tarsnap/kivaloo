@@ -34,6 +34,14 @@ int sock_listener(const struct sock_addr *);
 int sock_connect(struct sock_addr * const *);
 
 /**
+ * sock_connect_nb(sa):
+ * Create a socket, mark it as non-blocking, and attempt to connect to the
+ * address ${sa}.  Return the socket (connected or in the process of
+ * connecting) or -1 on error.
+ */
+int sock_connect_nb(const struct sock_addr *);
+
+/**
  * sock_addr_free(sa):
  * Free the provided sock_addr structure.
  */

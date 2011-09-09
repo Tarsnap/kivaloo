@@ -19,7 +19,7 @@ void * events_immediate_register(int (*)(void *), void *, int);
  */
 void events_immediate_cancel(void *);
 
-/* "op" paramter to events_network_register. */
+/* "op" parameter to events_network_register. */
 #define EVENTS_NETWORK_OP_READ 	0
 #define EVENTS_NETWORK_OP_WRITE	1
 
@@ -47,6 +47,13 @@ int events_network_cancel(int, int);
  * cookie which can be passed to events_timer_cancel or events_timer_reset.
  */
 void * events_timer_register(int (*)(void *), void *, const struct timeval *);
+
+/**
+ * events_timer_register_double(func, cookie, timeo):
+ * As events_timer_register, but ${timeo} is a double-precision floating point
+ * value specifying a number of seconds.
+ */
+void * events_timer_register_double(int (*)(void *), void *, double);
 
 /**
  * events_timer_cancel(cookie):

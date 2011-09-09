@@ -22,6 +22,25 @@ void * network_accept(int, int (*)(void *, int), void *);
 void network_accept_cancel(void *);
 
 /**
+ * network_connect(sas, callback, cookie):
+ * Iterate through the addresses in ${sas}, attempting to create and connect
+ * a non-blocking socket.  Once connected, invoke ${callback}(${cookie}, s)
+ * where s is the connected socket; upon fatal error or if there are no
+ * addresses remaining to attempt, invoke ${callback}(${cookie}, -1).  Return
+ * a cookie which can be passed to network_connect_cancel in order to cancel
+ * the connection attempt.
+ */
+void * network_connect(struct sock_addr * const *,
+    int (*)(void *, int), void *);
+
+/**
+ * network_connect_cancel(cookie):
+ * Cancel the connection attempt for which ${cookie} was returned by
+ * network_connect.  Do not invoke the associated callback.
+ */
+void network_connect_cancel(void *);
+
+/**
  * network_read(fd, buf, buflen, minread, callback, cookie):
  * Asynchronously read up to ${buflen} bytes of data from ${fd} into ${buf}.
  * When at least ${minread} bytes have been read or on error, invoke

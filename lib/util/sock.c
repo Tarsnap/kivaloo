@@ -6,6 +6,7 @@
 
 #include <arpa/inet.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdint.h>
@@ -397,6 +398,43 @@ err1:
 	close(s);
 err0:
 	/* Failure! */
+	return (-1);
+}
+
+/**
+ * sock_connect_nb(sa):
+ * Create a socket, mark it as non-blocking, and attempt to connect to the
+ * address ${sa}.  Return the socket (connected or in the process of
+ * connecting) or -1 on error.
+ */
+int
+sock_connect_nb(const struct sock_addr * sa)
+{
+	int s;
+
+	/* Create a socket. */
+	if ((s = socket(sa->ai_family, sa->ai_socktype, 0)) == -1)
+		goto err0;
+
+	/* Mark the socket as non-blocking. */
+	if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
+		warnp("Cannot make socket non-blocking");
+		goto err1;
+	}
+
+	/* Attempt to connect. */
+	if ((connect(s, sa->name, sa->namelen) == -1) &&
+	    (errno != EINPROGRESS) &&
+	    (errno == EINTR))
+		goto err1;
+
+	/* We have a connect(ed|ing) socket. */
+	return (s);
+
+err1:
+	close(s);
+err0:
+	/* We failed to connect to this address. */
 	return (-1);
 }
 

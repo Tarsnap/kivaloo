@@ -297,6 +297,7 @@ callback_gotresponse(void * cookie, uint8_t * buf, size_t buflen)
 	struct forwardee * F = cookie;
 	struct sock_active * S = F->conn;
 	struct sock_active * S_next;
+	struct dispatch_state * dstate = S->dstate;
 
 	/* Free the request packet buffer. */
 	free(F->P->buf);
@@ -326,17 +327,16 @@ failed:
 		goto err0;
 
 	/* Stop trying to accept connections. */
-	accept_stop(S->dstate);
+	accept_stop(dstate);
 
 	/* The connection to the upstream server has failed. */
-	S->dstate->failed = 1;
+	dstate->failed = 1;
 
 	/* Stop reading requests from connections. */
-	while (S != NULL) {
+	for (S = dstate->sock_active; S != NULL; S = S_next) {
 		S_next = S->next;
 		if ((S->read_cookie != NULL) && readreq_cancel(S))
 			goto err0;
-		S = S_next;
 	}
 
 	/* The failed request has been successfully handled. */

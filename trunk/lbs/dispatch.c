@@ -336,6 +336,7 @@ callback_accept(void * cookie, int s)
 err3:
 	netbuf_read_free(D->readq);
 err2:
+	netbuf_write_destroy(D->writeq);
 	netbuf_write_free(D->writeq);
 err1:
 	close(D->sconn);

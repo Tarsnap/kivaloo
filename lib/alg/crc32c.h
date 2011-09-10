@@ -14,10 +14,9 @@ typedef struct CRC32CContext {
 
 /**
  * CRC32C_Init(ctx):
- * Initialize a CRC32C-computing context.  This function can only fail the
- * first time it is called.
+ * Initialize a CRC32C-computing context.
  */
-int CRC32C_Init(CRC32C_CTX *);
+void CRC32C_Init(CRC32C_CTX *);
 
 /**
  * CRC32C_Update(ctx, buf, len):

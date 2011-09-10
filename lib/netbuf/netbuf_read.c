@@ -69,15 +69,15 @@ docallback(void * cookie)
 
 /* Callback for a read completion. */
 static int
-gotbuf(void * cookie, size_t lenread)
+gotbuf(void * cookie, ssize_t lenread)
 {
 	struct netbuf_read * R = cookie;
 
 	/* This callback is no longer pending. */
 	R->read_cookie = NULL;
 
-	/* Did we succeed? */
-	if (lenread == 0)
+	/* Did we succeed?  Don't care about EOF vs. error. */
+	if (lenread <= 0)
 		goto failed;
 
 	/* We have data! */

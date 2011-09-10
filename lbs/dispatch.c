@@ -22,7 +22,7 @@ static int callback_accept(void *, int);
 
 /* The ID of a thread with completed work has been read (or not). */
 static int
-workdone(void * cookie, size_t lenread)
+workdone(void * cookie, ssize_t lenread)
 {
 	struct dispatch_state * D = cookie;
 

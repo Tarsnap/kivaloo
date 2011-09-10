@@ -42,7 +42,7 @@ struct netbuf_write {
 MPOOL(cookies, struct write_cookie, 4096 * 4);
 
 static int dofailure(void *);
-static int writbuf(void *, size_t);
+static int writbuf(void *, ssize_t);
 static int poke(struct netbuf_write *);
 
 /* Perform a failure callback for the specified buffer, then clean up. */
@@ -64,7 +64,7 @@ dofailure(void * cookie)
 
 /* A buffer has been written. */
 static int
-writbuf(void * cookie, size_t writelen)
+writbuf(void * cookie, ssize_t writelen)
 {
 	struct netbuf_write * W = cookie;
 	struct write_cookie * WC, * head;
@@ -78,8 +78,12 @@ writbuf(void * cookie, size_t writelen)
 	/* This write is no longer in progress. */
 	W->write_cookie = NULL;
 
-	/* If we failed, mark the queue as failed. */
-	if (writelen < W->writelen)
+	/*
+	 * If we didn't write the correct number of bytes, mark the queue as
+	 * failed.  Note that since W->writelen can't be equal to (size_t)(-1)
+	 * this also handles the case of writelen == -1.
+	 */
+	if ((size_t)(writelen) != W->writelen)
 		W->failed = 1;
 
 	/* Dequeue buffers and perform callbacks. */

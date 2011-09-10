@@ -53,7 +53,7 @@ dispatch_request_get(struct dispatch_state * dstate,
 
 	/* Add the read request to the pending read queue. */
 	if ((rq = malloc(sizeof(struct readq))) == NULL)
-		goto err0;
+		goto err1;
 	rq->next = NULL;
 	rq->reqID = R->ID;
 	rq->blkno = R->r.get.blkno;
@@ -63,16 +63,18 @@ dispatch_request_get(struct dispatch_state * dstate,
 		*(dstate->readq_tail) = rq;
 	dstate->readq_tail = &rq->next;
 
+	/* Free the request structure. */
+	free(R);
+
 	/* Poke the queue. */
 	if (dispatch_request_pokereadq(dstate))
 		goto err0;
 
-	/* Free the request structure. */
-	free(R);
-
 	/* Success! */
 	return (0);
 
+err1:
+	free(R);
 err0:
 	/* Failure! */
 	return (-1);
@@ -93,20 +95,22 @@ dispatch_request_pokereadq(struct dispatch_state * dstate)
 	while ((dstate->nreaders_idle > 0) && (dstate->readq_head != NULL)) {
 		/* Grab the first read from the queue. */
 		R = dstate->readq_head;
-		dstate->readq_head = R->next;
+
+		/* Allocate a buffer to read the block into. */
+		if ((buf = malloc(dstate->blocklen)) == NULL)
+			goto err0;
 
 		/* Grab an idle reader. */
 		reader = dstate->workers[
 		    dstate->readers_idle[dstate->nreaders_idle - 1]];
 		dstate->nreaders_idle -= 1;
 
-		/* Allocate a buffer to read the block into. */
-		if ((buf = malloc(dstate->blocklen)) == NULL)
-			goto err0;
-
 		/* Give the reader the work. */
 		if (worker_assign(reader, 0, R->blkno, 0, buf, R->reqID))
 			goto err1;
+
+		/* Remove the work from the queue. */
+		dstate->readq_head = R->next;
 
 		/* Free the dequeued read queue entry. */
 		free(R);
@@ -116,6 +120,7 @@ dispatch_request_pokereadq(struct dispatch_state * dstate)
 	return (0);
 
 err1:
+	dstate->nreaders_idle += 1;
 	free(buf);
 err0:
 	/* Failure! */

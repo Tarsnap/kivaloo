@@ -101,11 +101,13 @@ freedata(struct btree * T, struct node * N)
 static int
 makepresent(struct btree * T, struct node * N)
 {
+	void * evict;
 	struct node * N_evict;
 
 	/* Add the node to the pool. */
-	if (pool_rec_add(T->P, N, (void **)&N_evict))
+	if (pool_rec_add(T->P, N, &evict))
 		goto err0;
+	N_evict = evict;
 
 	/* If a node was evicted, make it non-present. */
 	if (N_evict != NULL) {

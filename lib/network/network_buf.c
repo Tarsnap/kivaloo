@@ -1,10 +1,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include <assert.h>
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "events.h"
 #include "warnp.h"
@@ -30,7 +33,7 @@
 #endif /* !MSG_NOSIGNAL */
 
 struct network_buf_cookie {
-	int (*callback)(void *, size_t);
+	int (*callback)(void *, ssize_t);
 	void * cookie;
 	int fd;
 	uint8_t * buf;
@@ -45,7 +48,7 @@ struct network_buf_cookie {
 static int docallback(struct network_buf_cookie *, size_t);
 static int callback_buf(void *);
 static struct network_buf_cookie * network_buf(int, uint8_t *, size_t,
-    size_t, int (*)(void *, size_t), void *,
+    size_t, int (*)(void *, ssize_t), void *,
     ssize_t (*)(int, void *, size_t, int), int, int);
 static void cancel(void *);
 
@@ -125,8 +128,7 @@ callback_buf(void * cookie)
 		goto failed;
 	} else if (len == 0) {
 		/* The socket was shut down by the remote host. */
-		errno = 0;
-		goto failed;
+		goto eof;
 	}
 
 	/* We processed some data.  Do we need to keep going? */
@@ -144,26 +146,36 @@ tryagain:
 	/* Callback was reset. */
 	return (0);
 
+eof:
+	/* Sanity-check: This should only occur for reads. */
+	assert(C->op == EVENTS_NETWORK_OP_READ);
+
+	/* Invoke the callback with an EOF status and return. */
+	return (docallback(C, 0));
+
 failed:
 	/* Invoke the callback with a failure status and return. */
-	return (docallback(C, 0));
+	return (docallback(C, -1));
 }
 
 /**
  * network_buf(fd, buf, buflen, minlen, callback, cookie, sendrecv, op, flags):
  * Asynchronously read/write up to ${buflen} bytes of data from/to ${fd}
  * to/from ${buf}.  When at least ${minlen} bytes have been read/written,
- * invoke ${callback}(${cookie}, nbytes), where nbytes is 0 on error (or EOF)
- * and the number of bytes read/written (between ${minlen} and ${buflen}
+ * invoke ${callback}(${cookie}, nbytes), where nbytes is 0 on EOF or -1 on
+ * error and the number of bytes read/written (between ${minlen} and ${buflen}
  * inclusive) otherwise.  Return a cookie which can be passed to buf_cancel
  * in order to cancel the read/write.
  */
 static struct network_buf_cookie *
 network_buf(int fd, uint8_t * buf, size_t buflen, size_t minlen,
-    int (* callback)(void *, size_t), void * cookie,
+    int (* callback)(void *, ssize_t), void * cookie,
     ssize_t (* sendrecv)(int, void *, size_t, int), int op, int flags)
 {
 	struct network_buf_cookie * C;
+
+	/* Sanity-check: # bytes must fit into a ssize_t. */
+	assert(buflen <= SSIZE_MAX);
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct network_buf_cookie))) == NULL)
@@ -210,14 +222,14 @@ cancel(void * cookie)
  * network_read(fd, buf, buflen, minread, callback, cookie):
  * Asynchronously read up to ${buflen} bytes of data from ${fd} into ${buf}.
  * When at least ${minread} bytes have been read or on error, invoke
- * ${callback}(${cookie}, lenread), where lenread is 0 on error (or EOF) and
- * the number of bytes read (between ${minread} and ${buflen} inclusive)
+ * ${callback}(${cookie}, lenread), where lenread is 0 on EOF or -1 on error,
+ * and the number of bytes read (between ${minread} and ${buflen} inclusive)
  * otherwise.  Return a cookie which can be passed to network_read_cancel in
  * order to cancel the read.
  */
 void *
 network_read(int fd, uint8_t * buf, size_t buflen, size_t minread,
-    int (* callback)(void *, size_t), void * cookie)
+    int (* callback)(void *, ssize_t), void * cookie)
 {
 
 	/* Make sure buflen is non-zero. */
@@ -248,14 +260,14 @@ network_read_cancel(void * cookie)
  * network_write(fd, buf, buflen, minwrite, callback, cookie):
  * Asynchronously write up to ${buflen} bytes of data from ${buf} to ${fd}.
  * When at least ${minwrite} bytes have been written or on error, invoke
- * ${callback}(${cookie}, lenwrit), where lenwrit is 0 on error (or EOF) and
- * the number of bytes written (between ${minwrite} and ${buflen} inclusive)
+ * ${callback}(${cookie}, lenwrit), where lenwrit is -1 on error and the
+ * number of bytes written (between ${minwrite} and ${buflen} inclusive)
  * otherwise.  Return a cookie which can be passed to network_write_cancel in
  * order to cancel the write.
  */
 void *
 network_write(int fd, const uint8_t * buf, size_t buflen, size_t minwrite,
-    int (* callback)(void *, size_t), void * cookie)
+    int (* callback)(void *, ssize_t), void * cookie)
 {
 
 	/* Make sure buflen is non-zero. */

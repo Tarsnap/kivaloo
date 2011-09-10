@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include "sock.h"
 
@@ -46,13 +47,13 @@ void network_connect_cancel(void *);
  * network_read(fd, buf, buflen, minread, callback, cookie):
  * Asynchronously read up to ${buflen} bytes of data from ${fd} into ${buf}.
  * When at least ${minread} bytes have been read or on error, invoke
- * ${callback}(${cookie}, lenread), where lenread is 0 on error (or EOF) and
- * the number of bytes read (between ${minread} and ${buflen} inclusive)
+ * ${callback}(${cookie}, lenread), where lenread is 0 on EOF or -1 on error,
+ * and the number of bytes read (between ${minread} and ${buflen} inclusive)
  * otherwise.  Return a cookie which can be passed to network_read_cancel in
  * order to cancel the read.
  */
 void * network_read(int, uint8_t *, size_t, size_t,
-    int (*)(void *, size_t), void *);
+    int (*)(void *, ssize_t), void *);
 
 /**
  * network_read_cancel(cookie):
@@ -65,13 +66,13 @@ void network_read_cancel(void *);
  * network_write(fd, buf, buflen, minwrite, callback, cookie):
  * Asynchronously write up to ${buflen} bytes of data from ${buf} to ${fd}.
  * When at least ${minwrite} bytes have been written or on error, invoke
- * ${callback}(${cookie}, lenwrit), where lenwrit is 0 on error (or EOF) and
- * the number of bytes written (between ${minwrite} and ${buflen} inclusive)
+ * ${callback}(${cookie}, lenwrit), where lenwrit is -1 on error and the
+ * number of bytes written (between ${minwrite} and ${buflen} inclusive)
  * otherwise.  Return a cookie which can be passed to network_write_cancel in
  * order to cancel the write.
  */
 void * network_write(int, const uint8_t *, size_t, size_t,
-    int (*)(void *, size_t), void *);
+    int (*)(void *, ssize_t), void *);
 
 /**
  * network_write_cancel(cookie):

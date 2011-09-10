@@ -54,14 +54,12 @@ wire_writepacket(struct netbuf_write * W, const struct wire_packet * packet,
 	/* Construct header. */
 	be64enc(&WP->hbuf[0], WP->packet->ID);
 	be32enc(&WP->hbuf[8], WP->packet->len);
-	if (CRC32C_Init(&ctx))
-		goto err1;
+	CRC32C_Init(&ctx);
 	CRC32C_Update(&ctx, WP->hbuf, 12);
 	CRC32C_Final(&WP->hbuf[12], &ctx);
 
 	/* Construct trailer. */
-	if (CRC32C_Init(&ctx))
-		goto err1;
+	CRC32C_Init(&ctx);
 	CRC32C_Update(&ctx, WP->packet->buf, WP->packet->len);
 	CRC32C_Final(cbuf, &ctx);
 	for (i = 0; i < 4; i++)

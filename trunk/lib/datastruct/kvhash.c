@@ -73,11 +73,9 @@ hash(const struct kvldskey * k)
 {
 	CRC32C_CTX ctx;
 	uint32_t h;
-	int rc;
 
 	/* Compute CRC32C(k). */
-	rc = CRC32C_Init(&ctx);
-	assert(rc == 0);
+	CRC32C_Init(&ctx);
 	CRC32C_Update(&ctx, k->buf, k->len);
 	CRC32C_Final((uint8_t *)&h, &ctx);
 
@@ -93,11 +91,6 @@ struct kvhash *
 kvhash_init(void)
 {
 	struct kvhash * H;
-	CRC32C_CTX ctx;
-
-	/* Allow the CRC32C code to initialize itself. */
-	if (CRC32C_Init(&ctx))
-		goto err0;
 
 	/* Allocate a kvhash. */
 	if ((H = malloc(sizeof(struct kvhash))) == NULL)

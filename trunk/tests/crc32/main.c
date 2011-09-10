@@ -33,11 +33,7 @@ main(int argc, char * argv[])
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
 		printf("Computing CRC32C of \"%s\"...", tests[i].s);
-		if (CRC32C_Init(&ctx)) {
-			printf(" Initialization FAILED!\n");
-			failures++;
-			continue;
-		}
+		CRC32C_Init(&ctx);
 		CRC32C_Update(&ctx, tests[i].s, strlen(tests[i].s));
 		CRC32C_Final(cbuf, &ctx);
 		if (memcmp(cbuf, tests[i].cbuf, 4)) {

@@ -102,8 +102,7 @@ readheader(void * cookie, int status)
 		goto failed;
 
 	/* Check the CRC. */
-	if (CRC32C_Init(&ctx))
-		goto failed;
+	CRC32C_Init(&ctx);
 	CRC32C_Update(&ctx, RP->hbuf, 12);
 	CRC32C_Final(cbuf, &ctx);
 	if (memcmp(&RP->hbuf[12], cbuf, 4)) {
@@ -150,8 +149,7 @@ readrec(void * cookie, int status)
 		goto failed;
 
 	/* Check the CRC. */
-	if (CRC32C_Init(&ctx))
-		goto failed;
+	CRC32C_Init(&ctx);
 	CRC32C_Update(&ctx, RP->packet->buf, RP->packet->len);
 	CRC32C_Final(cbuf, &ctx);
 	for (i = 0; i < 4; i++)

@@ -81,7 +81,7 @@ static int
 createmany(struct wire_requestqueue * Q, size_t N)
 {
 	struct createmany_state C;
-	char buf[8];	/* dummy */
+	uint8_t buf[8];	/* dummy */
 
 	/* Initialize. */
 	C.Q = Q;

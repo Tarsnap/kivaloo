@@ -136,7 +136,7 @@ randommixed(struct wire_requestqueue * Q, uint64_t N)
 {
 	struct randommixed_state C;
 	struct timeval tv_now;
-	char buf[40];	/* dummy */
+	uint8_t buf[40];	/* dummy */
 
 	/* Initialize. */
 	C.Q = Q;

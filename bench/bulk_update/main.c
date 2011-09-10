@@ -116,7 +116,7 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 {
 	struct bulkupdate_state C;
 	struct timeval tv_now;
-	char buf[40];	/* dummy */
+	uint8_t buf[40];	/* dummy */
 
 	/* Initialize. */
 	C.Q = Q;

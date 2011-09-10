@@ -84,7 +84,7 @@ static int
 tokyo(struct wire_requestqueue * Q, char ** keys)
 {
 	struct tokyo_state C;
-	char buf[8];	/* dummy */
+	uint8_t buf[8];	/* dummy */
 	struct timeval tv_start, tv_end;
 
 	/* Initialize. */

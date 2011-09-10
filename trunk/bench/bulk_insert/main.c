@@ -165,7 +165,7 @@ static int
 bulkinsert(struct wire_requestqueue * Q, FILE * f)
 {
 	struct bulkinsert_state C;
-	char buf[40];	/* dummy */
+	uint8_t buf[40];	/* dummy */
 
 	/* Initialize. */
 	C.Q = Q;

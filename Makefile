@@ -36,7 +36,7 @@ publish: clean
 	fi
 	rm -f kivaloo-${VERSION}.tgz
 	mkdir kivaloo-${VERSION}
-	tar -cf- --exclude 'Makefile.*' --exclude Makefile ${PUBLISH} | \
+	tar -cf- --exclude 'Makefile.*' --exclude Makefile --exclude .svn ${PUBLISH} | \
 	    tar -xf- -C kivaloo-${VERSION}
 	cp Makefile.POSIX kivaloo-${VERSION}/Makefile
 .for D in ${PROGS} ${BENCHES}

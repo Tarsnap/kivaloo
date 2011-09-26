@@ -1,0 +1,140 @@
+Benchmark data
+==============
+
+The benchmark data consists of 40+40 byte key-value pairs; for Y ranging from
+0 to 2^16 - 1 and for X ranging from 0 upwards (depending on the amount of
+data required), the keys are:
+offset	length
+------	------
+   0	   8	64-bit big-endian X
+   8	  32	sha256(\000.(64-bit big-endian X).(64-bit big-endian Y))
+and the values are:
+offset	length
+------	------
+   0	   8	64-bit big-endian X * 2^16 + Y
+   8	  32	sha256(\001.(64-bit big-endian X).(64-bit big-endian Y))
+
+The utility
+# kivaloo-mkpairs N
+writes to stdout output consisting of N key-value pairs of the above form,
+stored as <key 0><value 0><key 1><value 1>... and sorted in lexicographical
+order.
+
+Bulk insert
+===========
+
+The bulk insert benchmark starts with an empty data store and issues SET
+requests for an ordered stream of key-value pairs.  Let T_i be the time
+when insert i is completed (i.e., the acknowledgement is received at the
+client); and let B_i be the largest value such that T_{B_i} < T_i + 1.
+
+The output of the bulk load benchmark is pairs (2^n, B_{2^n}); these are
+representative of steady-state insert throughput for various data store
+sizes.
+
+The bulk insert benchmark can be run as
+# kivaloo-mkpairs N > dat.N
+# kivaloo-bulk_insert /path/to/kvlds.sock < dat.N
+for some value N > 2^n + B_{2^n}.
+
+Bulk extract
+============
+
+The bulk extract benchmark starts with a data store containing 2^n key-value
+pairs, and repeatedly issues a RANGE request to get all key-value pairs in
+the data store.  Let N(T) be the number of key-value pairs read prior to
+time T.
+
+The output of the bulk extract benchmark is the value (N(60) - N(50))/10;
+this is representative of steady-state extract throughput for the relevant
+size of data store.
+
+The bulk extract benchmark can be run as
+# kivaloo-mkpairs N | bulk_insert /path/to/kvlds.sock >/dev/null
+# kivaloo-bulk_extract /path/to/kvlds.sock
+for N = 2^n.
+
+Bulk update
+===========
+
+The bulk update benchmark starts with a data store containing 2^n key-value
+pairs, and repeatedly issues SET requests for all the keys to store new
+values.  Let N(T) be the number of completed SET requests at time T.
+
+The output of the bulk update benchmark is the value (N(60) - N(50))/10; this
+is representative of steady-state bulk update (ordered consecutive keys)
+throughput for the relevant size of data store.
+
+The bulk update benchmark can be run as
+# kivaloo-mkpairs N > dat.N
+# kivaloo-bulk_insert /path/to/kvlds.sock < dat.N >/dev/null
+# kivaloo-bulk_update /path/to/kvlds.sock < dat.N
+for N = 2^n.  (Note that the input to bulk_update must be seekable; it cannot
+be piped from mkpairs.)
+
+Uniform random read
+===================
+
+The uniform random read benchmark starts with a data store containing 2^n
+key-value pairs, and repeatedly issues GET requests for random keys.  Let
+N(T) be the number of completed GET requests at time T.
+
+The output of the uniform random read benchmark is the value
+(N(150) - N(50))/100; this is representative of steady-state uniform random
+read throughput for the relevant size of data store.
+
+The uniform random read benchmark can be run as
+# kivaloo-mkpairs N | bulk_insert /path/to/kvlds.sock >/dev/null
+# kivaloo-random_read /path/to/kvlds.sock N
+for N = 2^n.
+
+Uniform random mixed
+====================
+
+The uniform random read benchmark starts with a data store containing 2^n
+key-value pairs, and alternates issuing GET requests and SET requests for
+random keys.  Let N(T) be the number of completed requests at time T.
+
+The output of the uniform random read benchmark is the value
+(N(150) - N(50))/100; this is representative of steady-state uniform random
+mixed (50% read, 50% update) throughput for the relevant size of data store.
+
+The uniform random mixed benchmark can be run as
+# kivaloo-mkpairs N | bulk_insert /path/to/kvlds.sock >/dev/null
+# kivaloo-random_mixed /path/to/kvlds.sock N
+for N = 2^n.
+
+Hot-spot read
+=============
+
+The hot-spot read benchmark starts with a data store containing 2^n key-value
+pairs, repeatedly selects sets of 2^16 consecutive keys, and issues GET
+requests for those 2^16 keys in a random order.  Let N(T) be the number of
+complteed GET requests at time T.
+
+The output of the hot-spot read benchmark is the value (N(60) - N(50))/10;
+this is representative of read throughput with a large degree of spatial
+locality. (This is relevant, for example, in a backup service where each
+client system has an independent block storage space; it is very likely
+that after reading one block other blocks owned by the same system will
+be read in the near future.)
+
+The hot-spot read benchmark can be run as
+# kivaloo-mkpairs N | bulk_insert /path/to/kvlds.sock >/dev/null
+# kivaloo-hotspot_read /path/to/kvlds.sock N
+for N = 2^n >= 2^16.
+
+tokyo
+=====
+
+The tokyo benchmark starts with an empty data store and inserts 10^6
+key-value pairs with the key and value both equal to '00000000', '00000001',
+'00000002' ... '00999999'.  This benchmark performs the same operations as
+'tcrtest write 1000000' (part of tokyo tyrant), hence the name.
+
+The output of this benchmark is the amount of time from when the first
+request is sent to when the last request completes; this is not particularly
+representative of anything since nobody actually uses 8 byte keys and values.
+
+The tokyo benchmark can be run as
+# kivaloo-tokyo /path/to/kvlds.sock

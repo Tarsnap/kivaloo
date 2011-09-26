@@ -1,3 +1,8 @@
+kivaloo-1.1.2
+* fix bug in kivaloo-mux which can result in an idle connection not being
+  closed after the upstream daemon has died.
+* minor cleanups and bug fixes.
+
 kivaloo-1.1.1
 * minor cleanups courtesy of Coverity Prevent.
 

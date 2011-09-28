@@ -65,6 +65,7 @@ IDIRS	+=	-I ../../lib/proto_kvlds
 test:	all
 	@./test_kvlds.sh
 
-CLEANFILES+=	kvlds.leak test_kvlds.leak
+CLEANFILES+=	kvlds.leak ktrace-kvlds.out kdump-kvlds.out
+CLEANFILES+=	test_kvlds.leak ktrace-test_kvlds.out kdump-test_kvlds.out
 
 .include <bsd.prog.mk>

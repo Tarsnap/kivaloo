@@ -27,7 +27,6 @@ struct req_cookie {
 
 /* State for a batch of modifying requests. */
 struct batch {
-	int (*callback_packet)(void *, int);
 	int (*callback_done)(void *);
 	void * cookie;
 	size_t nreqs;
@@ -87,18 +86,15 @@ finddirty(struct nodepair * V, size_t N, struct node * shadow)
 }
 
 /**
- * dispatch_mr_launch(T, reqs, nreqs, WQ,
- *     callback_packet, callback_done, cookie):
+ * dispatch_mr_launch(T, reqs, nreqs, WQ, callback_done, cookie):
  * Perform the ${nreqs} modifying requests ${reqs}[] on the B+Tree ${T};
  * write response packets to the write queue ${WQ}; and free the requests and
  * request array.  Invoke the callback ${callback_done}(${cookie}) after the
- * requests have been serviced;  invoke ${callback_packet}(${cookie}, status)
- * after each response packet has been writ.
+ * requests have been serviced.
  */
 int
 dispatch_mr_launch(struct btree * T, struct proto_kvlds_request ** reqs,
     size_t nreqs, struct netbuf_write * WQ,
-    int (* callback_packet)(void *, int),
     int (* callback_done)(void *), void * cookie)
 {
 	struct batch * B;
@@ -112,7 +108,6 @@ dispatch_mr_launch(struct btree * T, struct proto_kvlds_request ** reqs,
 	/* Bake a cookie. */
 	if ((B = malloc(sizeof(struct batch))) == NULL)
 		goto err0;
-	B->callback_packet = callback_packet;
 	B->callback_done = callback_done;
 	B->cookie = cookie;
 	B->nreqs = nreqs;
@@ -499,33 +494,31 @@ callback_synced(void * cookie)
 
 		switch (R->type) {
 		case PROTO_KVLDS_SET:
-			if (proto_kvlds_response_set(B->WQ, R->ID,
-			    B->callback_packet, B->cookie))
+			if (proto_kvlds_response_set(B->WQ, R->ID))
 				goto err0;
 			break;
 		case PROTO_KVLDS_CAS:
 			if (proto_kvlds_response_cas(B->WQ, R->ID,
-			    req->opdone, B->callback_packet, B->cookie))
+			    req->opdone))
 				goto err0;
 			break;
 		case PROTO_KVLDS_ADD:
 			if (proto_kvlds_response_add(B->WQ, R->ID,
-			    req->opdone, B->callback_packet, B->cookie))
+			    req->opdone))
 				goto err0;
 			break;
 		case PROTO_KVLDS_MODIFY:
 			if (proto_kvlds_response_modify(B->WQ, R->ID,
-			    req->opdone, B->callback_packet, B->cookie))
+			    req->opdone))
 				goto err0;
 			break;
 		case PROTO_KVLDS_DELETE:
-			if (proto_kvlds_response_delete(B->WQ, R->ID,
-			    B->callback_packet, B->cookie))
+			if (proto_kvlds_response_delete(B->WQ, R->ID))
 				goto err0;
 			break;
 		case PROTO_KVLDS_CAD:
 			if (proto_kvlds_response_cad(B->WQ, R->ID,
-			    req->opdone, B->callback_packet, B->cookie))
+			    req->opdone))
 				goto err0;
 			break;
 		}

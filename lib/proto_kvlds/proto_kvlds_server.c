@@ -18,20 +18,11 @@ struct request_read {
 	void * read_cookie;
 };
 
-struct packetwrite {
-	struct wire_packet P;
-	int (*callback)(void *, int);
-	void * cookie;
-	uint8_t buf[4];
-};
-
 MPOOL(requestread, struct request_read, 16);
-MPOOL(packetwrite, struct packetwrite, 4096);
 MPOOL(request, struct proto_kvlds_request, 4096);
 
 static int gotpacket(void *, struct wire_packet *);
 static int docallback(struct request_read *, struct proto_kvlds_request *);
-static int packetwrit(void *, int);
 
 /**
  * proto_kvlds_request_parse(P):
@@ -265,38 +256,26 @@ proto_kvlds_request_free(struct proto_kvlds_request * R)
  */
 int
 proto_kvlds_response_params(struct netbuf_write * Q, uint64_t ID,
-    uint32_t kmax, uint32_t vmax,
-    int (* callback)(void *, int), void * cookie)
+    uint32_t kmax, uint32_t vmax)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
+	uint8_t buf[8];
 
-	/* Bake a cookie. */
-	if ((P = mpool_packetwrite_malloc()) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = 8;
-
-	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	P.ID = ID;
+	P.len = 8;
+	P.buf = buf;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], kmax);
-	be32enc(&P->P.buf[4], vmax);
+	be32enc(&P.buf[0], kmax);
+	be32enc(&P.buf[4], vmax);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
-err1:
-	free(P);
 err0:
 	/* Failure! */
 	return (-1);
@@ -311,33 +290,25 @@ err0:
  */
 int
 proto_kvlds_response_status(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, int (* callback)(void *, int), void * cookie)
+    uint32_t status)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
+	uint8_t buf[4];
 
-	/* Bake a cookie. */
-	if ((P = mpool_packetwrite_malloc()) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = 4;
-
-	/* Use the internal buffer. */
-	P->P.buf = P->buf;
+	P.ID = ID;
+	P.len = 4;
+	P.buf = buf;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], status);
+	be32enc(&P.buf[0], status);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err1;
+	if (wire_writepacket(Q, &P))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	mpool_packetwrite_free(P);
 err0:
 	/* Failure! */
 	return (-1);
@@ -352,41 +323,36 @@ err0:
  */
 int
 proto_kvlds_response_get(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, const struct kvldskey * value,
-    int (* callback)(void *, int), void * cookie)
+    uint32_t status, const struct kvldskey * value)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
 
-	/* Bake a cookie. */
-	if ((P = mpool_packetwrite_malloc()) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = 4;
+	P.ID = ID;
+	P.len = 4;
 	if (status == 0)
-		P->P.len += kvldskey_serial_size(value);
+		P.len += kvldskey_serial_size(value);
 
 	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	if ((P.buf = malloc(P.len)) == NULL)
+		goto err0;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], status);
+	be32enc(&P.buf[0], status);
 	if (status == 0)
-		kvldskey_serialize(value, &P->P.buf[4]);
+		kvldskey_serialize(value, &P.buf[4]);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err1;
+
+	/* Free the packet buffer. */
+	free(P.buf);
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
 err1:
-	mpool_packetwrite_free(P);
+	free(P.buf);
 err0:
 	/* Failure! */
 	return (-1);
@@ -403,79 +369,55 @@ err0:
 int
 proto_kvlds_response_range(struct netbuf_write * Q, uint64_t ID,
     size_t nkeys, const struct kvldskey * next,
-    struct kvldskey ** keys, struct kvldskey ** values,
-    int (* callback)(void *, int), void * cookie)
+    struct kvldskey ** keys, struct kvldskey ** values)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
 	size_t i;
 	size_t bufpos;
 
 	/* Sanity check: We can't return more than 2^32-1 keys. */
 	assert(nkeys <= UINT32_MAX);
 
-	/* Bake a cookie. */
-	if ((P = mpool_packetwrite_malloc()) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
+	P.ID = ID;
 
 	/* Figure out how long the packet will be. */
-	P->P.len = 8;
-	P->P.len += kvldskey_serial_size(next);
+	P.len = 8;
+	P.len += kvldskey_serial_size(next);
 	for (i = 0; i < nkeys; i++) {
-		P->P.len += kvldskey_serial_size(keys[i]);
-		P->P.len += kvldskey_serial_size(values[i]);
+		P.len += kvldskey_serial_size(keys[i]);
+		P.len += kvldskey_serial_size(values[i]);
 	}
 
 	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	if ((P.buf = malloc(P.len)) == NULL)
+		goto err0;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], 0);
-	be32enc(&P->P.buf[4], nkeys);
+	be32enc(&P.buf[0], 0);
+	be32enc(&P.buf[4], nkeys);
 	bufpos = 8;
-	kvldskey_serialize(next, &P->P.buf[bufpos]);
+	kvldskey_serialize(next, &P.buf[bufpos]);
 	bufpos += kvldskey_serial_size(next);
 	for (i = 0; i < nkeys; i++) {
-		kvldskey_serialize(keys[i], &P->P.buf[bufpos]);
+		kvldskey_serialize(keys[i], &P.buf[bufpos]);
 		bufpos += kvldskey_serial_size(keys[i]);
-		kvldskey_serialize(values[i], &P->P.buf[bufpos]);
+		kvldskey_serialize(values[i], &P.buf[bufpos]);
 		bufpos += kvldskey_serial_size(values[i]);
 	}
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err1;
+
+	/* Free the packet buffer. */
+	free(P.buf);
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
 err1:
-	mpool_packetwrite_free(P);
+	free(P.buf);
 err0:
 	/* Failure! */
 	return (-1);
-}
-
-/* Free the packet and invoke the callback. */
-static int
-packetwrit(void * cookie, int status)
-{
-	struct packetwrite * P = cookie;
-	int rc;
-
-	/* Invoke the callback. */
-	rc = (P->callback)(P->cookie, status);
-
-	/* Free the packet. */
-	if (P->P.buf != P->buf)
-		free(P->P.buf);
-	mpool_packetwrite_free(P);
-
-	/* Return the upstream return code. */
-	return (rc);
 }

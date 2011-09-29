@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <inttypes.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #include "events.h"
@@ -12,13 +11,8 @@
 #include "wire.h"
 
 struct request {
-	struct wire_requestqueue * Q;
 	int (* callback)(void *, uint8_t *, size_t);
 	void * cookie;
-	struct wire_packet * req;
-	uint8_t * resbuf;
-	size_t resbuflen;
-	int cbpending;
 };
 
 struct wire_requestqueue {
@@ -26,59 +20,28 @@ struct wire_requestqueue {
 	struct netbuf_write * WQ;
 	void * read_cookie;
 	struct seqptrmap * reqs;
+	int failed;
 	int destroyed;
 };
 
 MPOOL(request, struct request, 4096);
 
-static int failqueue(struct wire_requestqueue *);
+static int failqueue(void *);
 
-/* Request writ or response received; callback and cleanup if appropriate. */
+/* Invoke the callback for this request as a failure. */
 static int
-cbdone(void * cookie)
+failreq(void * cookie)
 {
 	struct request * R = cookie;
 	int rc;
 
-	/* One of the callbacks has occurred. */
-	R->cbpending--;
+	/* Perform a no-response callback. */
+	rc = (R->callback)(R->cookie, NULL, 0);
 
-	/* If we're still waiting for another callback, stop here. */
-	if (R->cbpending)
-		return (0);
-
-	/* Perform the callback. */
-	rc = (R->callback)(R->cookie, R->resbuf, R->resbuflen);
-
-	/*
-	 * Free the request packet structure (but not the record buffer,
-	 * which is freed upstream) and the request structure.
-	 */
-	wire_packet_free(R->req);
+	/* Free the request structure. */
 	mpool_request_free(R);
 
 	/* Return status from callback. */
-	return (rc);
-}
-
-/* A packet was written (or not). */
-static int
-writpacket(void * cookie, int status)
-{
-	struct request * R = cookie;
-	struct wire_requestqueue * Q = R->Q;
-	int rc = 0;
-
-	/* Did we fail? */
-	if (status) {
-		if (failqueue(Q))
-			rc = -1;
-	}
-
-	/* One of the callbacks for this request has been performed. */
-	if (cbdone(R))
-		rc = -1;
-
 	return (rc);
 }
 
@@ -94,9 +57,8 @@ gotpacket(void * cookie, struct wire_packet * P)
 	Q->read_cookie = NULL;
 
 	/* If the packet read failed, the connection is dying. */
-	if (P == NULL) {
+	if (P == NULL)
 		goto fail;
-	}
 
 	/* Look up the request associated with this response. */
 	if ((R = seqptrmap_get(Q->reqs, P->ID)) == NULL) {
@@ -110,13 +72,17 @@ gotpacket(void * cookie, struct wire_packet * P)
 	/* Delete the request from the pending request map. */
 	seqptrmap_delete(Q->reqs, P->ID);
 
-	/* Keep the response length and buffer; free the packet structure. */
-	R->resbuf = P->buf;
-	R->resbuflen = P->len;
+	/* Invoke the upstream callback. */
+	rc = (R->callback)(R->cookie, P->buf, P->len);
+
+	/*
+	 * Free the response packet structure (but not the buffer, which is
+	 * the responsibility of the response-handling callback code..
+	 */
 	wire_packet_free(P);
 
-	/* Perform the upstream callback if appropriate. */
-	rc = cbdone(R);
+	/* Free the request structure. */
+	mpool_request_free(R);
 
 	/* Start reading another packet. */
 	if ((Q->read_cookie = wire_readpacket(Q->R, gotpacket, Q)) == NULL)
@@ -138,18 +104,27 @@ err0:
 	return (-1);
 }
 
-/* Kill off this connection, causing all pending callbacks to be invoked. */
+/* Kill off this connection, queuing failure callbacks. */
 static int
-failqueue(struct wire_requestqueue * Q)
+failqueue(void * cookie)
 {
-	int64_t ID;
+	struct wire_requestqueue * Q = cookie;
 	struct request * R;
+	int64_t ID;
+	int rc = 0;	/* Success unless we fail to schedule a callback. */
+
+	/* This queue is dying. */
+	assert(Q->failed == 0);
+	Q->failed = 1;
 
 	/* Cancel any pending read. */
 	if (Q->read_cookie != NULL) {
 		wire_readpacket_cancel(Q->read_cookie);
 		Q->read_cookie = NULL;
 	}
+
+	/* Free the buffered writer. */
+	netbuf_write_free(Q->WQ);
 
 	/* Schedule callbacks for pending requests. */
 	while ((ID = seqptrmap_getmin(Q->reqs)) != -1) {
@@ -159,32 +134,16 @@ failqueue(struct wire_requestqueue * Q)
 		/* Said request can't be NULL unless seqptrmap is broken. */
 		assert(R != NULL);
 
-		/*
-		 * Schedule a "callback done" for this request and delete it
-		 * from the map; we can't do these in line since they might
-		 * end up doing callbacks which invoke _destroy and end up
-		 * back here.  Since we haven't read a response for this
-		 * request yet (if we had, it wouldn't be in the map), the
-		 * upstream callback will be invoked as a failure.
-		 */
-		if (!events_immediate_register(cbdone, R, 0))
-			goto err0;
+		/* Schedule a failure callback to occur later. */
+		if (events_immediate_register(failreq, R, 0) == NULL)
+			rc = -1;
+
+		/* Delete the request from the map. */
 		seqptrmap_delete(Q->reqs, ID);
 	}
 
-	/*
-	 * Destroy (but do not free) the write queue.  All new packet writes
-	 * hereafter will immediately fail, bringing us back to here.
-	 */
-	if (netbuf_write_destroy(Q->WQ))
-		goto err0;
-
-	/* Succcess! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
+	/* Success unless we failed to schedule a callback. */
+	return (rc);
 }
 
 /**
@@ -203,11 +162,12 @@ wire_requestqueue_init(int s)
 	if ((Q = malloc(sizeof(struct wire_requestqueue))) == NULL)
 		goto err0;
 
-	/* We have not called wire_requestqueue_destroy yet. */
+	/* We have not failed, nor have we been destroyed. */
+	Q->failed = 0;
 	Q->destroyed = 0;
 
 	/* Create a buffered writer. */
-	if ((Q->WQ = netbuf_write_init(s)) == NULL)
+	if ((Q->WQ = netbuf_write_init(s, failqueue, Q)) == NULL)
 		goto err1;
 
 	/* Create a buffered reader. */
@@ -230,7 +190,6 @@ err4:
 err3:
 	netbuf_read_free(Q->R);
 err2:
-	netbuf_write_destroy(Q->WQ);
 	netbuf_write_free(Q->WQ);
 err1:
 	free(Q);
@@ -245,8 +204,7 @@ err0:
  * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
  * or with resbuf == NULL if the request failed (because it couldn't be sent
  * or because the connection failed or was destroyed before a response was
- * received).  Note that responses may arrive out-of-order.  The buffer
- * ${buf} must remain valid until the callback is invoked.  The callback is
+ * received).  Note that responses may arrive out-of-order.  The callback is
  * responsible for freeing ${resbuf}.
  */
 int
@@ -255,38 +213,40 @@ wire_requestqueue_add(struct wire_requestqueue * Q,
     int (* callback)(void *, uint8_t *, size_t), void * cookie)
 {
 	struct request * R;
+	struct wire_packet req;
 
 	/* Bake a cookie. */
 	if ((R = mpool_request_malloc()) == NULL)
 		goto err0;
-	R->Q = Q;
 	R->callback = callback;
 	R->cookie = cookie;
-	R->cbpending = 2;
-	R->resbuf = NULL;
-	R->resbuflen = 0;
 
-	/* Create a packet. */
-	if ((R->req = wire_packet_malloc()) == NULL)
-		goto err1;
-	R->req->buf = buf;
-	R->req->len = buflen;
+	/* If the request queue has failed, just schedule a callback. */
+	if (Q->failed) {
+		if (events_immediate_register(failreq, R, 0) == NULL)
+			goto err1;
+		else
+			goto done;
+	}
 
 	/* Insert the cookie into the pending request map. */
-	if ((R->req->ID = seqptrmap_add(Q->reqs, R)) == (uint64_t)(-1))
-		goto err2;
+	if ((req.ID = seqptrmap_add(Q->reqs, R)) == (uint64_t)(-1))
+		goto err1;
+
+	/* Fill in packet structure fields. */
+	req.buf = buf;
+	req.len = buflen;
 
 	/* Queue the request packet to be written. */
-	if (wire_writepacket(Q->WQ, R->req, writpacket, R))
-		goto err3;
+	if (wire_writepacket(Q->WQ, &req))
+		goto err2;
 
+done:
 	/* Success! */
 	return (0);
 
-err3:
-	seqptrmap_delete(Q->reqs, R->req->ID);
 err2:
-	wire_packet_free(R->req);
+	seqptrmap_delete(Q->reqs, req.ID);
 err1:
 	mpool_request_free(R);
 err0:
@@ -304,8 +264,12 @@ int
 wire_requestqueue_destroy(struct wire_requestqueue * Q)
 {
 
-	/* Record that wire_requestqueue_destroy has been called. */
+	/* We are being destroyed. */
 	Q->destroyed = 1;
+
+	/* If we've already failed, there's no need to do anything more. */
+	if (Q->failed)
+		return (0);
 
 	/* Tear everything down as if there was an error. */
 	return (failqueue(Q));
@@ -314,8 +278,7 @@ wire_requestqueue_destroy(struct wire_requestqueue * Q)
 /**
  * wire_requestqueue_free(Q):
  * Free the request queue ${Q}.  The queue must have been previously
- * destroyed by a call to wire_requestqueue_destroy and there must be no
- * pending requests.
+ * destroyed by a call to wire_requestqueue_destroy.
  */
 void
 wire_requestqueue_free(struct wire_requestqueue * Q)
@@ -332,9 +295,6 @@ wire_requestqueue_free(struct wire_requestqueue * Q)
 
 	/* Free the buffered reader. */
 	netbuf_read_free(Q->R);
-
-	/* Free the buffered writer. */
-	netbuf_write_free(Q->WQ);
 
 	/* Free the request queue. */
 	free(Q);	

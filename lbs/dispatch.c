@@ -73,8 +73,9 @@ err0:
 
 /* The connection is dying.  Help speed up the process. */
 static int
-dropconnection(struct dispatch_state * D)
+dropconnection(void * cookie)
 {
+	struct dispatch_state * D = cookie;
 	void * tmp;
 
 	/* If we're reading a packet, stop it. */
@@ -91,19 +92,8 @@ dropconnection(struct dispatch_state * D)
 		free(tmp);
 	}
 
-	/*
-	 * Destroy the write queue.  Depending on how we reached this point,
-	 * this may have already been done (many times, even).
-	 */
-	if (netbuf_write_destroy(D->writeq))
-		goto err0;
-
-	/* Success! */
+	/* Success!  (We can't fail -- but netbuf_write doesn't know that.) */
 	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /* We have read a request (or not). */
@@ -166,8 +156,7 @@ gotrequest(void * cookie, struct proto_lbs_request * R)
 
 drop:
 	/* We didn't get a valid request.  Drop the connection. */
-	if (dropconnection(D))
-		goto err0;
+	dropconnection(D);
 
 	/* All is good. */
 	return (0);
@@ -309,7 +298,8 @@ callback_accept(void * cookie, int s)
 	}
 
 	/* Create a buffered writer for the connection. */
-	if ((D->writeq = netbuf_write_init(D->sconn)) == NULL) {
+	if ((D->writeq = netbuf_write_init(D->sconn,
+	    dropconnection, D)) == NULL) {
 		warnp("Cannot create packet write queue");
 		goto err1;
 	}
@@ -336,7 +326,6 @@ callback_accept(void * cookie, int s)
 err3:
 	netbuf_read_free(D->readq);
 err2:
-	netbuf_write_destroy(D->writeq);
 	netbuf_write_free(D->writeq);
 err1:
 	close(D->sconn);
@@ -438,30 +427,4 @@ dispatch_done(struct dispatch_state * D)
 
 	/* Return success, or failure if anything went wrong. */
 	return (rc);
-}
-
-/**
- * dispatch_writresponse(cookie, status):
- * Callback for packet writes: kill the connection if a packet write failed.
- */
-int
-dispatch_writresponse(void * cookie, int status)
-{
-	struct dispatch_state * D = cookie;
-
-	/* We owe one less response to the client. */
-	D->npending -= 1;
-
-	/* If we failed to send the response, kill the connection. */
-	if (status) {
-		if (dropconnection(D))
-			goto err0;
-	}
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
 }

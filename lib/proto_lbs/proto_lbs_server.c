@@ -12,15 +12,8 @@ struct request_read {
 	void * read_cookie;
 };
 
-struct packetwrite {
-	struct wire_packet P;
-	int (*callback)(void *, int);
-	void * cookie;
-};
-
 static int gotpacket(void *, struct wire_packet *);
 static int docallback(struct request_read *, struct proto_lbs_request *);
-static int packetwrit(void *, int);
 
 /**
  * proto_lbs_request_parse(P):
@@ -186,7 +179,7 @@ proto_lbs_request_read_cancel(void * cookie)
 }
 
 /**
- * proto_lbs_response_params(Q, ID, blklen, blkno, callback, cookie):
+ * proto_lbs_response_params(Q, ID, blklen, blkno):
  * Send a PARAMS response with ID ${ID} to the write queue ${Q} indicating
  * that the block size is ${blklen} bytes and the next available block # is
  * ${blkno}.  Invoke ${callback}(${cookie}, 0 / 1) on packet write success /
@@ -194,38 +187,26 @@ proto_lbs_request_read_cancel(void * cookie)
  */
 int
 proto_lbs_response_params(struct netbuf_write * Q, uint64_t ID,
-    uint32_t blklen, uint64_t blkno,
-    int (*callback)(void *, int), void * cookie)
+    uint32_t blklen, uint64_t blkno)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
+	uint8_t buf[12];
 
-	/* Bake a cookie. */
-	if ((P = malloc(sizeof(struct packetwrite))) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = 12;
-
-	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	P.ID = ID;
+	P.len = 12;
+	P.buf = buf;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], blklen);
-	be64enc(&P->P.buf[4], blkno);
+	be32enc(&P.buf[0], blklen);
+	be64enc(&P.buf[4], blkno);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
-err1:
-	free(P);
 err0:
 	/* Failure! */
 	return (-1);
@@ -239,39 +220,34 @@ err0:
  */
 int
 proto_lbs_response_get(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, uint32_t blklen, const uint8_t * buf,
-    int (*callback)(void *, int), void * cookie)
+    uint32_t status, uint32_t blklen, const uint8_t * buf)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
 
-	/* Bake a cookie. */
-	if ((P = malloc(sizeof(struct packetwrite))) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = 4 + ((status == 0) ? blklen : 0);
+	P.ID = ID;
+	P.len = 4 + ((status == 0) ? blklen : 0);
 
 	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	if ((P.buf = malloc(P.len)) == NULL)
+		goto err0;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], status);
+	be32enc(&P.buf[0], status);
 	if (status == 0)
-		memcpy(&P->P.buf[4], buf, blklen);
+		memcpy(&P.buf[4], buf, blklen);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err1;
+
+	/* Free the packet buffer. */
+	free(P.buf);
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
 err1:
-	free(P);
+	free(P.buf);
 err0:
 	/* Failure! */
 	return (-1);
@@ -285,39 +261,27 @@ err0:
  */
 int
 proto_lbs_response_append(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, uint64_t blkno,
-    int (*callback)(void *, int), void * cookie)
+    uint32_t status, uint64_t blkno)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
+	uint8_t buf[12];
 
-	/* Bake a cookie. */
-	if ((P = malloc(sizeof(struct packetwrite))) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = (status == 0) ? 12 : 4;
-
-	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	P.ID = ID;
+	P.len = (status == 0) ? 12 : 4;
+	P.buf = buf;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], status);
+	be32enc(&P.buf[0], status);
 	if (status == 0)
-		be64enc(&P->P.buf[4], blkno);
+		be64enc(&P.buf[4], blkno);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
-err1:
-	free(P);
 err0:
 	/* Failure! */
 	return (-1);
@@ -329,56 +293,26 @@ err0:
  * ${callback}(${cookie}, 0 / 1) on packet write success / failure.
  */
 int
-proto_lbs_response_free(struct netbuf_write * Q, uint64_t ID,
-    int (*callback)(void *, int), void * cookie)
+proto_lbs_response_free(struct netbuf_write * Q, uint64_t ID)
 {
-	struct packetwrite * P;
+	struct wire_packet P;
+	uint8_t buf[4];
 
-	/* Bake a cookie. */
-	if ((P = malloc(sizeof(struct packetwrite))) == NULL)
-		goto err0;
-	P->callback = callback;
-	P->cookie = cookie;
-	P->P.ID = ID;
-	P->P.len = 4;
-
-	/* Allocate the packet buffer. */
-	if ((P->P.buf = malloc(P->P.len)) == NULL)
-		goto err1;
+	P.ID = ID;
+	P.len = 4;
+	P.buf = buf;
 
 	/* Construct the packet. */
-	be32enc(&P->P.buf[0], 0);
+	be32enc(&P.buf[0], 0);
 
 	/* Queue the packet. */
-	if (wire_writepacket(Q, &P->P, packetwrit, P))
-		goto err2;
+	if (wire_writepacket(Q, &P))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(P->P.buf);
-err1:
-	free(P);
 err0:
 	/* Failure! */
 	return (-1);
-}
-
-/* Free the packet and invoke the callback. */
-static int
-packetwrit(void * cookie, int status)
-{
-	struct packetwrite * P = cookie;
-	int rc;
-
-	/* Invoke the callback. */
-	rc = (P->callback)(P->cookie, status);
-
-	/* Free the packet. */
-	free(P->P.buf);
-	free(P);
-
-	/* Return the upstream return code. */
-	return (rc);
 }

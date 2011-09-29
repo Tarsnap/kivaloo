@@ -21,8 +21,8 @@ struct dispatch_state * dispatch_accept(int, struct btree *, size_t, size_t,
 /**
  * dispatch_alive(D):
  * Return non-zero iff the dispatch state ${D} is still alive (if it is
- * reading requests, has requests queued, is processing requests, has
- * responses queued up to be sent back, et cetera).
+ * waiting for a connection to arrive, is reading requests, or has requests
+ * in progress).
  */
 int dispatch_alive(struct dispatch_state *);
 
@@ -34,28 +34,22 @@ int dispatch_alive(struct dispatch_state *);
 int dispatch_done(struct dispatch_state *);
 
 /**
- * dispatch_nmr_launch(T, R, WQ, callback_done, cookie_done,
- *     callback_packet, cookie_packet):
+ * dispatch_nmr_launch(T, R, WQ, callback_done, cookie_done):
  * Perform non-modifying request ${R} on the B+Tree ${T}; write a response
  * packet to the write queue ${WQ}; and free the requests.  Invoke the
- * callback ${callback_done}(${cookie_done}) after the request is processed;
- * and callback ${callback_packet}(${cookie_packet}, status) after the packet
- * write.
+ * callback ${callback_done}(${cookie_done}) after the request is processed.
  */
 int dispatch_nmr_launch(struct btree *, struct proto_kvlds_request *,
-    struct netbuf_write *, int (*)(void *), void *,
-    int (*)(void *, int), void *);
+    struct netbuf_write *, int (*)(void *), void *);
 
 /**
- * dispatch_mr_launch(T, reqs, nreqs, WQ,
- *     callback_packet, callback_done, cookie):
+ * dispatch_mr_launch(T, reqs, nreqs, WQ, callback_done, cookie):
  * Perform the ${nreqs} modifying requests ${reqs}[] on the B+Tree ${T};
  * write response packets to the write queue ${WQ}; and free the requests and
  * request array.  Invoke the callback ${callback_done}(${cookie}) after the
- * requests have been serviced;  invoke ${callback_packet}(${cookie}, status)
- * after each response packet has been writ.
+ * requests have been serviced.
  */
 int dispatch_mr_launch(struct btree *, struct proto_kvlds_request **, size_t,
-    struct netbuf_write *, int (*)(void *, int), int (*)(void *), void *);
+    struct netbuf_write *, int (*)(void *), void *);
 
 #endif /* !_DISPATCH_H_ */

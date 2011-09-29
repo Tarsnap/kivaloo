@@ -43,14 +43,10 @@ void * wire_readpacket(struct netbuf_read *,
 void wire_readpacket_cancel(void *);
 
 /**
- * wire_writepacket(W, packet, callback, cookie):
- * Write the packet ${packet} to the buffered writer ${W}.  When the packet
- * has been written, invoke ${callback}(${cookie}, 0); if a failure occurs,
- * invoke the callback with 0 replaced by 1.  The packet must remain valid
- * until the callback is invoked.
+ * wire_writepacket(W, packet):
+ * Write the packet ${packet} to the buffered writer ${W}.
  */
-int wire_writepacket(struct netbuf_write *, const struct wire_packet *,
-    int (*)(void *, int), void *);
+int wire_writepacket(struct netbuf_write *, const struct wire_packet *);
 
 /**
  * wire_requestqueue_init(s):
@@ -67,8 +63,7 @@ struct wire_requestqueue * wire_requestqueue_init(int);
  * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
  * or with resbuf == NULL if the request failed (because it couldn't be sent
  * or because the connection failed or was destroyed before a response was
- * received).  Note that responses may arrive out-of-order.  The buffer
- * ${buf} must remain valid until the callback is invoked.  The callback is
+ * received).  Note that responses may arrive out-of-order.  The callback is
  * responsible for freeing ${resbuf}.
  */
 int wire_requestqueue_add(struct wire_requestqueue *, uint8_t *,
@@ -85,8 +80,7 @@ int wire_requestqueue_destroy(struct wire_requestqueue *);
 /**
  * wire_requestqueue_free(Q):
  * Free the request queue ${Q}.  The queue must have been previously
- * destroyed by a call to wire_requestqueue_destroy and there must be no
- * pending requests.
+ * destroyed by a call to wire_requestqueue_destroy.
  */
 void wire_requestqueue_free(struct wire_requestqueue *);
 

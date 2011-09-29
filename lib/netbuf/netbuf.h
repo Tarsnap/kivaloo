@@ -35,36 +35,24 @@ void netbuf_read_cancel(struct netbuf_read *);
 void netbuf_read_free(struct netbuf_read *);
 
 /**
- * netbuf_write_init(s):
+ * netbuf_write_init(s, fail_callback, fail_cookie):
  * Create and return a buffered writer attached to socket ${s}.  The caller
  * is responsible for ensuring that no attempts are made to write to said
- * socket except via the returned writer until netbuf_write_destroy is called
- * to destroy the writer.
+ * socket except via the returned writer until netbuf_write_free is called.
+ * to destroy the writer.  If a write fails, ${fail_callback} will be invoked
+ * with the parameter ${fail_cookie}.
  */
-struct netbuf_write * netbuf_write_init(int);
+struct netbuf_write * netbuf_write_init(int, int (*)(void *), void *);
 
 /**
- * netbuf_write_write(W, buf, buflen, callback, cookie):
+ * netbuf_write_write(W, buf, buflen):
  * Write ${buflen} bytes from the buffer ${buf} via the buffered writer ${W}.
- * Invoke ${callback}(${cookie}, status) when done, with status set to 0 on
- * success, and set to 1 on failure.  A call to netbuf_write_destroy can be
- * made from within the callback, but not a call to netbuf_write_free.
  */
-int netbuf_write_write(struct netbuf_write *, const uint8_t *, size_t,
-    int (*)(void *, int), void *);
-
-/**
- * netbuf_write_destroy(W):
- * Destroy the writer ${W}.  The write-completion callbacks will be queued to
- * be performed as failures after netbuf_write_destroy returns.  On error
- * return, the queue will be destroyed but some callbacks may be lost.
- */
-int netbuf_write_destroy(struct netbuf_write *);
+int netbuf_write_write(struct netbuf_write *, const uint8_t *, size_t);
 
 /**
  * netbuf_write_free(W):
- * Free the writer ${W}.  The writer must have been previously destroyed by a
- * call to netbuf_write_destroy.
+ * Free the writer ${W}.
  */
 void netbuf_write_free(struct netbuf_write *);
 

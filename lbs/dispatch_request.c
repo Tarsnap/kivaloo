@@ -24,8 +24,9 @@ dispatch_request_params(struct dispatch_state * dstate,
 		goto err1;
 
 	/* Send the response packet back. */
+	dstate->npending--;
 	if (proto_lbs_response_params(dstate->writeq, R->ID,
-	    dstate->blocklen, blkno, dispatch_writresponse, dstate))
+	    dstate->blocklen, blkno))
 		goto err1;
 
 	/* Free the request structure. */
@@ -148,8 +149,9 @@ dispatch_request_append(struct dispatch_state * dstate,
 	 * the correct next block number is), send a failure response.
 	 */
 	if ((R->r.append.blkno != blkno) || (dstate->writer_busy != 0)) {
+		dstate->npending--;
 		if (proto_lbs_response_append(dstate->writeq, R->ID, 1,
-		    (uint64_t)(-1), dispatch_writresponse, dstate))
+		    (uint64_t)(-1)))
 			goto err1;
 	}
 
@@ -197,8 +199,8 @@ dispatch_request_free(struct dispatch_state * dstate,
 	 * Send an ACK to the request.  FREEs are advisory, so we don't need
 	 * to wait until we succeed before responding.
 	 */
-	if (proto_lbs_response_free(dstate->writeq, R->ID,
-	    dispatch_writresponse, dstate))
+	dstate->npending--;
+	if (proto_lbs_response_free(dstate->writeq, R->ID))
 		goto err1;
 
 	/* Free the request. */

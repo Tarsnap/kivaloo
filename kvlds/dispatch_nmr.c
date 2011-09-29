@@ -19,8 +19,6 @@ struct nmr_cookie {
 	/* State provided by caller. */
 	int (*callback_done)(void *);
 	void * cookie_done;
-	int (*callback_packet)(void *, int);
-	void * cookie_packet;
 	struct btree * T;
 	struct proto_kvlds_request * R;
 	struct netbuf_write * WQ;
@@ -40,19 +38,15 @@ static int callback_range_gotleaf(void *, struct node *);
 static int rangedone(struct nmr_cookie *);
 
 /**
- * dispatch_nmr_launch(T, R, WQ, callback_done, cookie_done,
- *     callback_packet, cookie_packet):
+ * dispatch_nmr_launch(T, R, WQ, callback_done, cookie_done):
  * Perform non-modifying request ${R} on the B+Tree ${T}; write a response
  * packet to the write queue ${WQ}; and free the requests.  Invoke the
- * callback ${callback_done}(${cookie_done}) after the request is processed;
- * and callback ${callback_packet}(${cookie_packet}, status) after the packet
- * write.
+ * callback ${callback_done}(${cookie_done}) after the request is processed.
  */
 int
 dispatch_nmr_launch(struct btree * T, struct proto_kvlds_request * R,
     struct netbuf_write * WQ,
-    int (* callback_done)(void *), void * cookie_done,
-    int (* callback_packet)(void *, int), void * cookie_packet)
+    int (* callback_done)(void *), void * cookie_done)
 {
 	struct nmr_cookie * C;
 
@@ -65,8 +59,6 @@ dispatch_nmr_launch(struct btree * T, struct proto_kvlds_request * R,
 		goto err0;
 	C->callback_done = callback_done;
 	C->cookie_done = cookie_done;
-	C->callback_packet = callback_packet;
-	C->cookie_packet = cookie_packet;
 	C->T = T;
 	C->R = R;
 	C->WQ = WQ;
@@ -114,12 +106,12 @@ callback_get_gotleaf(void * cookie, struct node * N)
 	if (kv != NULL) {
 		/* Send the requested value back to the client. */
 		if (proto_kvlds_response_get(C->WQ, C->R->ID, 0,
-		    kv->v, C->callback_packet, C->cookie_packet))
+		    kv->v))
 			goto err1;
 	} else {
 		/* Send a non-present response back to the client. */
 		if (proto_kvlds_response_get(C->WQ, C->R->ID, 1,
-		    NULL, C->callback_packet, C->cookie_packet))
+		    NULL))
 			goto err1;
 	}
 
@@ -352,7 +344,7 @@ rangedone(struct nmr_cookie * C)
 
 	/* Send the RANGE response. */
 	if (proto_kvlds_response_range(C->WQ, C->R->ID, C->nkeys, next,
-	    keys, values, C->callback_packet, C->cookie_packet))
+	    keys, values))
 		goto err4;
 
 	/* Free the values. */

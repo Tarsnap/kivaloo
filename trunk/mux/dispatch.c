@@ -63,7 +63,6 @@ static int callback_gotconn(void *, int);
 static int readreq(struct sock_active *);
 static int callback_gotrequest(void *, struct wire_packet *);
 static int callback_gotresponse(void *, uint8_t *, size_t);
-static int callback_writresponse(void *, int);
 static int reqdone(struct sock_active *);
 static int dropconn(struct sock_active *);
 
@@ -152,8 +151,15 @@ callback_gotconn(void * cookie, int s)
 		goto err2;
 	}
 
-	/* Create a buffered writer for the connection. */
-	if ((S->writeq = netbuf_write_init(S->s)) == NULL) {
+	/*
+	 * Create a buffered writer for the connection.  We don't care to find
+	 * out if we failed to write responses back to the incoming connection;
+	 * we can't drop the connection until all our responses have come back
+	 * from the target server, and once that happens the connection will
+	 * be dropped automatically (since if we can't write, we won't be able
+	 * to read either).
+	 */
+	if ((S->writeq = netbuf_write_init(S->s, NULL, NULL)) == NULL) {
 		warnp("Cannot create packet write queue");
 		goto err2;
 	}
@@ -186,7 +192,6 @@ callback_gotconn(void * cookie, int s)
 err4:
 	netbuf_read_free(S->readq);
 err3:
-	netbuf_write_destroy(S->writeq);
 	netbuf_write_free(S->writeq);
 err2:
 	free(S);
@@ -311,8 +316,19 @@ callback_gotresponse(void * cookie, uint8_t * buf, size_t buflen)
 	F->P->len = buflen;
 
 	/* Send the response packet back to the client. */
-	if (wire_writepacket(S->writeq, F->P, callback_writresponse, F))
+	if (wire_writepacket(S->writeq, F->P))
 		goto err1;
+
+	/* Free the response packet (including buffer). */
+	free(F->P->buf);
+	wire_packet_free(F->P);
+
+	/* Free the cookie. */
+	mpool_forwardee_free(F);
+
+	/* We've finished with a request. */
+	if (reqdone(S))
+		goto err0;
 
 	/* Success! */
 	return (0);
@@ -346,33 +362,6 @@ err1:
 	free(buf);
 	wire_packet_free(F->P);
 	mpool_forwardee_free(F);
-err0:
-	/* Failure! */
-	return (-1);
-}
-
-static int
-callback_writresponse(void * cookie, int failed)
-{
-	struct forwardee * F = cookie;
-	struct sock_active * S = F->conn;
-
-	(void)failed; /* UNUSED */
-
-	/* Free the response packet (including buffer). */
-	free(F->P->buf);
-	wire_packet_free(F->P);
-
-	/* Free the cookie. */
-	mpool_forwardee_free(F);
-
-	/* We've finished with a request. */
-	if (reqdone(S))
-		goto err0;
-
-	/* Success! */
-	return (0);
-
 err0:
 	/* Failure! */
 	return (-1);
@@ -417,19 +406,13 @@ dropconn(struct sock_active * S)
 		S->next->prev = S->prev;
 	if (dstate->nsock_active-- == dstate->nsock_active_max) {
 		if (accept_start(dstate))
-			goto err3;
+			goto err2;
 	}
 
 	/* Free the buffered reader. */
 	netbuf_read_free(S->readq);
 
-	/*
-	 * Shut down and free the buffered writer.  We don't need to wait for
-	 * callbacks from netbuf_write to be performed, because they can only
-	 * be pending if nrequests > 0.
-	 */
-	if (netbuf_write_destroy(S->writeq))
-		goto err2;
+	/* Free the buffered writer. */
 	netbuf_write_free(S->writeq);
 
 	/* Close the socket. */
@@ -446,10 +429,8 @@ dropconn(struct sock_active * S)
 	/* Success! */
 	return (0);
 
-err3:
-	netbuf_read_free(S->readq);
-	netbuf_write_destroy(S->writeq);
 err2:
+	netbuf_read_free(S->readq);
 	netbuf_write_free(S->writeq);
 	close(S->s);
 err1:

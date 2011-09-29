@@ -43,7 +43,7 @@ struct requestq {
 /* Request dispatcher state. */
 struct dispatch_state {
 	/* Connection management. */
-	int accepting;			/* We are waiting for a connection. */
+	int dying;			/* Our connection is dying. */
 	int s;				/* Connected socket. */
 	struct netbuf_read * readq;	/* Packet read queue. */
 	struct netbuf_write * writeq;	/* Packet write queue. */
@@ -64,6 +64,7 @@ struct dispatch_state {
 	/* Modifying requests. */
 	struct requestq * mr_head;	/* First request in the queue. */
 	struct requestq ** mr_tail;	/* Pointer to final NULL. */
+	size_t mr_reqs;			/* # requests in current batch. */
 	size_t mr_concurrency;		/* Max # pages touched by MRs. */
 
 	/* Stop-queuing-MRs-yet-and-start-processing-them controls. */
@@ -82,7 +83,7 @@ struct dispatch_state {
 MPOOL(requestq, struct requestq, 4096);
 
 static int callback_accept(void *, int);
-static int dropconnection(struct dispatch_state *);
+static int dropconnection(void *);
 static int poke_nmr(struct dispatch_state *);
 static int callback_nmr_done(void *);
 static int poke_mr(struct dispatch_state *);
@@ -90,16 +91,20 @@ static int callback_mr_timer(void *);
 static int callback_mrc_timer(void *);
 static int callback_mr_done(void *);
 static int gotrequest(void *, struct proto_kvlds_request *);
-static int writresponse(void *, int);
+static int readreqs(struct dispatch_state *);
 
 /* Time between ticks of the 'flush cleans if we have had no MRs' clock. */
 const struct timeval fivesec = {.tv_sec = 5, .tv_usec = 0};
 
 /* The connection is dying.  Help speed up the process. */
 static int
-dropconnection(struct dispatch_state * D)
+dropconnection(void * cookie)
 {
+	struct dispatch_state * D = cookie;
 	struct requestq * RQ;
+
+	/* This connection is dying. */
+	D->dying = 1;
 
 	/* If we're reading a packet, stop it. */
 	if (D->read_cookie != NULL) {
@@ -141,19 +146,8 @@ dropconnection(struct dispatch_state * D)
 	/* The (unset) timer hasn't expired. */
 	D->mr_timer_expired = 0;
 
-	/*
-	 * Destroy the buffered writer.  Depending on how we reached this
-	 * point, this may have already been done (many times, even).
-	 */
-	if (netbuf_write_destroy(D->writeq))
-		goto err0;
-
-	/* Success! */
+	/* Success!  (We can't fail -- but netbuf_write doesn't know that.) */
 	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /* Launch non-modifying requests, if possible. */
@@ -182,7 +176,7 @@ poke_nmr(struct dispatch_state * D)
 		/* Launch the request. */
 		RQ->D = D;
 		if (dispatch_nmr_launch(D->T, RQ->R, D->writeq,
-		    callback_nmr_done, RQ, writresponse, D))
+		    callback_nmr_done, RQ))
 			goto err0;
 		D->nmr_ip += RQ->npages;
 	}
@@ -208,6 +202,13 @@ callback_nmr_done(void * cookie)
 	/* Free request cookie. */
 	mpool_requestq_free(RQ);
 
+	/* We've finished with this request. */
+	D->nrequests -= 1;
+
+	/* Check if we need to read more requests. */
+	if (readreqs(D))
+		goto err0;
+
 	/* Poke the queue in case we can now handle another request. */
 	if (poke_nmr(D))
 		goto err0;
@@ -228,7 +229,6 @@ poke_mr(struct dispatch_state * D)
 	size_t pagesperop = D->T->root_dirty->height + 1;
 	struct proto_kvlds_request ** reqs;
 	struct requestq * RQ;
-	size_t nreqs;
 	size_t i;
 
 	/* Launch a batch of requests if possible. */
@@ -238,16 +238,16 @@ poke_mr(struct dispatch_state * D)
 	     (D->mr_qlen >= D->mr_min_batch))) {
 		/* Figure out how many requests will be in this batch. */
 		if (D->mr_qlen * pagesperop > concurrency)
-			nreqs = concurrency / pagesperop;
+			D->mr_reqs = concurrency / pagesperop;
 		else
-			nreqs = D->mr_qlen;
+			D->mr_reqs = D->mr_qlen;
 
 		/* Allocate an array. */
-		if (IMALLOC(reqs, nreqs, struct proto_kvlds_request *))
+		if (IMALLOC(reqs, D->mr_reqs, struct proto_kvlds_request *))
 			goto err0;
 
 		/* Fill the array with requests. */
-		for (i = 0; i < nreqs; i++) {
+		for (i = 0; i < D->mr_reqs; i++) {
 			/* We should have a request. */
 			assert(D->mr_head != NULL);
 
@@ -267,8 +267,8 @@ poke_mr(struct dispatch_state * D)
 		D->mr_inprogress = 1;
 
 		/* Launch the batch of modifying requests. */
-		if (dispatch_mr_launch(D->T, reqs, nreqs, D->writeq,
-		    writresponse, callback_mr_done, D))
+		if (dispatch_mr_launch(D->T, reqs, D->mr_reqs, D->writeq,
+		    callback_mr_done, D))
 			goto err1;
 
 		/* We beat the clock.  Disable it. */
@@ -312,7 +312,7 @@ poke_mr(struct dispatch_state * D)
 
 err1:
 	/* These requests can never be done, but at least we can free them. */
-	for (i = 0; i < nreqs; i++)
+	for (i = 0; i < D->mr_reqs; i++)
 		proto_kvlds_request_free(reqs[i]);
 	free(reqs);
 err0:
@@ -372,20 +372,40 @@ callback_mr_done(void * cookie)
 	btree_sanity(D->T);
 #endif
 
+	/* We've handled a bunch of requests. */
+	D->nrequests -= D->mr_reqs;
+
 	/* No MRs are in progress any more. */
 	D->mr_inprogress = 0;
 
-	/* Maybe we can launch some more? */
+	/* Check if we need to read more requests. */
+	if (readreqs(D))
+		goto err0;
+
+	/* Maybe we can launch some more MRs? */
 	return (poke_mr(D));
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
-/* Start reading a request. */
+/* Start reading a request if it is appropriate to do so. */
 static int
-readreq(struct dispatch_state * D)
+readreqs(struct dispatch_state * D)
 {
 
-	/* We shoudln't be reading yet. */
-	assert(D->read_cookie == NULL);
+	/* If this connection is dying, do nothing. */
+	if (D->dying)
+		goto done;
+
+	/* If we are already reading, do nothing. */
+	if (D->read_cookie != NULL)
+		goto done;
+
+	/* If we have MAXREQS requests in progress, do nothing. */
+	if (D->nrequests == MAXREQS)
+		goto done;
 
 	/* Read a request. */
 	if ((D->read_cookie = proto_kvlds_request_read(D->readq,
@@ -394,6 +414,7 @@ readreq(struct dispatch_state * D)
 		goto err0;
 	}
 
+done:
 	/* Success! */
 	return (0);
 
@@ -439,7 +460,7 @@ gotrequest(void * cookie, struct proto_kvlds_request * R)
 	case PROTO_KVLDS_PARAMS:
 		/* Send the response immediately. */
 		if (proto_kvlds_response_params(D->writeq, RQ->R->ID,
-		    D->kmax, D->vmax, writresponse, D))
+		    D->kmax, D->vmax))
 			goto err2;
 
 		/* Free the linked list node. */
@@ -447,6 +468,9 @@ gotrequest(void * cookie, struct proto_kvlds_request * R)
 
 		/* Free the request packet. */
 		proto_kvlds_request_free(R);
+
+		/* This request has been handled. */
+		D->nrequests -= 1;
 		break;
 	case PROTO_KVLDS_CAS:
 	case PROTO_KVLDS_SET:
@@ -498,8 +522,8 @@ gotrequest(void * cookie, struct proto_kvlds_request * R)
 		goto drop1;
 	}
 
-	/* Try to read another packet unless we're at MAXREQS. */
-	if ((D->nrequests < MAXREQS) && readreq(D))
+	/* Try to read another packet. */
+	if (readreqs(D))
 		goto err0;
 
 	/* Success! */
@@ -511,8 +535,7 @@ drop1:
 	D->nrequests -= 1;
 drop0:
 	/* We didn't get a valid request.  Drop the connection. */
-	if (dropconnection(D))
-		goto err0;
+	dropconnection(D);
 
 	/* All is good. */
 	return (0);
@@ -546,6 +569,7 @@ dispatch_accept(int s, struct btree * T,
 		goto err0;
 
 	/* Initialize dispatcher. */
+	D->dying = 0;
 	D->read_cookie = NULL;
 	D->T = T;
 	D->kmax = kmax;
@@ -555,6 +579,7 @@ dispatch_accept(int s, struct btree * T,
 	D->nmr_ip = 0;
 	D->nmr_concurrency = T->poolsz / 4;
 	D->mr_head = NULL;
+	D->mr_reqs = 0;
 	D->mr_concurrency = T->poolsz / 4;
 	D->mr_inprogress = 0;
 	D->mr_qlen = 0;
@@ -573,7 +598,6 @@ dispatch_accept(int s, struct btree * T,
 	}
 
 	/* Accept a connection. */
-	D->accepting = 1;
 	if (network_accept(s, callback_accept, D) == NULL)
 		goto err2;
 
@@ -608,7 +632,7 @@ callback_accept(void * cookie, int s)
 	}
 
 	/* Create a buffered writer for the connection. */
-	if ((D->writeq = netbuf_write_init(D->s)) == NULL) {
+	if ((D->writeq = netbuf_write_init(D->s, dropconnection, D)) == NULL) {
 		warnp("Cannot create packet write queue");
 		goto err1;
 	}
@@ -620,11 +644,8 @@ callback_accept(void * cookie, int s)
 	}
 
 	/* Start listening for packets. */
-	if (readreq(D))
+	if (readreqs(D))
 		goto err3;
-
-	/* We are no longer waiting for a connection. */
-	D->accepting = 0;
 
 	/* Success! */
 	return (0);
@@ -632,7 +653,6 @@ callback_accept(void * cookie, int s)
 err3:
 	netbuf_read_free(D->readq);
 err2:
-	netbuf_write_destroy(D->writeq);
 	netbuf_write_free(D->writeq);
 err1:
 	close(D->s);
@@ -642,49 +662,16 @@ err0:
 }
 
 /**
- * writresponse(cookie, status):
- * Callback for response writes: kill the connection if a write failed.
- */
-static int
-writresponse(void * cookie, int status)
-{
-	struct dispatch_state * D = cookie;
-
-	/* We owe one less response to the client. */
-	D->nrequests -= 1;
-
-	/* If we failed to send the response, kill the connection. */
-	if (status) {
-		if (dropconnection(D))
-			goto err0;
-	} else {
-		/* Otherwise, check if we need to read more requests. */
-		if ((D->nrequests == MAXREQS - 1) && readreq(D))
-			goto err0;
-	}
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
-/**
  * dispatch_alive(D):
  * Return non-zero iff the dispatch state ${D} is still alive (if it is
- * reading requests, has requests queued, is processing requests, has
- * responses queued up to be sent back, et cetera).
+ * waiting for a connection to arrive, is reading requests, or has requests
+ * in progress).
  */
 int
 dispatch_alive(struct dispatch_state * D)
 {
 
-	return ((D->accepting != 0) ||
-	    (D->mr_inprogress != 0) ||
-	    (D->read_cookie != NULL) ||
-	    (D->nrequests > 0));
+	return ((D->dying == 0) || (D->nrequests > 0));
 }
 
 /**
@@ -698,15 +685,13 @@ dispatch_done(struct dispatch_state * D)
 
 	/*
 	 * There should not be a MR timer running, because there should be
-	 * no requests in progress.  We should not be accepting a connection,
-	 * reading a request, or processing a bundle of MRs (even if said
-	 * bundle is empty) either.
+	 * no requests in progress.  We should not be reading a request, and
+	 * the connection should be dying.
 	 */
 	assert(D->mr_timer == NULL);
 	assert(D->nrequests == 0);
-	assert(D->accepting == 0);
 	assert(D->read_cookie == NULL);
-	assert(D->mr_inprogress == 0);
+	assert(D->dying == 1);
 
 	/* Stop the cleaning timer. */
 	events_timer_cancel(D->mrc_timer);

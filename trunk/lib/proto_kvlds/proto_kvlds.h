@@ -184,7 +184,7 @@ void proto_kvlds_request_free(struct proto_kvlds_request *);
  * write success / failure.
  */
 int proto_kvlds_response_params(struct netbuf_write *, uint64_t, uint32_t,
-    uint32_t, int (*)(void *, int), void *);
+    uint32_t);
 
 /**
  * proto_kvlds_response_status(Q, ID, status, callback, cookie):
@@ -193,21 +193,20 @@ int proto_kvlds_response_params(struct netbuf_write *, uint64_t, uint32_t,
  * completed with the specified status.  Invoke ${callback}(${cookie}, 0/1)
  * on packet write success / failure.
  */
-int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t,
-    int (*)(void *, int), void *);
+int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t);
 
-#define proto_kvlds_response_set(Q, ID, callback, cookie)		\
-	proto_kvlds_response_status(Q, ID, 0, callback, cookie)
-#define proto_kvlds_response_cas(Q, ID, status, callback, cookie)	\
-	proto_kvlds_response_status(Q, ID, status, callback, cookie)
-#define proto_kvlds_response_add(Q, ID, status, callback, cookie)	\
-	proto_kvlds_response_status(Q, ID, status, callback, cookie)
-#define proto_kvlds_response_modify(Q, ID, status, callback, cookie)	\
-	proto_kvlds_response_status(Q, ID, status, callback, cookie)
-#define proto_kvlds_response_delete(Q, ID, callback, cookie)		\
-	proto_kvlds_response_status(Q, ID, 0, callback, cookie)
-#define proto_kvlds_response_cad(Q, ID, status, callback, cookie)	\
-	proto_kvlds_response_status(Q, ID, status, callback, cookie)
+#define proto_kvlds_response_set(Q, ID)		\
+	proto_kvlds_response_status(Q, ID, 0)
+#define proto_kvlds_response_cas(Q, ID, status)	\
+	proto_kvlds_response_status(Q, ID, status)
+#define proto_kvlds_response_add(Q, ID, status)	\
+	proto_kvlds_response_status(Q, ID, status)
+#define proto_kvlds_response_modify(Q, ID, status)	\
+	proto_kvlds_response_status(Q, ID, status)
+#define proto_kvlds_response_delete(Q, ID)		\
+	proto_kvlds_response_status(Q, ID, 0)
+#define proto_kvlds_response_cad(Q, ID, status)	\
+	proto_kvlds_response_status(Q, ID, status)
 
 /**
  * proto_kvlds_response_get(Q, ID, status, value, callback, cookie):
@@ -217,7 +216,7 @@ int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t,
  * ${callback}(${cookie}, 0/1) on packet write success / failure.
  */
 int proto_kvlds_response_get(struct netbuf_write *, uint64_t, uint32_t,
-    const struct kvldskey *, int (*)(void *, int), void *);
+    const struct kvldskey *);
 
 /**
  * proto_kvlds_response_range(Q, ID, nkeys, next, keys, values,
@@ -228,7 +227,6 @@ int proto_kvlds_response_get(struct netbuf_write *, uint64_t, uint32_t,
  * success / failure.
  */
 int proto_kvlds_response_range(struct netbuf_write *, uint64_t, size_t,
-    const struct kvldskey *, struct kvldskey **, struct kvldskey **,
-    int (*)(void *, int), void *);
+    const struct kvldskey *, struct kvldskey **, struct kvldskey **);
 
 #endif /* !_PROTO_LBS_H_ */

@@ -129,7 +129,7 @@ void proto_lbs_request_read_cancel(void *);
  * failure.
  */
 int proto_lbs_response_params(struct netbuf_write *, uint64_t,
-    uint32_t, uint64_t, int (*)(void *, int), void *);
+    uint32_t, uint64_t);
 
 /**
  * proto_lbs_response_get(Q, ID, status, blklen, buf, callback, cookie):
@@ -138,7 +138,7 @@ int proto_lbs_response_params(struct netbuf_write *, uint64_t,
  * Invoke ${callback}(${cookie}, 0 / 1) on packet write success / failure.
  */
 int proto_lbs_response_get(struct netbuf_write *, uint64_t,
-    uint32_t, uint32_t, const uint8_t *, int (*)(void *, int), void *);
+    uint32_t, uint32_t, const uint8_t *);
 
 /**
  * proto_lbs_response_append(Q, ID, status, blkno, callback, cookie):
@@ -147,14 +147,13 @@ int proto_lbs_response_get(struct netbuf_write *, uint64_t,
  * Invoke ${callback}(${cookie}, 0 / 1) on packet write success / failure.
  */
 int proto_lbs_response_append(struct netbuf_write *, uint64_t,
-    uint32_t, uint64_t, int (*)(void *, int), void *);
+    uint32_t, uint64_t);
 
 /**
  * proto_lbs_response_free(Q, ID, callback, cookie):
  * Send a FREE response with ID ${ID} to the write queue ${Q}.  Invoke
  * ${callback}(${cookie}, 0 / 1) on packet write success / failure.
  */
-int proto_lbs_response_free(struct netbuf_write *, uint64_t,
-    int (*)(void *, int), void *);
+int proto_lbs_response_free(struct netbuf_write *, uint64_t);
 
 #endif /* !_PROTO_LBS_H_ */

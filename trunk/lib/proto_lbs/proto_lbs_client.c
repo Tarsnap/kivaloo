@@ -17,26 +17,22 @@ static int callback_free(void *, uint8_t *, size_t);
 struct params_cookie {
 	int (* callback)(void *, int, size_t, uint64_t);
 	void * cookie;
-	uint8_t buf[4];
 };
 
 struct get_cookie {
 	int (* callback)(void *, int, int, const uint8_t *);
 	void * cookie;
 	size_t blklen;
-	uint8_t buf[12];
 };
 
 struct append_cookie {
 	int (* callback)(void *, int, int, uint64_t);
 	void * cookie;
-	uint8_t * buf;
 };
 
 struct free_cookie {
 	int (* callback)(void *, int);
 	void * cookie;
-	uint8_t buf[12];
 };
 
 /* Macro for simplifying response-parsing errors. */
@@ -57,6 +53,7 @@ proto_lbs_request_params(struct wire_requestqueue * Q,
     int (* callback)(void *, int, size_t, uint64_t), void * cookie)
 {
 	struct params_cookie * C;
+	uint8_t buf[4];
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct params_cookie))) == NULL)
@@ -65,10 +62,10 @@ proto_lbs_request_params(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 
 	/* Construct request. */
-	be32enc(&C->buf[0], PROTO_LBS_PARAMS);
+	be32enc(&buf[0], PROTO_LBS_PARAMS);
 
 	/* Send request. */
-	if (wire_requestqueue_add(Q, C->buf, 4, callback_params, C))
+	if (wire_requestqueue_add(Q, buf, 4, callback_params, C))
 		goto err1;
 
 	/* Success! */
@@ -134,6 +131,7 @@ proto_lbs_request_get(struct wire_requestqueue * Q,
     int (* callback)(void *, int, int, const uint8_t *), void * cookie)
 {
 	struct get_cookie * C;
+	uint8_t buf[12];
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct get_cookie))) == NULL)
@@ -143,11 +141,11 @@ proto_lbs_request_get(struct wire_requestqueue * Q,
 	C->blklen = blklen;
 
 	/* Construct request. */
-	be32enc(&C->buf[0], PROTO_LBS_GET);
-	be64enc(&C->buf[4], blkno);
+	be32enc(&buf[0], PROTO_LBS_GET);
+	be64enc(&buf[4], blkno);
 
 	/* Send request. */
-	if (wire_requestqueue_add(Q, C->buf, 12, callback_get, C))
+	if (wire_requestqueue_add(Q, buf, 12, callback_get, C))
 		goto err1;
 
 	/* Success! */
@@ -225,6 +223,7 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
     int (* callback)(void *, int, int, uint64_t), void * cookie)
 {
 	struct append_cookie * C;
+	uint8_t * buf;
 	size_t i;
 
 	/* Bake a cookie. */
@@ -234,26 +233,29 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 
 	/* Allocate request buffer. */
-	if ((C->buf = malloc(16 + nblks * blklen)) == NULL)
+	if ((buf = malloc(16 + nblks * blklen)) == NULL)
 		goto err1;
 
 	/* Construct request. */
-	be32enc(&C->buf[0], PROTO_LBS_APPEND);
-	be32enc(&C->buf[4], nblks);
-	be64enc(&C->buf[8], blkno);
+	be32enc(&buf[0], PROTO_LBS_APPEND);
+	be32enc(&buf[4], nblks);
+	be64enc(&buf[8], blkno);
 	for (i = 0; i < nblks; i++)
-		memcpy(&C->buf[16 + i * blklen], bufv[i], blklen);
+		memcpy(&buf[16 + i * blklen], bufv[i], blklen);
 
 	/* Send request. */
-	if (wire_requestqueue_add(Q, C->buf, 16 + nblks * blklen,
+	if (wire_requestqueue_add(Q, buf, 16 + nblks * blklen,
 	    callback_append, C))
 		goto err2;
+
+	/* Free the request buffer. */
+	free(buf);
 
 	/* Success! */
 	return (0);
 
 err2:
-	free(C->buf);
+	free(buf);
 err1:
 	free(C);
 err0:
@@ -345,8 +347,7 @@ failed:
 	/* Free the response buffer. */
 	free(buf);
 
-	/* Free the cookie, including the request buffer. */
-	free(C->buf);
+	/* Free the cookie. */
 	free(C);
 
 	/* Return status from callback. */
@@ -365,6 +366,7 @@ proto_lbs_request_free(struct wire_requestqueue * Q, uint64_t blkno,
     int (* callback)(void *, int), void * cookie)
 {
 	struct free_cookie * C;
+	uint8_t buf[12];
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct free_cookie))) == NULL)
@@ -373,11 +375,11 @@ proto_lbs_request_free(struct wire_requestqueue * Q, uint64_t blkno,
 	C->cookie = cookie;
 
 	/* Construct request. */
-	be32enc(&C->buf[0], PROTO_LBS_FREE);
-	be64enc(&C->buf[4], blkno);
+	be32enc(&buf[0], PROTO_LBS_FREE);
+	be64enc(&buf[4], blkno);
 
 	/* Send request. */
-	if (wire_requestqueue_add(Q, C->buf, 12, callback_free, C))
+	if (wire_requestqueue_add(Q, buf, 12, callback_free, C))
 		goto err1;
 
 	/* Success! */

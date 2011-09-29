@@ -38,8 +38,9 @@ dispatch_response_send(struct dispatch_state * dstate, struct workctl * thread)
 			status = 1;
 
 		/* Send a response. */
+		dstate->npending--;
 		if (proto_lbs_response_get(dstate->writeq, reqID, status,
-		    dstate->blocklen, buf, dispatch_writresponse, dstate))
+		    dstate->blocklen, buf))
 			goto err1;
 
 		/* Free the buffer holding read data. */
@@ -56,8 +57,8 @@ dispatch_response_send(struct dispatch_state * dstate, struct workctl * thread)
 		 * Send a response back, with status = 0 since we will only
 		 * end up here if the requested write position was correct.
 		 */
-		if (proto_lbs_response_append(dstate->writeq, reqID, 0,
-		    blkno, dispatch_writresponse, dstate))
+		dstate->npending--;
+		if (proto_lbs_response_append(dstate->writeq, reqID, 0, blkno))
 			goto err1;
 
 		/* Free the buffer holding written data. */

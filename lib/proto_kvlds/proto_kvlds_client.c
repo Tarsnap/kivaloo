@@ -406,7 +406,7 @@ proto_kvlds_request_params(struct wire_requestqueue * Q,
     int (* callback)(void *, int, size_t, size_t), void * cookie)
 {
 	struct params_cookie * C;
-	uint8_t buf[4];
+	uint8_t * buf;
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct params_cookie))) == NULL)
@@ -414,11 +414,16 @@ proto_kvlds_request_params(struct wire_requestqueue * Q,
 	C->callback = callback;
 	C->cookie = cookie;
 
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, 4,
+	    callback_params, C)) == NULL)
+		goto err1;
+
 	/* Construct request. */
 	be32enc(&buf[0], PROTO_KVLDS_PARAMS);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, 4, callback_params, C))
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, 4))
 		goto err1;
 
 	/* Success! */
@@ -455,11 +460,14 @@ proto_kvlds_request_set(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->type = "SET";
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
 	buflen += kvldskey_serial_size(value);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_done, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -473,18 +481,13 @@ proto_kvlds_request_set(struct wire_requestqueue * Q,
 	/* Sanity-check. */
 	assert(bufpos == buflen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_done, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_done_free(C);
 err0:
@@ -518,12 +521,15 @@ proto_kvlds_request_cas(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->type = "CAS";
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
 	buflen += kvldskey_serial_size(oval);
 	buflen += kvldskey_serial_size(value);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_donep, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -539,18 +545,13 @@ proto_kvlds_request_cas(struct wire_requestqueue * Q,
 	/* Sanity-check. */
 	assert(bufpos == buflen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_donep, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_donep_free(C);
 err0:
@@ -583,11 +584,14 @@ proto_kvlds_request_add(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->type = "ADD";
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
 	buflen += kvldskey_serial_size(value);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_donep, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -601,18 +605,13 @@ proto_kvlds_request_add(struct wire_requestqueue * Q,
 	/* Sanity-check. */
 	assert(bufpos == buflen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_donep, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_donep_free(C);
 err0:
@@ -645,11 +644,14 @@ proto_kvlds_request_modify(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->type = "MODIFY";
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
 	buflen += kvldskey_serial_size(value);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_donep, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -663,18 +665,13 @@ proto_kvlds_request_modify(struct wire_requestqueue * Q,
 	/* Sanity-check. */
 	assert(bufpos == buflen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_donep, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_donep_free(C);
 err0:
@@ -705,28 +702,26 @@ proto_kvlds_request_delete(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->type = "DELETE";
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_done, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
 	be32enc(&buf[0], PROTO_KVLDS_DELETE);
 	kvldskey_serialize(key, &buf[4]);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_done, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_done_free(C);
 err0:
@@ -759,11 +754,14 @@ proto_kvlds_request_cad(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->type = "CAD";
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
 	buflen += kvldskey_serial_size(oval);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_donep, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -777,18 +775,13 @@ proto_kvlds_request_cad(struct wire_requestqueue * Q,
 	/* Sanity-check. */
 	assert(bufpos == buflen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_donep, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_donep_free(C);
 err0:
@@ -821,28 +814,26 @@ proto_kvlds_request_get(struct wire_requestqueue * Q,
 	C->callback = callback;
 	C->cookie = cookie;
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 4;
 	buflen += kvldskey_serial_size(key);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_get, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
 	be32enc(&buf[0], PROTO_KVLDS_GET);
 	kvldskey_serialize(key, &buf[4]);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_get, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	mpool_get_free(C);
 err0:
@@ -883,11 +874,14 @@ proto_kvlds_request_range(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->max = max;
 
-	/* Allocate request buffer. */
+	/* Compute request size. */
 	buflen = 8;
 	buflen += kvldskey_serial_size(start);
 	buflen += kvldskey_serial_size(end);
-	if ((buf = malloc(buflen)) == NULL)
+
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback_range, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -902,18 +896,13 @@ proto_kvlds_request_range(struct wire_requestqueue * Q,
 	/* Sanity-check. */
 	assert(bufpos == buflen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, buflen, callback_range, C))
-		goto err2;
-
-	/* Free request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, buflen))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	free(C);
 err0:

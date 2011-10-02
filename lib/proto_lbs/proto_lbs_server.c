@@ -189,19 +189,18 @@ int
 proto_lbs_response_params(struct netbuf_write * Q, uint64_t ID,
     uint32_t blklen, uint64_t blkno)
 {
-	struct wire_packet P;
-	uint8_t buf[12];
+	uint8_t * wbuf;
 
-	P.ID = ID;
-	P.len = 12;
-	P.buf = buf;
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, 12)) == NULL)
+		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], blklen);
-	be64enc(&P.buf[4], blkno);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], blklen);
+	be64enc(&wbuf[4], blkno);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, 12))
 		goto err0;
 
 	/* Success! */
@@ -222,32 +221,28 @@ int
 proto_lbs_response_get(struct netbuf_write * Q, uint64_t ID,
     uint32_t status, uint32_t blklen, const uint8_t * buf)
 {
-	struct wire_packet P;
+	uint8_t * wbuf;
+	size_t len;
 
-	P.ID = ID;
-	P.len = 4 + ((status == 0) ? blklen : 0);
+	/* Compute the response length. */
+	len = 4 + ((status == 0) ? blklen : 0);
 
-	/* Allocate the packet buffer. */
-	if ((P.buf = malloc(P.len)) == NULL)
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, len)) == NULL)
 		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], status);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], status);
 	if (status == 0)
-		memcpy(&P.buf[4], buf, blklen);
+		memcpy(&wbuf[4], buf, blklen);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
-		goto err1;
-
-	/* Free the packet buffer. */
-	free(P.buf);
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, len))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	free(P.buf);
 err0:
 	/* Failure! */
 	return (-1);
@@ -263,20 +258,23 @@ int
 proto_lbs_response_append(struct netbuf_write * Q, uint64_t ID,
     uint32_t status, uint64_t blkno)
 {
-	struct wire_packet P;
-	uint8_t buf[12];
+	uint8_t * wbuf;
+	size_t len;
 
-	P.ID = ID;
-	P.len = (status == 0) ? 12 : 4;
-	P.buf = buf;
+	/* Compute the response length. */
+	len = (status == 0) ? 12 : 4;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], status);
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, len)) == NULL)
+		goto err0;
+
+	/* Write the packet data. */
+	be32enc(&wbuf[0], status);
 	if (status == 0)
-		be64enc(&P.buf[4], blkno);
+		be64enc(&wbuf[4], blkno);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, len))
 		goto err0;
 
 	/* Success! */
@@ -295,18 +293,17 @@ err0:
 int
 proto_lbs_response_free(struct netbuf_write * Q, uint64_t ID)
 {
-	struct wire_packet P;
-	uint8_t buf[4];
+	uint8_t * wbuf;
 
-	P.ID = ID;
-	P.len = 4;
-	P.buf = buf;
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, 4)) == NULL)
+		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], 0);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], 0);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, 4))
 		goto err0;
 
 	/* Success! */

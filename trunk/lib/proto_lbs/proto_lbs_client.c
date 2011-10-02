@@ -131,7 +131,7 @@ proto_lbs_request_get(struct wire_requestqueue * Q,
     int (* callback)(void *, int, int, const uint8_t *), void * cookie)
 {
 	struct get_cookie * C;
-	uint8_t buf[12];
+	uint8_t * buf;
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct get_cookie))) == NULL)
@@ -140,12 +140,17 @@ proto_lbs_request_get(struct wire_requestqueue * Q,
 	C->cookie = cookie;
 	C->blklen = blklen;
 
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, 12,
+	    callback_get, C)) == NULL)
+		goto err1;
+
 	/* Construct request. */
 	be32enc(&buf[0], PROTO_LBS_GET);
 	be64enc(&buf[4], blkno);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, 12, callback_get, C))
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, 12))
 		goto err1;
 
 	/* Success! */
@@ -223,6 +228,7 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
     int (* callback)(void *, int, int, uint64_t), void * cookie)
 {
 	struct append_cookie * C;
+	size_t len = 16 + nblks * blklen;
 	uint8_t * buf;
 	size_t i;
 
@@ -232,8 +238,9 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
 	C->callback = callback;
 	C->cookie = cookie;
 
-	/* Allocate request buffer. */
-	if ((buf = malloc(16 + nblks * blklen)) == NULL)
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, len,
+	    callback_append, C)) == NULL)
 		goto err1;
 
 	/* Construct request. */
@@ -243,19 +250,13 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
 	for (i = 0; i < nblks; i++)
 		memcpy(&buf[16 + i * blklen], bufv[i], blklen);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, 16 + nblks * blklen,
-	    callback_append, C))
-		goto err2;
-
-	/* Free the request buffer. */
-	free(buf);
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, len))
+		goto err1;
 
 	/* Success! */
 	return (0);
 
-err2:
-	free(buf);
 err1:
 	free(C);
 err0:
@@ -366,7 +367,7 @@ proto_lbs_request_free(struct wire_requestqueue * Q, uint64_t blkno,
     int (* callback)(void *, int), void * cookie)
 {
 	struct free_cookie * C;
-	uint8_t buf[12];
+	uint8_t * buf;
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct free_cookie))) == NULL)
@@ -374,12 +375,17 @@ proto_lbs_request_free(struct wire_requestqueue * Q, uint64_t blkno,
 	C->callback = callback;
 	C->cookie = cookie;
 
+	/* Start writing a request. */
+	if ((buf = wire_requestqueue_add_getbuf(Q, 12,
+	    callback_free, C)) == NULL)
+		goto err1;
+
 	/* Construct request. */
 	be32enc(&buf[0], PROTO_LBS_FREE);
 	be64enc(&buf[4], blkno);
 
-	/* Send request. */
-	if (wire_requestqueue_add(Q, buf, 12, callback_free, C))
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, buf, 12))
 		goto err1;
 
 	/* Success! */

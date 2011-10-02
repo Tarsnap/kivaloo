@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "events.h"
 #include "mpool.h"
@@ -199,6 +200,83 @@ err0:
 }
 
 /**
+ * wire_requestqueue_add_getbuf(Q, len, callback, cookie):
+ * Start writing a request of length ${len} to the request queue ${Q}.  Return
+ * a pointer to where the request packet data should be written.  This must be
+ * followed by a call to wire_requestqueue_add_done.
+ *
+ * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
+ * or with resbuf == NULL if the request failed (because it couldn't be sent
+ * or because the connection failed or was destroyed before a response was
+ * received).  Note that responses may arrive out-of-order.  The callback is
+ * responsible for freeing ${resbuf}.
+ */
+uint8_t *
+wire_requestqueue_add_getbuf(struct wire_requestqueue * Q, size_t len,
+    int (* callback)(void *, uint8_t *, size_t), void * cookie)
+{
+	struct request * R;
+	uint8_t * wbuf;
+	uint64_t ID;
+
+	/* Bake a cookie. */
+	if ((R = mpool_request_malloc()) == NULL)
+		goto err0;
+	R->callback = callback;
+	R->cookie = cookie;
+
+	/* If the request queue has failed, we can't send a request. */
+	if (Q->failed) {
+		/* Schedule a failure callback. */
+		if (events_immediate_register(failreq, R, 0) == NULL)
+			goto err1;
+
+		/* Return a dummy buffer for the request. */
+		return (malloc(len));
+	}
+
+	/* Insert the cookie into the pending request map. */
+	if ((ID = seqptrmap_add(Q->reqs, R)) == (uint64_t)(-1))
+		goto err1;
+
+	/* Start writing a packet. */
+	if ((wbuf = wire_writepacket_getbuf(Q->WQ, ID, len)) == NULL)
+		goto err2;
+
+	/* Return a pointer to the packet data buffer. */
+	return (wbuf);
+
+err2:
+	seqptrmap_delete(Q->reqs, ID);
+err1:
+	mpool_request_free(R);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
+ * wire_requestqueue_add_done(Q, wbuf, len):
+ * Finish writing a request to the request queue ${Q}.  The value ${wbuf} must
+ * be the pointer returned by wire_requesqueue_add_getbuf, and the value ${len}
+ * must be the value which was passed to wire_requestqueue_add_getbuf.
+ */
+int
+wire_requestqueue_add_done(struct wire_requestqueue * Q, uint8_t * wbuf,
+    size_t len)
+{
+
+	/* If the request queue has failed, just free the dummy buffer. */
+	if (Q->failed) {
+		free(wbuf);
+		return (0);
+	}
+
+	/* We've finished writing this packet. */
+	return (wire_writepacket_done(Q->WQ, wbuf, len));
+}
+
+/**
  * wire_requestqueue_add(Q, buf, buflen, callback, cookie):
  * Add the ${buflen}-byte request record ${buf} to the request queue ${Q}.
  * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
@@ -212,43 +290,23 @@ wire_requestqueue_add(struct wire_requestqueue * Q,
     uint8_t * buf, size_t buflen,
     int (* callback)(void *, uint8_t *, size_t), void * cookie)
 {
-	struct request * R;
-	struct wire_packet req;
+	uint8_t * wbuf;
 
-	/* Bake a cookie. */
-	if ((R = mpool_request_malloc()) == NULL)
+	/* Start writing the request. */
+	if ((wbuf = wire_requestqueue_add_getbuf(Q, buflen,
+	    callback, cookie)) == NULL)
 		goto err0;
-	R->callback = callback;
-	R->cookie = cookie;
 
-	/* If the request queue has failed, just schedule a callback. */
-	if (Q->failed) {
-		if (events_immediate_register(failreq, R, 0) == NULL)
-			goto err1;
-		else
-			goto done;
-	}
+	/* Copy the request data into the provided buffer. */
+	memcpy(wbuf, buf, buflen);
 
-	/* Insert the cookie into the pending request map. */
-	if ((req.ID = seqptrmap_add(Q->reqs, R)) == (uint64_t)(-1))
-		goto err1;
+	/* Finish writing the request. */
+	if (wire_requestqueue_add_done(Q, wbuf, buflen))
+		goto err0;
 
-	/* Fill in packet structure fields. */
-	req.buf = buf;
-	req.len = buflen;
-
-	/* Queue the request packet to be written. */
-	if (wire_writepacket(Q->WQ, &req))
-		goto err2;
-
-done:
 	/* Success! */
 	return (0);
 
-err2:
-	seqptrmap_delete(Q->reqs, req.ID);
-err1:
-	mpool_request_free(R);
 err0:
 	/* Failure! */
 	return (-1);

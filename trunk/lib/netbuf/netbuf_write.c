@@ -26,6 +26,7 @@ struct writebuf {
 /* Buffered writer structure. */
 struct netbuf_write {
 	int s;				/* Destination for writes. */
+	int reserved;			/* Some buffer space is reserved. */
 
 	/* Failure handling. */
 	int failed;			/* Has a write ever failed? */
@@ -50,6 +51,9 @@ writbuf(void * cookie, ssize_t writelen)
 {
 	struct netbuf_write * W = cookie;
 	struct writebuf * WB = W->curr;
+
+	/* Sanity-check: No callbacks while buffer space reserved. */
+	assert(W->reserved == 0);
 
 	/* Sanity-check: We must have had a write in progress. */
 	assert(W->write_cookie != NULL);
@@ -92,11 +96,12 @@ poke(struct netbuf_write * W)
 	if ((W->write_cookie != NULL) || (W->head == NULL))
 		return (0);
 
+	/* If we've failed, don't try to do anything more. */
+	if (W->failed)
+		return (0);
+
 	/* Sanity-check: We don't have a buffer in progress. */
 	assert(W->curr == NULL);
-
-	/* Sanity-check: If we've failed, we shouldn't get here. */
-	assert(W->failed == 0);
 
 	/* Start writing a buffer. */
 	WB = W->head;
@@ -147,6 +152,7 @@ netbuf_write_init(int s, int (* fail_callback)(void *), void * fail_cookie)
 	if ((W = malloc(sizeof(struct netbuf_write))) == NULL)
 		goto err0;
 	W->s = s;
+	W->reserved = 0;
 	W->failed = 0;
 	W->fail_callback = (fail_callback != NULL) ? fail_callback : dummyfail;
 	W->fail_cookie = fail_cookie;
@@ -173,60 +179,125 @@ err0:
 }
 
 /**
+ * netbuf_write_reserve(W, len):
+ * Reserve ${len} bytes of space in the buffered writer ${W} and return a
+ * pointer to the buffer.  This operation must be followed by a call to
+ * netbuf_write_consume before the next call to _reserve or _write and before
+ * a callback could be made into netbuf_write (i.e., before control returns
+ * to the event loop).
+ */
+uint8_t *
+netbuf_write_reserve(struct netbuf_write * W, size_t len)
+{
+	struct writebuf * WB;
+
+	/* Sanity-check: No calls while buffer space reserved. */
+	assert(W->reserved == 0);
+
+	/* We're reserving some space. */
+	W->reserved = 1;
+
+	/* Do we have a buffer with enough space?  Return it. */
+	if ((W->tail != NULL) &&
+	    (W->tail->buflen - W->tail->datalen >= len))
+		goto oldbuf;
+
+	/* We need to add a new buffer to the queue. */
+	if ((WB = malloc(sizeof(struct writebuf))) == NULL)
+		goto err0;
+
+	/* We want to hold this write or WBUFLEN of small writes. */
+	if (len > WBUFLEN)
+		WB->buflen = len;
+	else
+		WB->buflen = WBUFLEN;
+
+	/* Allocate memory. */
+	if ((WB->buf = malloc(WB->buflen)) == NULL)
+		goto err1;
+
+	/* No data in this buffer yet. */
+	WB->datalen = 0;
+
+	/* Add this buffer to the queue. */
+	if (W->tail == NULL)
+		W->head = WB;
+	else
+		W->tail->next = WB;
+	W->tail = WB;
+	WB->next = NULL;
+
+	/* Return a pointer to the new buffer. */
+	return (WB->buf);
+
+oldbuf:
+	/* Return a pointer into the old buffer. */
+	return (&W->tail->buf[W->tail->datalen]);
+
+err1:
+	free(WB);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
+ * netbuf_write_consume(W, len):
+ * Consume a reservation previously made by netbuf_write_reserve; the value
+ * ${len} must be <= the value passed to netbuf_write_reserve.
+ */
+int
+netbuf_write_consume(struct netbuf_write * W, size_t len)
+{
+
+	/* Sanity-check: We must have space reserved. */
+	assert(W->reserved == 1);
+
+	/* Sanity-check: We must have enough space reserved. */
+	assert(W->tail->buflen - W->tail->datalen >= len);
+
+	/*
+	 * Advance the buffer pointer, unless we've failed -- if we've failed
+	 * there's no point since we're never going to look at the buffered
+	 * data anyway.
+	 */
+	if (W->failed == 0)
+		W->tail->datalen += len;
+
+	/* We no longer have space reserved. */
+	W->reserved = 0;
+
+	/* Poke the queue to see if we can launch more writing now. */
+	return (poke(W));
+}
+
+/**
  * netbuf_write_write(W, buf, buflen):
  * Write ${buflen} bytes from the buffer ${buf} via the buffered writer ${W}.
  */
 int
 netbuf_write_write(struct netbuf_write * W, const uint8_t * buf, size_t buflen)
 {
-	struct writebuf * WB;
+	uint8_t * wbuf;
 
 	/* If we've failed, just silently discard writes. */
 	if (W->failed)
 		return (0);
 
-	/* Do we have a buffer with enough space? */
-	if ((W->tail == NULL) ||
-	    (W->tail->buflen - W->tail->datalen < buflen)) {
-		/* We need to add a new buffer to the queue. */
-		if ((WB = malloc(sizeof(struct writebuf))) == NULL)
-			goto err0;
+	/* Reserve space to write the data into. */
+	if ((wbuf = netbuf_write_reserve(W, buflen)) == NULL)
+		goto err0;
 
-		/* We want to hold this write or WBUFLEN of small writes. */
-		if (buflen > WBUFLEN)
-			WB->buflen = buflen;
-		else
-			WB->buflen = WBUFLEN;
+	/* Copy data into the returned buffer. */
+	memcpy(wbuf, buf, buflen);
 
-		/* Allocate memory. */
-		if ((WB->buf = malloc(WB->buflen)) == NULL)
-			goto err1;
+	/* Consume the reservation. */
+	if (netbuf_write_consume(W, buflen))
+		goto err0;
 
-		/* No data in this buffer yet. */
-		WB->datalen = 0;
+	/* Success! */
+	return (0);
 
-		/* Add this buffer to the queue. */
-		if (W->tail == NULL)
-			W->head = WB;
-		else
-			W->tail->next = WB;
-		W->tail = WB;
-		WB->next = NULL;
-	}
-
-	/* We should have a buffer with enough space now. */
-	assert(W->tail != NULL);
-	assert(W->tail->buflen - W->tail->datalen >= buflen);
-
-	/* Copy the data in. */
-	memcpy(&W->tail->buf[W->tail->datalen], buf, buflen);
-	W->tail->datalen += buflen;
-
-	/* Poke the queue to see if we can launch any more writes. */
-	return (poke(W));
-
-err1:
-	free(WB);
 err0:
 	/* Failure! */
 	return (-1);

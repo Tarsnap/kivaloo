@@ -258,19 +258,18 @@ int
 proto_kvlds_response_params(struct netbuf_write * Q, uint64_t ID,
     uint32_t kmax, uint32_t vmax)
 {
-	struct wire_packet P;
-	uint8_t buf[8];
+	uint8_t * wbuf;
 
-	P.ID = ID;
-	P.len = 8;
-	P.buf = buf;
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, 8)) == NULL)
+		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], kmax);
-	be32enc(&P.buf[4], vmax);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], kmax);
+	be32enc(&wbuf[4], vmax);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, 8))
 		goto err0;
 
 	/* Success! */
@@ -292,18 +291,17 @@ int
 proto_kvlds_response_status(struct netbuf_write * Q, uint64_t ID,
     uint32_t status)
 {
-	struct wire_packet P;
-	uint8_t buf[4];
+	uint8_t * wbuf;
 
-	P.ID = ID;
-	P.len = 4;
-	P.buf = buf;
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, 4)) == NULL)
+		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], status);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], status);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, 4))
 		goto err0;
 
 	/* Success! */
@@ -325,34 +323,30 @@ int
 proto_kvlds_response_get(struct netbuf_write * Q, uint64_t ID,
     uint32_t status, const struct kvldskey * value)
 {
-	struct wire_packet P;
+	uint8_t * wbuf;
+	size_t len;
 
-	P.ID = ID;
-	P.len = 4;
+	/* Compute the response length. */
+	len = 4;
 	if (status == 0)
-		P.len += kvldskey_serial_size(value);
+		len += kvldskey_serial_size(value);
 
-	/* Allocate the packet buffer. */
-	if ((P.buf = malloc(P.len)) == NULL)
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, len)) == NULL)
 		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], status);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], status);
 	if (status == 0)
-		kvldskey_serialize(value, &P.buf[4]);
+		kvldskey_serialize(value, &wbuf[4]);
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
-		goto err1;
-
-	/* Free the packet buffer. */
-	free(P.buf);
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, len))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	free(P.buf);
 err0:
 	/* Failure! */
 	return (-1);
@@ -371,52 +365,46 @@ proto_kvlds_response_range(struct netbuf_write * Q, uint64_t ID,
     size_t nkeys, const struct kvldskey * next,
     struct kvldskey ** keys, struct kvldskey ** values)
 {
-	struct wire_packet P;
+	uint8_t * wbuf;
+	size_t len;
 	size_t i;
 	size_t bufpos;
 
 	/* Sanity check: We can't return more than 2^32-1 keys. */
 	assert(nkeys <= UINT32_MAX);
 
-	P.ID = ID;
-
 	/* Figure out how long the packet will be. */
-	P.len = 8;
-	P.len += kvldskey_serial_size(next);
+	len = 8;
+	len += kvldskey_serial_size(next);
 	for (i = 0; i < nkeys; i++) {
-		P.len += kvldskey_serial_size(keys[i]);
-		P.len += kvldskey_serial_size(values[i]);
+		len += kvldskey_serial_size(keys[i]);
+		len += kvldskey_serial_size(values[i]);
 	}
 
-	/* Allocate the packet buffer. */
-	if ((P.buf = malloc(P.len)) == NULL)
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, len)) == NULL)
 		goto err0;
 
-	/* Construct the packet. */
-	be32enc(&P.buf[0], 0);
-	be32enc(&P.buf[4], nkeys);
+	/* Write the packet data. */
+	be32enc(&wbuf[0], 0);
+	be32enc(&wbuf[4], nkeys);
 	bufpos = 8;
-	kvldskey_serialize(next, &P.buf[bufpos]);
+	kvldskey_serialize(next, &wbuf[bufpos]);
 	bufpos += kvldskey_serial_size(next);
 	for (i = 0; i < nkeys; i++) {
-		kvldskey_serialize(keys[i], &P.buf[bufpos]);
+		kvldskey_serialize(keys[i], &wbuf[bufpos]);
 		bufpos += kvldskey_serial_size(keys[i]);
-		kvldskey_serialize(values[i], &P.buf[bufpos]);
+		kvldskey_serialize(values[i], &wbuf[bufpos]);
 		bufpos += kvldskey_serial_size(values[i]);
 	}
 
-	/* Queue the packet. */
-	if (wire_writepacket(Q, &P))
-		goto err1;
-
-	/* Free the packet buffer. */
-	free(P.buf);
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, len))
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	free(P.buf);
 err0:
 	/* Failure! */
 	return (-1);

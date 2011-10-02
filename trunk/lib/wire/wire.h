@@ -43,6 +43,22 @@ void * wire_readpacket(struct netbuf_read *,
 void wire_readpacket_cancel(void *);
 
 /**
+ * wire_writepacket_getbuf(W, ID, len):
+ * Start writing a packet with ID ${ID} and data length ${len} to the buffered
+ * writer ${W}.  Return a pointer to where the data should be written.  This
+ * must be followed by a call to wire_writepacket_done.
+ */
+uint8_t * wire_writepacket_getbuf(struct netbuf_write *, uint64_t, size_t);
+
+/**
+ * wire_writepacket_done(W, wbuf, len):
+ * Finish writing a packet to the buffered writer ${W}.  The value ${wbuf} must
+ * be the pointer returned by wire_writepacket_getbuf, and the value ${len}
+ * must be the value which was passed to wire_writepacket_getbuf.
+ */
+int wire_writepacket_done(struct netbuf_write *, uint8_t *, size_t);
+
+/**
  * wire_writepacket(W, packet):
  * Write the packet ${packet} to the buffered writer ${W}.
  */
@@ -56,6 +72,29 @@ int wire_writepacket(struct netbuf_write *, const struct wire_packet *);
  * is called to destroy the queue.
  */
 struct wire_requestqueue * wire_requestqueue_init(int);
+
+/**
+ * wire_requestqueue_add_getbuf(Q, len, callback, cookie):
+ * Start writing a request of length ${len} to the request queue ${Q}.  Return
+ * a pointer to where the request packet data should be written.  This must be
+ * followed by a call to wire_requestqueue_add_done.
+ *
+ * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
+ * or with resbuf == NULL if the request failed (because it couldn't be sent
+ * or because the connection failed or was destroyed before a response was
+ * received).  Note that responses may arrive out-of-order.  The callback is
+ * responsible for freeing ${resbuf}.
+ */
+uint8_t * wire_requestqueue_add_getbuf(struct wire_requestqueue *, size_t,
+    int (*)(void *, uint8_t *, size_t), void *);
+
+/**
+ * wire_requestqueue_add_done(Q, wbuf, len):
+ * Finish writing a request to the request queue ${Q}.  The value ${wbuf} must
+ * be the pointer returned by wire_requesqueue_add_getbuf, and the value ${len}
+ * must be the value which was passed to wire_requestqueue_add_getbuf.
+ */
+int wire_requestqueue_add_done(struct wire_requestqueue *, uint8_t *, size_t);
 
 /**
  * wire_requestqueue_add(Q, buf, buflen, callback, cookie):

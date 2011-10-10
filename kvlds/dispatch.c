@@ -90,7 +90,7 @@ static int poke_mr(struct dispatch_state *);
 static int callback_mr_timer(void *);
 static int callback_mrc_timer(void *);
 static int callback_mr_done(void *);
-static int gotrequest(void *, struct proto_kvlds_request *);
+static int gotrequest(void *, int);
 static int readreqs(struct dispatch_state *);
 
 /* Time between ticks of the 'flush cleans if we have had no MRs' clock. */
@@ -108,7 +108,7 @@ dropconnection(void * cookie)
 
 	/* If we're reading a packet, stop it. */
 	if (D->read_cookie != NULL) {
-		proto_kvlds_request_read_cancel(D->read_cookie);
+		wire_readpacket_wait_cancel(D->read_cookie);
 		D->read_cookie = NULL;
 	}
 
@@ -407,8 +407,8 @@ readreqs(struct dispatch_state * D)
 	if (D->nrequests == MAXREQS)
 		goto done;
 
-	/* Read a request. */
-	if ((D->read_cookie = proto_kvlds_request_read(D->readq,
+	/* Wait for a request to arrive. */
+	if ((D->read_cookie = wire_readpacket_wait(D->readq,
 	    gotrequest, D)) == NULL) {
 		warnp("Error reading request from connection");
 		goto err0;
@@ -423,117 +423,135 @@ err0:
 	return (-1);
 }
 
-/**
- * gotrequest(cookie, R):
- * Using dispatch state ${cookie}, handle and free the incoming request ${R}.
- */
+/* Read and dispatch incoming request(s). */
 static int
-gotrequest(void * cookie, struct proto_kvlds_request * R)
+gotrequest(void * cookie, int status)
 {
 	struct dispatch_state * D = cookie;
+	struct proto_kvlds_request * R;
 	struct requestq * RQ;
 
-	/* This read is done. */
+	/* We're no longer waiting for a packet to arrive. */
 	D->read_cookie = NULL;
 
+	/* If the wait failed, the connection is dead. */
+	if (status)
+		goto drop;
+
 	/*
-	 * If we failed to read a request, the connection is dead.  Don't try
-	 * to read any more requests; cancel any queued read operations; and
-	 * destroy the packet write queue.
+	 * Read packets until there are no more to read, we hit MAXREQS, or
+	 * an error occurs.
 	 */
-	if (R == NULL) {
-		/* If we can't read, kill off the connection. */
-		goto drop0;
-	}
+	do {
+		/* Allocate space for a request. */
+		if ((R = proto_kvlds_request_alloc()) == NULL)
+			goto err0;
 
-	/* We owe a response to the client. */
-	D->nrequests += 1;
+		/* If we have MAXREQS requests, stop looping. */
+		if (D->nrequests == MAXREQS)
+			break;
 
-	/* Construct a linked list node. */
-	if ((RQ = mpool_requestq_malloc()) == NULL)
-		goto err1;
-	RQ->R = R;
-	RQ->next = NULL;
-
-	/* Add to the modifying or non-modifying queue, and poke it. */
-	switch (R->type) {
-	case PROTO_KVLDS_PARAMS:
-		/* Send the response immediately. */
-		if (proto_kvlds_response_params(D->writeq, RQ->R->ID,
-		    D->kmax, D->vmax))
-			goto err2;
-
-		/* Free the linked list node. */
-		mpool_requestq_free(RQ);
-
-		/* Free the request packet. */
-		proto_kvlds_request_free(R);
-
-		/* This request has been handled. */
-		D->nrequests -= 1;
-		break;
-	case PROTO_KVLDS_CAS:
-	case PROTO_KVLDS_SET:
-	case PROTO_KVLDS_ADD:
-	case PROTO_KVLDS_MODIFY:
-		/*
-	 	 * We can't add or modify a key-value pair if the key is too
-		 * long or the value we're setting is too long.
-		 */
-		if ((R->key->len > D->kmax) ||
-		    (R->value->len > D->vmax))
+		/* Attempt to read a request. */
+		if (proto_kvlds_request_read(D->readq, R))
 			goto drop1;
 
-		/* FALLTHROUGH */
+		/* If we have no request, stop looping. */
+		if (R->type == PROTO_KVLDS_NONE)
+			break;
 
-	case PROTO_KVLDS_DELETE:
-	case PROTO_KVLDS_CAD:
-		/* Add to modifying request queue. */
-		if (D->mr_head == NULL)
-			D->mr_head = RQ;
-		else
-			*(D->mr_tail) = RQ;
-		D->mr_tail = &RQ->next;
+		/* We owe a response to the client. */
+		D->nrequests += 1;
 
-		/* The MR queue has gained an element. */
-		D->mr_qlen += 1;
+		/* Construct a linked list node. */
+		if ((RQ = mpool_requestq_malloc()) == NULL)
+			goto err1;
+		RQ->R = R;
+		RQ->next = NULL;
 
-		/* Poke the queue. */
-		if (poke_mr(D))
-			goto err0;
-		break;
-	case PROTO_KVLDS_GET:
-	case PROTO_KVLDS_RANGE:
-		/* Add to non-modifying request queue. */
-		if (D->nmr_head == NULL)
-			D->nmr_head = RQ;
-		else
-			*(D->nmr_tail) = RQ;
-		D->nmr_tail = &RQ->next;
+		/* Add to the modifying or non-modifying queue, and poke it. */
+		switch (R->type) {
+		case PROTO_KVLDS_PARAMS:
+			/* Send the response immediately. */
+			if (proto_kvlds_response_params(D->writeq, RQ->R->ID,
+			D->kmax, D->vmax))
+				goto err2;
 
-		/* Poke the queue. */
-		if (poke_nmr(D))
-			goto err0;
-		break;
-	default:
-		/* Don't recognize this packet... */
-		warn0("Received unrecognized packet type: 0x%08" PRIx32,
-		    R->type);
-		goto drop1;
-	}
+			/* Free the linked list node. */
+			mpool_requestq_free(RQ);
 
-	/* Try to read another packet. */
+			/* Free the request packet. */
+			proto_kvlds_request_free(R);
+
+			/* This request has been handled. */
+			D->nrequests -= 1;
+			break;
+		case PROTO_KVLDS_CAS:
+		case PROTO_KVLDS_SET:
+		case PROTO_KVLDS_ADD:
+		case PROTO_KVLDS_MODIFY:
+			/*
+			* We can't add or modify a key-value pair if the key is too
+			* long or the value we're setting is too long.
+			*/
+			if ((R->key->len > D->kmax) ||
+			(R->value->len > D->vmax))
+				goto drop2;
+
+			/* FALLTHROUGH */
+
+		case PROTO_KVLDS_DELETE:
+		case PROTO_KVLDS_CAD:
+			/* Add to modifying request queue. */
+			if (D->mr_head == NULL)
+				D->mr_head = RQ;
+			else
+				*(D->mr_tail) = RQ;
+			D->mr_tail = &RQ->next;
+
+			/* The MR queue has gained an element. */
+			D->mr_qlen += 1;
+
+			/* Poke the queue. */
+			if (poke_mr(D))
+				goto err0;
+			break;
+		case PROTO_KVLDS_GET:
+		case PROTO_KVLDS_RANGE:
+			/* Add to non-modifying request queue. */
+			if (D->nmr_head == NULL)
+				D->nmr_head = RQ;
+			else
+				*(D->nmr_tail) = RQ;
+			D->nmr_tail = &RQ->next;
+
+			/* Poke the queue. */
+			if (poke_nmr(D))
+				goto err0;
+			break;
+		default:
+			/* Don't recognize this packet... */
+			warn0("Received unrecognized packet type: 0x%08" PRIx32,
+			R->type);
+			goto drop2;
+		}
+	} while (1);
+
+	/* Free the (unused) request structure. */
+	proto_kvlds_request_free(R);
+
+	/* Wait for more requests to arrive. */
 	if (readreqs(D))
 		goto err0;
 
 	/* Success! */
 	return (0);
 
-drop1:
-	free(RQ);
-	proto_kvlds_request_free(R);
+drop2:
+	mpool_requestq_free(RQ);
 	D->nrequests -= 1;
-drop0:
+drop1:
+	proto_kvlds_request_free(R);
+drop:
 	/* We didn't get a valid request.  Drop the connection. */
 	dropconnection(D);
 
@@ -541,10 +559,10 @@ drop0:
 	return (0);
 
 err2:
-	free(RQ);
+	mpool_requestq_free(RQ);
 err1:
-	proto_kvlds_request_free(R);
 	D->nrequests -= 1;
+	proto_kvlds_request_free(R);
 err0:
 	/* Failure! */
 	return (-1);

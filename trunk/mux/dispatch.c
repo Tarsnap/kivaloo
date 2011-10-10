@@ -52,7 +52,7 @@ struct sock_active {
 /* In-flight request state. */
 struct forwardee {
 	struct sock_active * conn;		/* Request origin. */
-	struct wire_packet * P;			/* The request. */
+	uint64_t ID;				/* Request ID. */
 };
 
 MPOOL(forwardee, struct forwardee, 32768);
@@ -61,7 +61,7 @@ static void accept_stop(struct dispatch_state *);
 static int accept_start(struct dispatch_state *);
 static int callback_gotconn(void *, int);
 static int readreq(struct sock_active *);
-static int callback_gotrequest(void *, struct wire_packet *);
+static int callback_gotrequests(void *, int);
 static int callback_gotresponse(void *, uint8_t *, size_t);
 static int reqdone(struct sock_active *);
 static int dropconn(struct sock_active *);
@@ -170,7 +170,7 @@ callback_gotconn(void * cookie, int s)
 		goto err3;
 	}
 
-	/* Start listening for packets. */
+	/* Wait for request packets to arrive. */
 	if (readreq(S))
 		goto err4;
 
@@ -206,13 +206,13 @@ static int
 readreq(struct sock_active * S)
 {
 
-	/* We shouldn't be reading yet. */
+	/* We shouldn't be waiting yet. */
 	assert(S->read_cookie == NULL);
 
-	/* Read a request. */
+	/* Wait for request packets to arrive. */
 	if ((S->read_cookie =
-	    wire_readpacket(S->readq, callback_gotrequest, S)) == NULL) {
-		warnp("Error reading request from connection");
+	    wire_readpacket_wait(S->readq, callback_gotrequests, S)) == NULL) {
+		warnp("Error waiting for requests to arrive");
 		goto err0;
 	}
 
@@ -228,8 +228,8 @@ static int
 readreq_cancel(struct sock_active * S)
 {
 
-	/* Stop reading a request. */
-	wire_readpacket_cancel(S->read_cookie);
+	/* Stop waiting for requests. */
+	wire_readpacket_wait_cancel(S->read_cookie);
 	S->read_cookie = NULL;
 
 	/* Drop the connection if it is now dead. */
@@ -245,52 +245,67 @@ err0:
 }
 
 static int
-callback_gotrequest(void * cookie, struct wire_packet * P)
+callback_gotrequests(void * cookie, int status)
 {
 	struct sock_active * S = cookie;
 	struct dispatch_state * dstate = S->dstate;
+	struct wire_packet P;
 	struct forwardee * F;
 
-	/* We're not reading a request any more. */
+	/* We're not waiting for a packet to be available any more. */
 	S->read_cookie = NULL;
 
-	/* Did we fail to read? */
-	if (P == NULL) {
-		/* If we have no request in progress, kill the connection. */
-		if (S->nrequests == 0) {
-			if (dropconn(S))
-				goto err0;
-		}
+	/* If the wait failed, the connection is dying. */
+	if (status)
+		goto fail;
 
-		/* Nothing to do. */
-		goto done;
-	}
+	/* Handle packets until there are no more or we encounter an error. */
+	do {
+		/* Grab a packet. */
+		if (wire_readpacket_peek(S->readq, &P))
+			goto fail;
 
-	/* Bake a cookie. */
-	if ((F = mpool_forwardee_malloc()) == NULL)
-		goto err1;
-	F->conn = S;
-	F->P = P;
-	S->nrequests++;
+		/* Exit the loop if no packet is available. */
+		if (P.buf == NULL)
+			break;
 
-	/* Send the request to the target. */
-	if (wire_requestqueue_add(dstate->Q, P->buf, P->len,
-	    callback_gotresponse, F))
-		goto err2;
+		/* Bake a cookie. */
+		if ((F = mpool_forwardee_malloc()) == NULL)
+			goto err0;
+		F->ID = P.ID;
+		F->conn = S;
 
-	/* Read another request. */
+		/* Send the request to the target. */
+		if (wire_requestqueue_add(dstate->Q, P.buf, P.len,
+		    callback_gotresponse, F))
+			goto err1;
+
+		/* We have an additional outstanding request. */
+		S->nrequests++;
+
+		/* Consume the packet. */
+		wire_readpacket_consume(S->readq, &P);
+	} while (1);
+
+	/* Wait for more packets to arrive. */
 	if (readreq(S))
 		goto err0;
 
-done:
-	/* Success! */
+	/* Sucess! */
 	return (0);
 
-err2:
-	mpool_forwardee_free(F);
+fail:
+	/* If we have no requests in progress, drop the connection. */
+	if (S->nrequests == 0) {
+		if (dropconn(S))
+			goto err0;
+	}
+
+	/* Return success; the connection will be reaped later. */
+	return (0);
+
 err1:
-	free(P->buf);
-	wire_packet_free(P);
+	free(F);
 err0:
 	/* Failure! */
 	return (-1);
@@ -303,25 +318,18 @@ callback_gotresponse(void * cookie, uint8_t * buf, size_t buflen)
 	struct sock_active * S = F->conn;
 	struct sock_active * S_next;
 	struct dispatch_state * dstate = S->dstate;
-
-	/* Free the request packet buffer. */
-	free(F->P->buf);
+	struct wire_packet P;
 
 	/* Did this request fail? */
 	if (buf == NULL)
 		goto failed;
 
-	/* Turn the request packet into a response packet. */
-	F->P->buf = buf;
-	F->P->len = buflen;
-
-	/* Send the response packet back to the client. */
-	if (wire_writepacket(S->writeq, F->P))
+	/* Send the response back to the client. */
+	P.ID = F->ID;
+	P.buf = buf;
+	P.len = buflen;
+	if (wire_writepacket(S->writeq, &P))
 		goto err1;
-
-	/* Free the response packet (including buffer). */
-	free(F->P->buf);
-	wire_packet_free(F->P);
 
 	/* Free the cookie. */
 	mpool_forwardee_free(F);
@@ -334,8 +342,7 @@ callback_gotresponse(void * cookie, uint8_t * buf, size_t buflen)
 	return (0);
 
 failed:
-	/* Free the packet and our cookie. */
-	wire_packet_free(F->P);
+	/* Free our cookie. */
 	mpool_forwardee_free(F);
 
 	/* We've finished with a request. */
@@ -359,8 +366,6 @@ failed:
 	return (0);
 
 err1:
-	free(buf);
-	wire_packet_free(F->P);
 	mpool_forwardee_free(F);
 err0:
 	/* Failure! */

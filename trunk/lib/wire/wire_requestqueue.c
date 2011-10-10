@@ -215,8 +215,7 @@ err0:
  * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
  * or with resbuf == NULL if the request failed (because it couldn't be sent
  * or because the connection failed or was destroyed before a response was
- * received).  Note that responses may arrive out-of-order.  The callback is
- * responsible for freeing ${resbuf}.
+ * received).  Note that responses may arrive out-of-order.
  */
 uint8_t *
 wire_requestqueue_add_getbuf(struct wire_requestqueue * Q, size_t len,

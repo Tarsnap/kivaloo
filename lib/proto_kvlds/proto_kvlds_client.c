@@ -100,9 +100,6 @@ failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, kmax, vmax);
 
-	/* Free the response buffer. */
-	free(buf);
-
 	/* Free the cookie. */
 	free(C);
 
@@ -133,9 +130,6 @@ callback_done(void * cookie, uint8_t * buf, size_t buflen)
 failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed);
-
-	/* Free the response buffer. */
-	free(buf);
 
 	/* Free the cookie. */
 	mpool_done_free(C);
@@ -169,9 +163,6 @@ callback_donep(void * cookie, uint8_t * buf, size_t buflen)
 failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, status);
-
-	/* Free the response buffer. */
-	free(buf);
 
 	/* Free the cookie. */
 	mpool_donep_free(C);
@@ -223,9 +214,6 @@ callback_get(void * cookie, uint8_t * buf, size_t buflen)
 failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, value);
-
-	/* Free the response buffer. */
-	free(buf);
 
 	/* Free the cookie. */
 	mpool_get_free(C);
@@ -333,9 +321,6 @@ failed:
 
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, nkeys, next, keys, values);
-
-	/* Free the response buffer. */
-	free(buf);
 
 	/* Free the cookie. */
 	free(C);

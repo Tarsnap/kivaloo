@@ -106,9 +106,6 @@ failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, blklen, blkno);
 
-	/* Free the response buffer. */
-	free(buf);
-
 	/* Free the cookie. */
 	free(C);
 
@@ -199,9 +196,6 @@ callback_get(void * cookie, uint8_t * buf, size_t buflen)
 failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, status, blk);
-
-	/* Free the response buffer. */
-	free(buf);
 
 	/* Free the cookie. */
 	free(C);
@@ -345,9 +339,6 @@ failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, status, blkno);
 
-	/* Free the response buffer. */
-	free(buf);
-
 	/* Free the cookie. */
 	free(C);
 
@@ -421,9 +412,6 @@ callback_free(void * cookie, uint8_t * buf, size_t buflen)
 failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed);
-
-	/* Free the response buffer. */
-	free(buf);
 
 	/* Free the cookie. */
 	free(C);

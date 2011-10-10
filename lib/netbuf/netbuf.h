@@ -12,6 +12,35 @@
 struct netbuf_read * netbuf_read_init(int);
 
 /**
+ * netbuf_read_peek(R, data, datalen):
+ * Set ${data} to point to the currently buffered data in the reader ${R}; set
+ * ${datalen} to the number of bytes buffered.
+ */
+void netbuf_read_peek(struct netbuf_read *, uint8_t **, size_t *);
+
+/**
+ * netbuf_read_wait(R, len, callback, cookie):
+ * Wait until ${R} has ${len} or more bytes of data buffered or an error
+ * occurs; then invoke ${callback}(${cookie}, status) with status set to 0
+ * if the data is available, and set to 1 on error.
+ */
+int netbuf_read_wait(struct netbuf_read *, size_t,
+    int (*)(void *, int), void *);
+
+/**
+ * netbuf_read_wait_cancel(R):
+ * Cancel the in-progress wait on the reader ${R}.  Do not invoke the callback
+ * associated with the wait.
+ */
+void netbuf_read_wait_cancel(struct netbuf_read *);
+
+/**
+ * netbuf_read_consume(R, len):
+ * Advance the reader pointer for the reader ${R} by ${len} bytes.
+ */
+void netbuf_read_consume(struct netbuf_read *, size_t);
+
+/**
  * netbuf_read_read(R, buf, buflen, callback, cookie):
  * Read ${buflen} bytes into the buffer ${buf} via the buffered reader ${R}.
  * Invoke ${callback}(${cookie}, status) when done, with status set to 0 on

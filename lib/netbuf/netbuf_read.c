@@ -10,101 +10,28 @@
 /* Buffered reader structure. */
 struct netbuf_read {
 	/* Reader state. */
-	int s;			/* Source for reads. */
-	int extread;		/* Is read into external buffer? */
-	void * read_cookie;	/* Cookie for current buffer read. */
-	void * immediate_cookie;/* Cookie for immediate callback. */
+	int s;				/* Source for reads. */
+	int (* callback)(void *, int);	/* Callback for _wait. */
+	void * cookie;			/* Cookie for _wait. */
+	void * read_cookie;		/* From network_read. */
+	void * immediate_cookie;	/* From events_immediate_register. */
 
 	/* Buffer state. */
-	uint8_t * buf;		/* Internal buffer. */
-	size_t buflen;		/* Length of buf. */
-	size_t bufpos;		/* Current position within buffer. */
-	size_t datalen;		/* # bytes of data in buffer. */
+	uint8_t * buf;			/* Current read buffer. */
+	size_t buflen;			/* Length of buf. */
+	size_t bufpos;			/* Position of read pointer in buf. */
+	size_t datalen;			/* Position of write pointer in buf. */
 
-	/* Current request. */
-	uint8_t * reqbuf;	/* Buffer data will end up in. */
-	size_t reqbuflen;	/* Length of reqbuf. */
-	size_t reqbufpos;	/* Current write position in reqbuf. */
-	int (* callback)(void *, int);	/* Completion callback. */
-	void * cookie;		/* Completion callback cookie. */
+	/* Used by netbuf_read_read. */
+	int (* rr_callback)(void *, int);	/* Callback function. */
+	void * rr_cookie;			/* Cookie for callback. */
+	uint8_t * rr_buf;			/* Buffer. */
+	size_t rr_buflen;			/* Buffer size. */
 };
 
-/* Copy data from R->buf into R->reqbuf. */
-static void
-copybuf(struct netbuf_read * R)
-{
-	size_t copylen;
-
-	/* Figure out how much we can copy. */
-	copylen = R->datalen;
-	if (R->reqbuflen - R->reqbufpos < copylen)
-		copylen = R->reqbuflen - R->reqbufpos;
-
-	/* Copy the data. */
-	memcpy(&R->reqbuf[R->reqbufpos], &R->buf[R->bufpos], copylen);
-	R->reqbufpos += copylen;
-	R->bufpos += copylen;
-	R->datalen -= copylen;
-
-	/* Reset buffer pointer if we have no data left. */
-	if (R->datalen == 0)
-		R->bufpos = 0;
-}
-
-/* Immediate callback for buffer read completion. */
-static int
-docallback(void * cookie)
-{
-	struct netbuf_read * R = cookie;
-
-	/* This callback is no longer pending. */
-	R->immediate_cookie = NULL;
-
-	/* We no longer have a read in progress. */
-	R->reqbuf = NULL;
-
-	/* Do the callback and return. */
-	return ((R->callback)(R->cookie, 0));
-}
-
-/* Callback for a read completion. */
-static int
-gotbuf(void * cookie, ssize_t lenread)
-{
-	struct netbuf_read * R = cookie;
-
-	/* This callback is no longer pending. */
-	R->read_cookie = NULL;
-
-	/* Did we succeed?  Don't care about EOF vs. error. */
-	if (lenread <= 0)
-		goto failed;
-
-	/* We have data! */
-	if (R->extread) {
-		/* The data went into the external buffer. */
-		R->reqbufpos += lenread;
-	} else {
-		/* The data went into our internal buffer. */
-		R->datalen += lenread;
-
-		/* Copy data into the request buffer. */
-		copybuf(R);
-	}
-
-	/* We should have finished handling this request. */
-	assert(R->reqbufpos == R->reqbuflen);
-
-	/* We no longer have a read in progress. */
-	R->reqbuf = NULL;
-
-	/* Do the callback and return. */
-	return ((R->callback)(R->cookie, 0));
-
-failed:
-	/* Perform a failure-callback and return. */
-	return ((R->callback)(R->cookie, 1));
-}
+static int callback_success(void *);
+static int callback_read(void *, ssize_t);
+static int callback_read_read(void *, int);
 
 /**
  * netbuf_read_init(s):
@@ -112,8 +39,8 @@ failed:
  * is responsible for ensuring that no attempts are made to read from said
  * socket except via the returned reader.
  */
-struct netbuf_read *
-netbuf_read_init(int s)
+struct
+netbuf_read * netbuf_read_init(int s)
 {
 	struct netbuf_read * R;
 
@@ -123,10 +50,9 @@ netbuf_read_init(int s)
 	R->s = s;
 	R->read_cookie = NULL;
 	R->immediate_cookie = NULL;
-	R->reqbuf = NULL;
-	R->buflen = 4096;
 
 	/* Allocate buffer. */
+	R->buflen = 4096;
 	if ((R->buf = malloc(R->buflen)) == NULL)
 		goto err1;
 	R->bufpos = 0;
@@ -143,67 +69,85 @@ err0:
 }
 
 /**
- * netbuf_read_read(R, buf, buflen, callback, cookie):
- * Read ${buflen} bytes into the buffer ${buf} via the buffered reader ${R}.
- * Invoke ${callback}(${cookie}, status) when done, with status set to 0 on
- * success, and set to 1 on failure.
+ * netbuf_read_peek(R, data, datalen):
+ * Set ${data} to point to the currently buffered data in the reader ${R}; set
+ * ${datalen} to the number of bytes buffered.
  */
-int
-netbuf_read_read(struct netbuf_read * R, uint8_t * buf, size_t buflen,
-    int (* callback)(void *, int), void * cookie)
+void
+netbuf_read_peek(struct netbuf_read * R, uint8_t ** data, size_t * datalen)
 {
 
-	/* Assert that we're not already filling a buffer. */
-	assert(R->reqbuf == NULL);
+	/* Point at current buffered data. */
+	*data = &R->buf[R->bufpos];
+	*datalen = R->datalen - R->bufpos;
+}
 
-	/* Store read request parameters. */
-	R->reqbuf = buf;
-	R->reqbuflen = buflen;
-	R->reqbufpos = 0;
+/**
+ * netbuf_read_wait(R, len, callback, cookie):
+ * Wait until ${R} has ${len} or more bytes of data buffered or an error
+ * occurs; then invoke ${callback}(${cookie}, status) with status set to 0
+ * if the data is available, and set to 1 on error.
+ */
+int
+netbuf_read_wait(struct netbuf_read * R, size_t len,
+    int (* callback)(void *, int), void * cookie)
+{
+	uint8_t * nbuf;
+	size_t nbuflen;
+
+	/* Sanity-check: We shouldn't be reading already. */
+	assert(R->read_cookie == NULL);
+	assert(R->immediate_cookie == NULL);
+
+	/* Record parameters for future reference. */
 	R->callback = callback;
 	R->cookie = cookie;
 
-	/* Copy data if we have any. */
-	copybuf(R);
-
-	/*
-	 * There are three cases to consider here:
-	 * 1. We have filled the request buffer.  All we need to do is
-	 * schedule an immediate callback.
-	 * 2. There is no data left in our internal buffer, and the remaining
-	 * space in the request buffer is LESS than the size of our internal
-	 * buffer.  Read into our internal buffer (then copy data).
-	 * 3. There is no data left in our internal buffer, and the remaining
-	 * space in the request buffer is MORE than the size of our internal
-	 * buffer.  Read directly into the request buffer.
-	 */
-	if (R->reqbufpos == R->reqbuflen) {
-		/* Case 1: Schedule an immediate callback. */
-		R->immediate_cookie =
-		    events_immediate_register(docallback, R, 0);
-	} else if ((R->reqbuflen - R->reqbufpos) < R->buflen) {
-		/* Sanity check. */
-		assert(R->bufpos == 0);
-
-		/* Case 2: Read into internal buffer. */
-		R->extread = 0;
-		R->read_cookie = network_read(R->s, R->buf, R->buflen,
-		    R->reqbuflen - R->reqbufpos, gotbuf, R);
-	} else {
-		/* Sanity check. */
-		assert(R->bufpos == 0);
-
-		/* Case 3: Read into external buffer. */
-		R->extread = 1;
-		R->read_cookie = network_read(R->s, &R->reqbuf[R->reqbufpos],
-		    R->reqbuflen - R->reqbufpos,
-		    R->reqbuflen - R->reqbufpos, gotbuf, R);
+	/* If we have enough data already, schedule a callback. */
+	if (R->datalen - R->bufpos >= len) {
+		if ((R->immediate_cookie =
+		    events_immediate_register(callback_success, R, 0)) == NULL)
+			goto err0;
+		else
+			goto done;
 	}
 
-	/* Did we succeed? */
-	if ((R->immediate_cookie == NULL) && (R->read_cookie == NULL))
+	/* Resize the buffer if needed. */
+	if (R->buflen < len) {
+		/* Compute new buffer size. */
+		nbuflen = R->buflen * 2;
+		if (nbuflen < len)
+			nbuflen = len;
+
+		/* Allocate new buffer. */
+		if ((nbuf = malloc(nbuflen)) == NULL)
+			goto err0;
+
+		/* Copy data into new buffer. */
+		memcpy(nbuf, &R->buf[R->bufpos], R->datalen - R->bufpos);
+
+		/* Free old buffer and use new buffer. */
+		free(R->buf);
+		R->buf = nbuf;
+		R->buflen = nbuflen;
+		R->datalen -= R->bufpos;
+		R->bufpos = 0;
+	}
+
+	/* Move data to start of buffer if needed. */
+	if (R->buflen - R->bufpos < len) {
+		memmove(R->buf, &R->buf[R->bufpos], R->datalen - R->bufpos);
+		R->datalen -= R->bufpos;
+		R->bufpos = 0;
+	}
+
+	/* Read data into the buffer. */
+	if ((R->read_cookie = network_read(R->s, &R->buf[R->datalen],
+	    R->buflen - R->datalen, R->bufpos + len - R->datalen,
+	    callback_read, R)) == NULL)
 		goto err0;
 
+done:
 	/* Success! */
 	return (0);
 
@@ -212,14 +156,60 @@ err0:
 	return (-1);
 }
 
+/* Perform immediate callback for netbuf_read_wait. */
+static int
+callback_success(void * cookie)
+{
+	struct netbuf_read * R = cookie;
+
+	/* Sanity-check: We should be expecting this callback. */
+	assert(R->immediate_cookie != NULL);
+
+	/* This callback is no longer pending. */
+	R->immediate_cookie = NULL;
+
+	/* Perform callback. */
+	return ((R->callback)(R->cookie, 0));
+}
+
+/* Callback for a completed network read. */
+static int
+callback_read(void * cookie, ssize_t lenread)
+{
+	struct netbuf_read * R = cookie;
+
+	/* Sanity-check: We should be reading. */
+	assert(R->read_cookie != NULL);
+
+	/* This callback is no longer pending. */
+	R->read_cookie = NULL;
+
+	/* Did the read fail?  Don't care about error vs. EOF. */
+	if (lenread <= 0)
+		goto failed;
+
+	/* We've got more data. */
+	R->datalen += lenread;
+
+	/* Perform callback. */
+	return ((R->callback)(R->cookie, 0));
+
+failed:
+	/* Perform failure callback. */
+	return ((R->callback)(R->cookie, 1));
+}
+
 /**
- * netbuf_read_cancel(R):
- * Cancel the in-progress read on the reader ${R}.  Do not invoke the
- * callback associated with the read.
+ * netbuf_read_wait_cancel(R):
+ * Cancel the in-progress wait on the reader ${R}.  Do not invoke the callback
+ * associated with the wait.
  */
 void
-netbuf_read_cancel(struct netbuf_read * R)
+netbuf_read_wait_cancel(struct netbuf_read * R)
 {
+
+	/* Sanity-check: There should be a callback pending. */
+	assert((R->read_cookie != NULL) || (R->immediate_cookie != NULL));
 
 	/* If we have an in-progress read, cancel it. */
 	if (R->read_cookie != NULL) {
@@ -232,6 +222,82 @@ netbuf_read_cancel(struct netbuf_read * R)
 		events_immediate_cancel(R->immediate_cookie);
 		R->immediate_cookie = NULL;
 	}
+}
+
+/**
+ * netbuf_read_consume(R, len):
+ * Advance the reader pointer for the reader ${R} by ${len} bytes.
+ */
+void
+netbuf_read_consume(struct netbuf_read * R, size_t len)
+{
+
+	/* Sanity-check: We can't consume data we don't have. */
+	assert(R->datalen - R->bufpos >= len);
+
+	/* Advance the buffer pointer. */
+	R->bufpos += len;
+}
+
+/**
+ * netbuf_read_read(R, buf, buflen, callback, cookie):
+ * Read ${buflen} bytes into the buffer ${buf} via the buffered reader ${R}.
+ * Invoke ${callback}(${cookie}, status) when done, with status set to 0 on
+ * success, and set to 1 on failure.
+ */
+int
+netbuf_read_read(struct netbuf_read * R, uint8_t * buf, size_t buflen,
+    int (* callback)(void *, int), void * cookie)
+{
+
+	/* Store read request parameters. */
+	R->rr_buf = buf;
+	R->rr_buflen = buflen;
+	R->rr_callback = callback;
+	R->rr_cookie = cookie;
+
+	/* Wait until we have the required amount of data. */
+	return (netbuf_read_wait(R, buflen, callback_read_read, R));
+}
+
+/* Copy data and perform the upstream callback. */
+static int
+callback_read_read(void * cookie, int status)
+{
+	struct netbuf_read * R = cookie;
+	uint8_t * data;
+	size_t datalen;
+
+	/* If we succeeded, copy the data. */
+	if (status == 0) {
+		/* Where's the data? */
+		netbuf_read_peek(R, &data, &datalen);
+
+		/* We'd better have enough of it. */
+		assert(datalen >= R->rr_buflen);
+
+		/* Copy it. */
+		memcpy(R->rr_buf, data, R->rr_buflen);
+
+		/* We've used this data. */
+		netbuf_read_consume(R, R->rr_buflen);
+	}
+
+	/* Perform the upstream callback. */
+	return ((R->rr_callback)(R->rr_cookie, status));
+}
+
+/**
+ * netbuf_read_cancel(R):
+ * Cancel the in-progress read on the reader ${R}.  Do not invoke the
+ * callback associated with the read.
+ */
+void
+netbuf_read_cancel(struct netbuf_read * R)
+{
+
+	/* Cancel the wait. */
+	netbuf_read_wait_cancel(R);
 }
 
 /**

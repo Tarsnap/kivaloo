@@ -41,22 +41,6 @@ void netbuf_read_wait_cancel(struct netbuf_read *);
 void netbuf_read_consume(struct netbuf_read *, size_t);
 
 /**
- * netbuf_read_read(R, buf, buflen, callback, cookie):
- * Read ${buflen} bytes into the buffer ${buf} via the buffered reader ${R}.
- * Invoke ${callback}(${cookie}, status) when done, with status set to 0 on
- * success, and set to 1 on failure.
- */
-int netbuf_read_read(struct netbuf_read *, uint8_t *, size_t,
-    int (*)(void *, int), void *);
-
-/**
- * netbuf_read_cancel(R):
- * Cancel the in-progress read on the reader ${R}.  Do not invoke the
- * callback associated with the read.
- */
-void netbuf_read_cancel(struct netbuf_read *);
-
-/**
  * netbuf_read_free(R):
  * Free the reader ${R}.  Note that an indeterminate amount of data may have
  * been buffered and will be lost.

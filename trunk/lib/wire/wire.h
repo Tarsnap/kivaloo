@@ -56,24 +56,6 @@ void wire_readpacket_wait_cancel(void *);
 void wire_readpacket_consume(struct netbuf_read *, struct wire_packet *);
 
 /**
- * wire_readpacket(R, callback, cookie):
- * Read a packet from the buffered reader ${R}.  When a packet has been read,
- * invoke ${callback}(${cookie}, packet); if a failure occurs while reading
- * (e.g., EOF) then invoke the callback with packet == NULL.  The callback is
- * responsible for freeing the provided packet.  Return a cookie which can be
- * passed to wire_readpacket_cancel.
- */
-void * wire_readpacket(struct netbuf_read *,
-    int (*)(void *, struct wire_packet *), void *);
-
-/**
- * wire_readpacket_cancel(cookie):
- * Cancel the packet read for which ${cookie} was returned.  Do not invoke
- * the packet read callback.
- */
-void wire_readpacket_cancel(void *);
-
-/**
  * wire_writepacket_getbuf(W, ID, len):
  * Start writing a packet with ID ${ID} and data length ${len} to the buffered
  * writer ${W}.  Return a pointer to where the data should be written.  This

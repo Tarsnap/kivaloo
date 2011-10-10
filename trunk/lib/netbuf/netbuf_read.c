@@ -21,17 +21,10 @@ struct netbuf_read {
 	size_t buflen;			/* Length of buf. */
 	size_t bufpos;			/* Position of read pointer in buf. */
 	size_t datalen;			/* Position of write pointer in buf. */
-
-	/* Used by netbuf_read_read. */
-	int (* rr_callback)(void *, int);	/* Callback function. */
-	void * rr_cookie;			/* Cookie for callback. */
-	uint8_t * rr_buf;			/* Buffer. */
-	size_t rr_buflen;			/* Buffer size. */
 };
 
 static int callback_success(void *);
 static int callback_read(void *, ssize_t);
-static int callback_read_read(void *, int);
 
 /**
  * netbuf_read_init(s):
@@ -237,67 +230,6 @@ netbuf_read_consume(struct netbuf_read * R, size_t len)
 
 	/* Advance the buffer pointer. */
 	R->bufpos += len;
-}
-
-/**
- * netbuf_read_read(R, buf, buflen, callback, cookie):
- * Read ${buflen} bytes into the buffer ${buf} via the buffered reader ${R}.
- * Invoke ${callback}(${cookie}, status) when done, with status set to 0 on
- * success, and set to 1 on failure.
- */
-int
-netbuf_read_read(struct netbuf_read * R, uint8_t * buf, size_t buflen,
-    int (* callback)(void *, int), void * cookie)
-{
-
-	/* Store read request parameters. */
-	R->rr_buf = buf;
-	R->rr_buflen = buflen;
-	R->rr_callback = callback;
-	R->rr_cookie = cookie;
-
-	/* Wait until we have the required amount of data. */
-	return (netbuf_read_wait(R, buflen, callback_read_read, R));
-}
-
-/* Copy data and perform the upstream callback. */
-static int
-callback_read_read(void * cookie, int status)
-{
-	struct netbuf_read * R = cookie;
-	uint8_t * data;
-	size_t datalen;
-
-	/* If we succeeded, copy the data. */
-	if (status == 0) {
-		/* Where's the data? */
-		netbuf_read_peek(R, &data, &datalen);
-
-		/* We'd better have enough of it. */
-		assert(datalen >= R->rr_buflen);
-
-		/* Copy it. */
-		memcpy(R->rr_buf, data, R->rr_buflen);
-
-		/* We've used this data. */
-		netbuf_read_consume(R, R->rr_buflen);
-	}
-
-	/* Perform the upstream callback. */
-	return ((R->rr_callback)(R->rr_cookie, status));
-}
-
-/**
- * netbuf_read_cancel(R):
- * Cancel the in-progress read on the reader ${R}.  Do not invoke the
- * callback associated with the read.
- */
-void
-netbuf_read_cancel(struct netbuf_read * R)
-{
-
-	/* Cancel the wait. */
-	netbuf_read_wait_cancel(R);
 }
 
 /**

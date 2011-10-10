@@ -138,6 +138,7 @@ int proto_kvlds_request_range2(struct wire_requestqueue *,
 #define PROTO_KVLDS_CAD		0x00000121
 #define PROTO_KVLDS_GET		0x00000130
 #define PROTO_KVLDS_RANGE	0x00000131
+#define PROTO_KVLDS_NONE	(uint32_t)(-1)
 
 /* KVLDS request structure. */
 struct proto_kvlds_request {
@@ -149,30 +150,27 @@ struct proto_kvlds_request {
 	const struct kvldskey * value;
 #define range_end value
 	const struct kvldskey * oval;
-	uint8_t * blob;
+	uint8_t blob[4 + 3 * 256];
 };
 
 /**
- * proto_kvlds_request_read(R, callback, cookie):
- * Read a packet from the reader ${R} and parse it as a KVLDS request.  Call
- * ${callback}(${cookie}, [request]), or ${callback}(${cookie}, NULL) if a
- * request could not be read or parsed.  The callback is responsible for
- * freeing the request structure.  Return a cookie which can be used to
- * cancel the operation.
+ * proto_kvlds_request_alloc():
+ * Allocate a struct proto_kvlds_request.
  */
-void * proto_kvlds_request_read(struct netbuf_read *,
-    int (*)(void *, struct proto_kvlds_request *), void *);
+struct proto_kvlds_request * proto_kvlds_request_alloc(void);
 
 /**
- * proto_kvlds_request_read_cancel(cookie):
- * Cancel the request get for which ${cookie} was returned.  Do not invoke
- * the callback function.
+ * proto_kvlds_request_read(R, req):
+ * Read a packet from the reader ${R} and parse it as an KVLDS request.  Return
+ * the parsed request via ${req}.  If no request is available, return with
+ * ${req}->type == PROTO_KVLDS_NONE.
  */
-void proto_kvlds_request_read_cancel(void *);
+int proto_kvlds_request_read(struct netbuf_read *,
+    struct proto_kvlds_request *);
 
 /**
- * proto_kvlds_request_free(R):
- * Free the KVLDS request structure ${R}.
+ * proto_kvlds_request_free(req):
+ * Free the struct proto_kvlds_request ${req}.
  */
 void proto_kvlds_request_free(struct proto_kvlds_request *);
 

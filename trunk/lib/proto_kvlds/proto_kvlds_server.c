@@ -12,31 +12,19 @@
 
 #include "proto_kvlds.h"
 
-struct request_read {
-	int (*callback)(void *, struct proto_kvlds_request *);
-	void * cookie;
-	void * read_cookie;
-};
-
-MPOOL(requestread, struct request_read, 16);
 MPOOL(request, struct proto_kvlds_request, 4096);
 
-static int gotpacket(void *, struct wire_packet *);
-static int docallback(struct request_read *, struct proto_kvlds_request *);
-
 /**
- * proto_kvlds_request_parse(P):
- * Parse the packet ${P} and return an LBS request structure.
+ * proto_kvlds_request_parse(P, R):
+ * Parse the packet ${P} into the KVLDS request structure ${R}.
  */
-static struct proto_kvlds_request *
-proto_kvlds_request_parse(const struct wire_packet * P)
+static int
+proto_kvlds_request_parse(const struct wire_packet * P,
+    struct proto_kvlds_request * R)
 {
-	struct proto_kvlds_request * R;
 	size_t bufpos;
 
-	/* Allocate KVLDS request structure. */
-	if ((R = mpool_request_malloc()) == NULL)
-		goto err0;
+	/* Store request ID. */
 	R->ID = P->ID;
 
 	/* Initialize keys to NULL. */
@@ -44,10 +32,15 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 
 	/* Sanity-check packet length. */
 	if (P->len < 4)
-		goto err1;
+		goto err0;
+	if (P->len > sizeof(R->blob))
+		goto err0;
+
+	/* Copy the packet data into the request structure. */
+	memcpy(R->blob, P->buf, P->len);
 
 	/* Figure out request type. */
-	R->type = be32dec(&P->buf[0]);
+	R->type = be32dec(&R->blob[0]);
 	bufpos = 4;
 
 /* Macro for extracting a key and advancing the buffer position. */
@@ -68,48 +61,48 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 	case PROTO_KVLDS_DELETE:
 	case PROTO_KVLDS_GET:
 		/* Parse key. */
-		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->key, R->blob, P->len, bufpos, err1);
 		break;
 	case PROTO_KVLDS_SET:
 	case PROTO_KVLDS_ADD:
 	case PROTO_KVLDS_MODIFY:
 		/* Parse key. */
-		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->key, R->blob, P->len, bufpos, err1);
 
 		/* Parse value. */
-		GRABKEY(R->value, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->value, R->blob, P->len, bufpos, err1);
 		break;
 	case PROTO_KVLDS_CAD:
 		/* Parse key. */
-		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->key, R->blob, P->len, bufpos, err1);
 
 		/* Parse oval. */
-		GRABKEY(R->oval, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->oval, R->blob, P->len, bufpos, err1);
 		break;
 	case PROTO_KVLDS_CAS:
 		/* Parse key. */
-		GRABKEY(R->key, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->key, R->blob, P->len, bufpos, err1);
 
 		/* Parse oval. */
-		GRABKEY(R->oval, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->oval, R->blob, P->len, bufpos, err1);
 
 		/* Parse value. */
-		GRABKEY(R->value, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->value, R->blob, P->len, bufpos, err1);
 		break;
 	case PROTO_KVLDS_RANGE:
 		/* Parse maximum key-value pairs length. */
 		if (P->len - bufpos < 4) {
 			errno = 0;
-			goto err2;
+			goto err1;
 		}
-		R->range_max = be32dec(&P->buf[bufpos]);
+		R->range_max = be32dec(&R->blob[bufpos]);
 		bufpos += 4;
 
 		/* Parse start key. */
-		GRABKEY(R->range_start, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->range_start, R->blob, P->len, bufpos, err1);
 
 		/* Parse end key. */
-		GRABKEY(R->range_end, P->buf, P->len, bufpos, err2);
+		GRABKEY(R->range_end, R->blob, P->len, bufpos, err1);
 		break;
 	default:
 		warn0("Unrecognized request type received: 0x%08" PRIx32,
@@ -119,132 +112,80 @@ proto_kvlds_request_parse(const struct wire_packet * P)
 
 	/* Did we reach the end of the packet? */
 	if (bufpos != P->len)
-		goto err2;
-
-	/* This buffer now belongs to the request structure. */
-	R->blob = P->buf;
-
-	/* Success! */
-	return (R);
-
-err2:
-	warnp("Error parsing request packet of type 0x%08" PRIx32, R->type);
-err1:
-	proto_kvlds_request_free(R);
-err0:
-	/* Failure! */
-	return (NULL);
-}
-
-/**
- * proto_kvlds_request_read(R, callback, cookie):
- * Read a packet from the reader ${R} and parse it as a KVLDS request.  Call
- * ${callback}(${cookie}, [request]), or ${callback}(${cookie}, NULL) if a
- * request could not be read or parsed.  The callback is responsible for
- * freeing the request structure.  Return a cookie which can be used to
- * cancel the operation.
- */
-void *
-proto_kvlds_request_read(struct netbuf_read * R,
-    int (* callback)(void *, struct proto_kvlds_request *), void * cookie)
-{
-	struct request_read * G;
-
-	/* Bake a cookie. */
-	if ((G = mpool_requestread_malloc()) == NULL)
-		goto err0;
-	G->callback = callback;
-	G->cookie = cookie;
-
-	/* Read a packet. */
-	if ((G->read_cookie = wire_readpacket(R, gotpacket, G)) == NULL)
 		goto err1;
 
 	/* Success! */
-	return (G);
+	return (0);
 
 err1:
-	mpool_requestread_free(G);
+	warnp("Error parsing request packet of type 0x%08" PRIx32, R->type);
 err0:
 	/* Failure! */
-	return (NULL);
-}
-
-/* We have a packet. */
-static int
-gotpacket(void * cookie, struct wire_packet * P)
-{
-	struct request_read * G = cookie;
-	struct proto_kvlds_request * R;
-
-	/* If we have no packet, we failed. */
-	if (P == NULL)
-		goto failed;
-
-	/* Parse the packet. */
-	if ((R = proto_kvlds_request_parse(P)) == NULL)
-		goto failed1;
-
-	/* Free the packet. */
-	wire_packet_free(P);
-
-	/* Perform the callback. */
-	return (docallback(G, R));
-
-failed1:
-	free(P->buf);
-	wire_packet_free(P);
-failed:
-	/* Perform the callback. */
-	return (docallback(G, NULL));
-}
-
-/* Do the callback and free the request_read structure. */
-static int
-docallback(struct request_read * G, struct proto_kvlds_request * R)
-{
-	int rc;
-
-	/* Do the callback. */
-	rc = (G->callback)(G->cookie, R);
-
-	/* Free the structure. */
-	mpool_requestread_free(G);
-
-	/* Pass the callback status back. */
-	return (rc);
+	return (-1);
 }
 
 /**
- * proto_kvlds_request_read_cancel(cookie):
- * Cancel the request read for which ${cookie} was returned.  Do not invoke
- * the callback function.
+ * proto_kvlds_request_alloc():
+ * Allocate a struct proto_kvlds_request.
  */
-void
-proto_kvlds_request_read_cancel(void * cookie)
+struct proto_kvlds_request *
+proto_kvlds_request_alloc(void)
 {
-	struct request_read * G = cookie;
 
-	/* Cancel the read. */
-	wire_readpacket_cancel(G->read_cookie);
-
-	/* Free the cookie. */
-	mpool_requestread_free(G);
+	return (mpool_request_malloc());
 }
 
 /**
- * proto_kvlds_request_free(R):
- * Free the KVLDS request structure ${R}.
+ * proto_kvlds_request_read(R, req):
+ * Read a packet from the reader ${R} and parse it as an KVLDS request.  Return
+ * the parsed request via ${req}.  If no request is available, return with
+ * ${req}->type == PROTO_KVLDS_NONE.
+ */
+int
+proto_kvlds_request_read(struct netbuf_read * R,
+    struct proto_kvlds_request * req)
+{
+	struct wire_packet P;
+
+	/* Try to grab a packet from the buffered reader. */
+	if (wire_readpacket_peek(R, &P))
+		goto err0;
+
+	/* Do we have a packet? */
+	if (P.buf == NULL)
+		goto nopacket;
+
+	/* Parse this packet. */
+	if (proto_kvlds_request_parse(&P, req))
+		goto err0;
+
+	/* Consume the packet. */
+	wire_readpacket_consume(R, &P);
+
+	/* Success! */
+	return (0);
+
+nopacket:
+	/* Record that no request was available. */
+	req->type = PROTO_KVLDS_NONE;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * proto_kvlds_request_free():
+ * Free the struct proto_kvlds_request ${req}.
  */
 void
-proto_kvlds_request_free(struct proto_kvlds_request * R)
+proto_kvlds_request_free(struct proto_kvlds_request * req)
 {
 
-	/* Free the packet buffer (into which the keys point). */
-	free(R->blob);
-
-	/* Return the request structure to the pool. */
-	mpool_request_free(R);
+	mpool_request_free(req);
 }
 
 /**

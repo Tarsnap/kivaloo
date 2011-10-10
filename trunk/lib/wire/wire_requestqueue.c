@@ -46,56 +46,62 @@ failreq(void * cookie)
 	return (rc);
 }
 
-/* Handle an incoming response. */
+/* Response packet(s) have arrived.  Read and process. */
 static int
-gotpacket(void * cookie, struct wire_packet * P)
+readpackets(void * cookie, int status)
 {
 	struct wire_requestqueue * Q = cookie;
+	struct wire_packet P;
 	struct request * R;
-	int rc;
 
-	/* This packet read is no longer in progress. */
+	/* We're not waiting for a packet to be available any more. */
 	Q->read_cookie = NULL;
 
-	/* If the packet read failed, the connection is dying. */
-	if (P == NULL)
+	/* If the wait failed, the connection is dying. */
+	if (status)
 		goto fail;
 
-	/* Look up the request associated with this response. */
-	if ((R = seqptrmap_get(Q->reqs, P->ID)) == NULL) {
-		/* Server sent a response to a request we didn't send? */
-		warn0("Received bogus response ID: %016" PRIx64, P->ID);
+	/* Handle packets until there are no more or we encounter an error. */
+	do {
+		/* Grab a packet. */
+		if (wire_readpacket_peek(Q->R, &P))
+			goto fail;
 
-		/* This connection is not useful. */
-		goto fail1;
-	}
+		/* Exit the loop if no packet is available. */
+		if (P.buf == NULL)
+			break;
 
-	/* Delete the request from the pending request map. */
-	seqptrmap_delete(Q->reqs, P->ID);
+		/* Look up the request associated with this response. */
+		if ((R = seqptrmap_get(Q->reqs, P.ID)) == NULL) {
+			/* Is this response ID reasonable? */
+			warn0("Received bogus response ID: %016" PRIx64, P.ID);
 
-	/* Invoke the upstream callback. */
-	rc = (R->callback)(R->cookie, P->buf, P->len);
+			/* This connection is not useful. */
+			goto fail;
+		}
 
-	/*
-	 * Free the response packet structure (but not the buffer, which is
-	 * the responsibility of the response-handling callback code..
-	 */
-	wire_packet_free(P);
+		/* Delete the request from the pending request map. */
+		seqptrmap_delete(Q->reqs, P.ID);
 
-	/* Free the request structure. */
-	mpool_request_free(R);
+		/* Invoke the upstream callback. */
+		if ((R->callback)(R->cookie, P.buf, P.len))
+			goto err0;
 
-	/* Start reading another packet. */
-	if ((Q->read_cookie = wire_readpacket(Q->R, gotpacket, Q)) == NULL)
+		/* Free the request structure. */
+		mpool_request_free(R);
+
+		/* Consume the packet. */
+		wire_readpacket_consume(Q->R, &P);
+	} while (1);
+
+	/* Wait for another packet to arrive. */
+	if ((Q->read_cookie =
+	    wire_readpacket_wait(Q->R, readpackets, Q)) == NULL)
 		goto err0;
 
 	/* Success! */
-	return (rc);
+	return (0);
 
-fail1:
-	/* Free the packet. */
-	free(P->buf);
-	wire_packet_free(P);
 fail:
 	/* This request queue has failed. */
 	return (failqueue(Q));
@@ -118,9 +124,9 @@ failqueue(void * cookie)
 	assert(Q->failed == 0);
 	Q->failed = 1;
 
-	/* Cancel any pending read. */
+	/* Cancel any pending packet-reading wait. */
 	if (Q->read_cookie != NULL) {
-		wire_readpacket_cancel(Q->read_cookie);
+		wire_readpacket_wait_cancel(Q->read_cookie);
 		Q->read_cookie = NULL;
 	}
 
@@ -179,8 +185,9 @@ wire_requestqueue_init(int s)
 	if ((Q->reqs = seqptrmap_init()) == NULL)
 		goto err3;
 
-	/* Start reading packets. */
-	if ((Q->read_cookie = wire_readpacket(Q->R, gotpacket, Q)) == NULL)
+	/* Wait for a packet to arrive. */
+	if ((Q->read_cookie =
+	    wire_readpacket_wait(Q->R, readpackets, Q)) == NULL)
 		goto err4;
 
 	/* Success! */

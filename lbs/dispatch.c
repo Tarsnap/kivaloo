@@ -17,7 +17,6 @@
 #include "dispatch.h"
 #include "dispatch_internal.h"
 
-static int gotrequest(void *, struct proto_lbs_request *);
 static int callback_accept(void *, int);
 
 /* The ID of a thread with completed work has been read (or not). */
@@ -78,9 +77,9 @@ dropconnection(void * cookie)
 	struct dispatch_state * D = cookie;
 	void * tmp;
 
-	/* If we're reading a packet, stop it. */
+	/* If we're waiting for a request to arrive, stop waiting. */
 	if (D->read_cookie != NULL) {
-		proto_lbs_request_read_cancel(D->read_cookie);
+		wire_readpacket_wait_cancel(D->read_cookie);
 		D->read_cookie = NULL;
 	}
 
@@ -96,56 +95,69 @@ dropconnection(void * cookie)
 	return (0);
 }
 
-/* We have read a request (or not). */
+/* Read and dispatch incoming request(s). */
 static int
-gotrequest(void * cookie, struct proto_lbs_request * R)
+gotrequest(void * cookie, int status)
 {
 	struct dispatch_state * D = cookie;
+	struct proto_lbs_request * R;
 
-	/* This read is done. */
+	/* We're no longer waiting for a packet to arrive. */
 	D->read_cookie = NULL;
 
-	/*
-	 * If we failed to read a request, the connection is dead.  Don't try
-	 * to read any more requests; cancel any queued read operations; and
-	 * destroy the packet write queue.
-	 */
-	if (R == NULL) {
-		/* If we can't read, kill off the connection. */
+	/* If the wait failed, the connection is dead. */
+	if (status)
 		goto drop;
-	}
 
-	/* We owe a response to the client. */
-	D->npending += 1;
+	/* Read packets until there are no more or an error occurs. */
+	do {
+		/* Allocate space for a request. */
+		if ((R = malloc(sizeof(struct proto_lbs_request))) == NULL)
+			goto err0;
 
-	/* Handle and free the packet. */
-	switch (R->type) {
-	case PROTO_LBS_PARAMS:
-		if (dispatch_request_params(D, R))
-			goto err0;
-		break;
-	case PROTO_LBS_GET:
-		if (dispatch_request_get(D, R))
-			goto err0;
-		break;
-	case PROTO_LBS_APPEND:
-		/* Make sure the (implied) block length is correct. */
-		if (R->r.append.blklen != D->blocklen) {
-			free(R->r.append.buf);
-			free(R);
-			goto drop;
+		/* Attempt to read a request. */
+		if (proto_lbs_request_read(D->readq, R))
+			goto drop1;
+
+		/* If we have no request, stop looping. */
+		if (R->type == PROTO_LBS_NONE)
+			break;
+
+		/* We owe a response to the client. */
+		D->npending += 1;
+
+		/* Handle and free the request. */
+		switch (R->type) {
+		case PROTO_LBS_PARAMS:
+			if (dispatch_request_params(D, R))
+				goto err0;
+			break;
+		case PROTO_LBS_GET:
+			if (dispatch_request_get(D, R))
+				goto err0;
+			break;
+		case PROTO_LBS_APPEND:
+			/* Make sure the (implied) block length is correct. */
+			if (R->r.append.blklen != D->blocklen) {
+				free(R->r.append.buf);
+				free(R);
+				goto drop;
+			}
+			if (dispatch_request_append(D, R))
+				goto err0;
+			break;
+		case PROTO_LBS_FREE:
+			if (dispatch_request_free(D, R))
+				goto err0;
+			break;
 		}
-		if (dispatch_request_append(D, R))
-			goto err0;
-		break;
-	case PROTO_LBS_FREE:
-		if (dispatch_request_free(D, R))
-			goto err0;
-		break;
-	}
+	} while (1);
 
-	/* Try to read another packet. */
-	if ((D->read_cookie = proto_lbs_request_read(D->readq,
+	/* Free the (unused) request structure. */
+	free(R);
+
+	/* Wait for more requests to arrive. */
+	if ((D->read_cookie = wire_readpacket_wait(D->readq,
 	    gotrequest, D)) == NULL) {
 		warnp("Error reading request from connection");
 		goto err0;
@@ -154,6 +166,8 @@ gotrequest(void * cookie, struct proto_lbs_request * R)
 	/* Success! */
 	return (0);
 
+drop1:
+	free(R);
 drop:
 	/* We didn't get a valid request.  Drop the connection. */
 	dropconnection(D);
@@ -310,8 +324,8 @@ callback_accept(void * cookie, int s)
 		goto err2;
 	}
 
-	/* Start reading requests. */
-	if ((D->read_cookie = proto_lbs_request_read(D->readq,
+	/* Wait for a request to arrive. */
+	if ((D->read_cookie = wire_readpacket_wait(D->readq,
 	    gotrequest, D)) == NULL) {
 		warnp("Error reading request from connection");
 		goto err3;

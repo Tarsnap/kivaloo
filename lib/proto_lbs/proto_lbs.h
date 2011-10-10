@@ -73,6 +73,7 @@ int proto_lbs_request_free(struct wire_requestqueue *, uint64_t,
 #define PROTO_LBS_GET		1
 #define PROTO_LBS_APPEND	2
 #define PROTO_LBS_FREE		3
+#define PROTO_LBS_NONE		((uint32_t)(-1))
 
 /* LBS request structure. */
 struct proto_lbs_request {
@@ -104,22 +105,12 @@ struct proto_lbs_request {
 };
 
 /**
- * proto_lbs_request_read(R, callback, cookie):
- * Read a packet from the reader ${R} and parse it as an LBS request.  Invoke
- * ${callback}(${cookie}, [request]), or ${callback}(${cookie}, NULL) if a
- * request could not be read or parsed.  The callback is responsible for
- * freeing the request structure.  Return a cookie which can be used to
- * cancel the operation.
+ * proto_lbs_request_read(R, req):
+ * Read a packet from the reader ${R} and parse it as an LBS request.  Return
+ * the parsed request via ${req}.  If no request is available, return with
+ * ${req}->type == PROTO_LBS_NONE.
  */
-void * proto_lbs_request_read(struct netbuf_read *,
-    int (*)(void *, struct proto_lbs_request *), void *);
-
-/**
- * proto_lbs_request_read_cancel(cookie):
- * Cancel the request get for which ${cookie} was returned.  Do not invoke
- * the callback function.
- */
-void proto_lbs_request_read_cancel(void *);
+int proto_lbs_request_read(struct netbuf_read *, struct proto_lbs_request *);
 
 /**
  * proto_lbs_response_params(Q, ID, blklen, blkno, callback, cookie):

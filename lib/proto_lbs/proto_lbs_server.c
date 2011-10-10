@@ -6,32 +6,21 @@
 
 #include "proto_lbs.h"
 
-struct request_read {
-	int (*callback)(void *, struct proto_lbs_request *);
-	void * cookie;
-	void * read_cookie;
-};
-
-static int gotpacket(void *, struct wire_packet *);
-static int docallback(struct request_read *, struct proto_lbs_request *);
-
 /**
- * proto_lbs_request_parse(P):
- * Parse the packet ${P} and return an LBS request structure.
+ * proto_lbs_request_parse(P, R):
+ * Parse the packet ${P} into the LBS request structure ${R}.
  */
-static struct proto_lbs_request *
-proto_lbs_request_parse(const struct wire_packet * P)
+static int
+proto_lbs_request_parse(const struct wire_packet * P,
+    struct proto_lbs_request * R)
 {
-	struct proto_lbs_request * R;
 
-	/* Allocate LBS request structure. */
-	if ((R = malloc(sizeof(struct proto_lbs_request))) == NULL)
-		goto err0;
+	/* Store request ID. */
 	R->ID = P->ID;
 
 	/* Sanity-check packet length. */
 	if (P->len < 4)
-		goto err1;
+		goto err0;
 
 	/* Figure out request type. */
 	R->type = be32dec(&P->buf[0]);
@@ -40,142 +29,84 @@ proto_lbs_request_parse(const struct wire_packet * P)
 	switch (R->type) {
 	case PROTO_LBS_PARAMS:
 		if (P->len != 4)
-			goto err1;
+			goto err0;
 		/* Nothing to parse. */
 		break;
 	case PROTO_LBS_GET:
 		if (P->len != 12)
-			goto err1;
+			goto err0;
 		R->r.get.blkno = be64dec(&P->buf[4]);
 		break;
 	case PROTO_LBS_APPEND:
 		if (P->len < 16)
-			goto err1;
+			goto err0;
 		R->r.append.nblks = be32dec(&P->buf[4]);
 		R->r.append.blkno = be64dec(&P->buf[8]);
 		if (R->r.append.nblks == 0)
-			goto err1;
+			goto err0;
 		if ((P->len - 16) % R->r.append.nblks)
-			goto err1;
+			goto err0;
 		R->r.append.blklen = (P->len - 16) / R->r.append.nblks;
 		if ((R->r.append.buf = malloc(P->len - 16)) == NULL)
-			goto err1;
+			goto err0;
 		memcpy(R->r.append.buf, &P->buf[16], P->len - 16);
 		break;
 	case PROTO_LBS_FREE:
 		if (P->len != 12)
-			goto err1;
+			goto err0;
 		R->r.free.blkno = be64dec(&P->buf[4]);
 		break;
 	default:
-		goto err1;
+		goto err0;
 	}
 
 	/* Success! */
-	return (R);
+	return (0);
 
-err1:
-	free(R);
 err0:
 	/* Failure! */
-	return (NULL);
+	return (-1);
 }
 
 /**
- * proto_lbs_request_read(R, callback, cookie):
- * Read a packet from the reader ${R} and parse it as an LBS request.  Invoke
- * ${callback}(${cookie}, [request]), or ${callback}(${cookie}, NULL) if a
- * request could not be read or parsed.  The callback is responsible for
- * freeing the request structure.  Return a cookie which can be used to
- * cancel the operation.
+ * proto_lbs_request_read(R, req):
+ * Read a packet from the reader ${R} and parse it as an LBS request.  Return
+ * the parsed request via ${req}.  If no request is available, return with
+ * ${req}->type == PROTO_LBS_NONE.
  */
-void *
-proto_lbs_request_read(struct netbuf_read * R,
-    int (* callback)(void *, struct proto_lbs_request *), void * cookie)
+int
+proto_lbs_request_read(struct netbuf_read * R, struct proto_lbs_request * req)
 {
-	struct request_read * G;
+	struct wire_packet P;
 
-	/* Bake a cookie. */
-	if ((G = malloc(sizeof(struct request_read))) == NULL)
+	/* Try to grab a packet from the buffered reader. */
+	if (wire_readpacket_peek(R, &P))
 		goto err0;
-	G->callback = callback;
-	G->cookie = cookie;
 
-	/* Read a packet. */
-	if ((G->read_cookie = wire_readpacket(R, gotpacket, G)) == NULL)
-		goto err1;
+	/* Do we have a packet? */
+	if (P.buf == NULL)
+		goto nopacket;
+
+	/* Parse this packet. */
+	if (proto_lbs_request_parse(&P, req))
+		goto err0;
+
+	/* Consume the packet. */
+	wire_readpacket_consume(R, &P);
 
 	/* Success! */
-	return (G);
+	return (0);
 
-err1:
-	free(G);
+nopacket:
+	/* Record that no request was available. */
+	req->type = PROTO_LBS_NONE;
+
+	/* Success! */
+	return (0);
+
 err0:
 	/* Failure! */
-	return (NULL);
-}
-
-/* We have a packet. */
-static int
-gotpacket(void * cookie, struct wire_packet * P)
-{
-	struct request_read * G = cookie;
-	struct proto_lbs_request * R;
-
-	/* If we have no packet, we failed. */
-	if (P == NULL)
-		goto failed;
-
-	/* Parse the packet. */
-	if ((R = proto_lbs_request_parse(P)) == NULL)
-		goto failed1;
-
-	/* Free the packet. */
-	free(P->buf);
-	free(P);
-
-	/* Perform the callback. */
-	return (docallback(G, R));
-
-failed1:
-	free(P->buf);
-	free(P);
-failed:
-	/* Perform the callback. */
-	return (docallback(G, NULL));
-}
-
-/* Do the callback and free the request_read structure. */
-static int
-docallback(struct request_read * G, struct proto_lbs_request * R)
-{
-	int rc;
-
-	/* Do the callback. */
-	rc = (G->callback)(G->cookie, R);
-
-	/* Free the structure. */
-	free(G);
-
-	/* Pass the callback status back. */
-	return (rc);
-}
-
-/**
- * proto_lbs_request_read_cancel(cookie):
- * Cancel the request read for which ${cookie} was returned.  Do not invoke
- * the callback function.
- */
-void
-proto_lbs_request_read_cancel(void * cookie)
-{
-	struct request_read * G = cookie;
-
-	/* Cancel the read. */
-	wire_readpacket_cancel(G->read_cookie);
-
-	/* Free the cookie. */
-	free(G);
+	return (-1);
 }
 
 /**

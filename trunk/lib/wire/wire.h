@@ -25,6 +25,37 @@ struct wire_packet * wire_packet_malloc(void);
 void wire_packet_free(struct wire_packet *);
 
 /**
+ * wire_readpacket_peek(R, P):
+ * Look to see if a packet is available from the buffered reader ${R}.  If
+ * yes, store it in the packet structure ${P}; otherwise, set ${P}->buf to
+ * NULL.  On error (including if a corrupt packet is received) return -1.
+ */
+int wire_readpacket_peek(struct netbuf_read *, struct wire_packet *);
+
+/**
+ * wire_readpacket_wait(R, callback, cookie):
+ * Wait until a packet is available to be read from ${R} or a failure occurs
+ * while reading (e.g., EOF); then invoke ${callback}(${cookie}, status) where
+ * status is 0 on success or 1 on error.  Return a cookie which can be passed
+ * to wire_readpacket_wait_cancel.
+ */
+void * wire_readpacket_wait(struct netbuf_read *, int (*)(void *, int), void *);
+
+/**
+ * wire_readpacket_wait_cancel(cookie):
+ * Cancel the packet wait for which ${cookie} was returned.  Do not invoke
+ * the packet wait callback.
+ */
+void wire_readpacket_wait_cancel(void *);
+
+/**
+ * wire_readpacket_consume(R, P):
+ * Consume from the reader ${R} the packet ${P}, which it must have returned
+ * via wire_readpacket_peek.
+ */
+void wire_readpacket_consume(struct netbuf_read *, struct wire_packet *);
+
+/**
  * wire_readpacket(R, callback, cookie):
  * Read a packet from the buffered reader ${R}.  When a packet has been read,
  * invoke ${callback}(${cookie}, packet); if a failure occurs while reading

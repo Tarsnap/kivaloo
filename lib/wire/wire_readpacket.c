@@ -13,26 +13,16 @@
 
 #include "wire.h"
 
-struct read_cookie {
-	int (* callback)(void *, struct wire_packet *);
-	void * cookie;
-	struct netbuf_read * R;
-	struct wire_packet * packet;
-	void * wait_cookie;
-};
-
 struct wait_cookie {
 	struct netbuf_read * R;
 	int (* callback)(void *, int);
 	void * cookie;
 };
 
-MPOOL(read_cookie, struct read_cookie, 16);
 MPOOL(wait_cookie, struct wait_cookie, 16);
 
 static int callback_wait_gotheader(void *, int);
 static int callback_wait_gotdata(void *, int);
-static int callback_read_gotpacket(void *, int);
 
 /**
  * wire_readpacket_peek(R, P):
@@ -227,113 +217,4 @@ wire_readpacket_consume(struct netbuf_read * R, struct wire_packet * P)
 
 	/* Consume the packet. */
 	netbuf_read_consume(R, P->len + 20);
-}
-
-/**
- * wire_readpacket(R, callback, cookie):
- * Read a packet from the buffered reader ${R}.  When a packet has been read,
- * invoke ${callback}(${cookie}, packet); if a failure occurs while reading
- * (e.g., EOF) then invoke the callback with packet == NULL.  The callback is
- * responsible for freeing the provided packet.  Return a cookie which can be
- * passed to wire_readpacket_cancel.
- */
-void *
-wire_readpacket(struct netbuf_read * R,
-    int (* callback)(void *, struct wire_packet *), void * cookie)
-{
-	struct read_cookie * RP;
-
-	/* Bake a cookie. */
-	if ((RP = mpool_read_cookie_malloc()) == NULL)
-		goto err0;
-	RP->callback = callback;
-	RP->cookie = cookie;
-	RP->R = R;
-
-	/* Allocate a packet structure. */
-	if ((RP->packet = wire_packet_malloc()) == NULL)
-		goto err1;
-
-	/* Wait for a packet to be ready. */
-	if ((RP->wait_cookie =
-	    wire_readpacket_wait(RP->R, callback_read_gotpacket, RP)) == NULL)
-		goto err2;
-
-	/* Success! */
-	return (RP);
-
-err2:
-	wire_packet_free(RP->packet);
-err1:
-	mpool_read_cookie_free(RP);
-err0:
-	/* Failure! */
-	return (NULL);
-}
-
-/* A packet is ready.  Read it and pass it to the callback. */
-static int
-callback_read_gotpacket(void * cookie, int status)
-{
-	struct read_cookie * RP = cookie;
-	uint8_t * buf;
-	int rc;
-
-	/* Did we fail? */
-	if (status)
-		goto failed;
-
-	/* Try to read a packet. */
-	if (wire_readpacket_peek(RP->R, RP->packet))
-		goto failed;
-
-	/* Sanity-check: We should have a packet. */
-	assert(RP->packet->buf != NULL);
-
-	/* Copy the packet buffer: Our callback will own it. */
-	if ((buf = malloc(RP->packet->len)) == NULL)
-		goto failed;
-	memcpy(buf, RP->packet->buf, RP->packet->len);
-	RP->packet->buf = buf;
-
-	/* Consume the packet. */
-	wire_readpacket_consume(RP->R, RP->packet);
-
-	/* We're ready to invoke the callback. */
-	goto docallback;
-
-failed:
-	/* Free the embryonic packet; we won't pass it to the callback. */
-	wire_packet_free(RP->packet);
-	RP->packet = NULL;
-
-docallback:
-	/* Invoke the callback. */
-	rc = (RP->callback)(RP->cookie, RP->packet);
-
-	/* Free the cookie. */
-	mpool_read_cookie_free(RP);
-
-	/* Return status from callback. */
-	return (rc);
-}
-
-/**
- * wire_readpacket_cancel(cookie):
- * Cancel the packet read for which ${cookie} was returned.  Do not invoke
- * the packet read callback.
- */
-void
-wire_readpacket_cancel(void * cookie)
-{
-	struct read_cookie * RP = cookie;
-
-	/* Stop waiting for a packet to arrive. */
-	wire_readpacket_wait_cancel(RP->wait_cookie);
-
-	/* Free the embryonic packet. */
-	wire_packet_free(RP->packet);
-
-	/* Free the cookie. */
-	mpool_read_cookie_free(RP);
 }

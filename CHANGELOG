@@ -1,3 +1,16 @@
+kivaloo-1.2.0
+* the buffered writer now has a queue of aggregation buffers rather than
+  referencing external buffers until it is ready to copy them into a
+  single aggregation buffer.
+* the buffered writer no longer issues completion callbacks for each write;
+  instead, it has a single callback which is invoked once on failure.
+* the buffered writer, packet writer, and request queue now use reserve /
+  consume semantics rather than a copying write call.
+* the buffered reader and packet reader now use peek / wait / consume
+  semantics rather than a read-and-callback call.
+* the request queue and server daemons now wait for packet(s) to arrive and
+  loop on peek/consume until all available packets have been handled.
+
 kivaloo-1.1.2
 * fix bug in kivaloo-mux which can result in an idle connection not being
   closed after the upstream daemon has died.

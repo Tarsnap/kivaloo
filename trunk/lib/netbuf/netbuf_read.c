@@ -79,7 +79,7 @@ netbuf_read_peek(struct netbuf_read * R, uint8_t ** data, size_t * datalen)
  * netbuf_read_wait(R, len, callback, cookie):
  * Wait until ${R} has ${len} or more bytes of data buffered or an error
  * occurs; then invoke ${callback}(${cookie}, status) with status set to 0
- * if the data is available, and set to 1 on error.
+ * if the data is available, -1 on error, or 1 on EOF.
  */
 int
 netbuf_read_wait(struct netbuf_read * R, size_t len,
@@ -177,9 +177,13 @@ callback_read(void * cookie, ssize_t lenread)
 	/* This callback is no longer pending. */
 	R->read_cookie = NULL;
 
-	/* Did the read fail?  Don't care about error vs. EOF. */
-	if (lenread <= 0)
+	/* Did the read fail? */
+	if (lenread < 0)
 		goto failed;
+
+	/* Did we hit EOF? */
+	if (lenread == 0)
+		goto eof;
 
 	/* We've got more data. */
 	R->datalen += lenread;
@@ -187,9 +191,13 @@ callback_read(void * cookie, ssize_t lenread)
 	/* Perform callback. */
 	return ((R->callback)(R->cookie, 0));
 
+eof:
+	/* Perform EOF callback. */
+	return ((R->callback)(R->cookie, 1));
+
 failed:
 	/* Perform failure callback. */
-	return ((R->callback)(R->cookie, 1));
+	return ((R->callback)(R->cookie, -1));
 }
 
 /**

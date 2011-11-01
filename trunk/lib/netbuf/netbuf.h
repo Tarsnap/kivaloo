@@ -22,7 +22,7 @@ void netbuf_read_peek(struct netbuf_read *, uint8_t **, size_t *);
  * netbuf_read_wait(R, len, callback, cookie):
  * Wait until ${R} has ${len} or more bytes of data buffered or an error
  * occurs; then invoke ${callback}(${cookie}, status) with status set to 0
- * if the data is available, and set to 1 on error.
+ * if the data is available, -1 on error, or 1 on EOF.
  */
 int netbuf_read_wait(struct netbuf_read *, size_t,
     int (*)(void *, int), void *);

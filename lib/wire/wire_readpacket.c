@@ -137,7 +137,7 @@ callback_wait_gotheader(void * cookie, int status)
 	uint8_t cbuf[4];
 	int rc;
 
-	/* Did we fail? */
+	/* Did we fail or prematurely EOF? */
 	if (status)
 		goto failed;
 
@@ -178,9 +178,16 @@ callback_wait_gotdata(void * cookie, int status)
 {
 	struct wait_cookie * W = cookie;
 	int rc;
+	int st;
+
+	/* Did we fail or prematurely EOF? */
+	if ((status == -1) || (status == 1))
+		st = 1;
+	else
+		st = 0;
 
 	/* Invoke the upstream callback. */
-	rc = (W->callback)(W->cookie, status);
+	rc = (W->callback)(W->cookie, st);
 
 	/* Free the cookie. */
 	mpool_wait_cookie_free(W);

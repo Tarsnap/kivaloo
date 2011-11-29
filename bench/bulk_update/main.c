@@ -129,14 +129,14 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 
 	/* Allocate key and value structures. */
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
-		return (-1);
+		goto err0;
 	if ((C.val = kvldskey_create(buf, 40)) == NULL)
-		return (-1);
+		goto err1;
 
 	/* Get current time and store T+60s and T+50s. */
 	if (monoclock_get(&tv_now)) {
 		warnp("Error reading clock");
-		return (-1);
+		goto err2;
 	}
 	C.tv_60.tv_sec = tv_now.tv_sec + 60;
 	C.tv_60.tv_usec = tv_now.tv_usec;
@@ -145,12 +145,12 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))
-		return (-1);
+		goto err2;
 
 	/* Wait until we've finished. */
 	if (events_spin(&C.done) || C.failed) {
 		warnp("SET request failed");
-		return (-1);
+		goto err2;
 	}
 
 	/* Print number of updates performed in a single second. */
@@ -162,6 +162,14 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 
 	/* Success! */
 	return (0);
+
+err2:
+	kvldskey_free(C.val);
+err1:
+	kvldskey_free(C.key);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 int

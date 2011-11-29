@@ -129,12 +129,12 @@ randomread(struct wire_requestqueue * Q, uint64_t N)
 
 	/* Allocate key structure. */
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
-		return (-1);
+		goto err0;
 
 	/* Get current time and store T+150s and T+50s. */
 	if (monoclock_get(&tv_now)) {
 		warnp("Error reading clock");
-		return (-1);
+		goto err1;
 	}
 	C.tv_150.tv_sec = tv_now.tv_sec + 150;
 	C.tv_150.tv_usec = tv_now.tv_usec;
@@ -143,12 +143,12 @@ randomread(struct wire_requestqueue * Q, uint64_t N)
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))
-		return (-1);
+		goto err1;
 
 	/* Wait until we've finished. */
 	if (events_spin(&C.done) || C.failed) {
 		warnp("SET request failed");
-		return (-1);
+		goto err1;
 	}
 
 	/* Print number of reads performed in a single second. */
@@ -159,6 +159,12 @@ randomread(struct wire_requestqueue * Q, uint64_t N)
 
 	/* Success! */
 	return (0);
+
+err1:
+	kvldskey_free(C.key);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 int

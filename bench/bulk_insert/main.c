@@ -178,18 +178,18 @@ bulkinsert(struct wire_requestqueue * Q, FILE * f)
 
 	/* Allocate key and value structures. */
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
-		return (-1);
+		goto err0;
 	if ((C.val = kvldskey_create(buf, 40)) == NULL)
-		return (-1);
+		goto err1;
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))
-		return (-1);
+		goto err2;
 
 	/* Wait until we've finished. */
 	if (events_spin(&C.done) || C.failed) {
 		warnp("SET request failed");
-		return (-1);
+		goto err2;
 	}
 
 	/* Free the key and value structures. */
@@ -198,6 +198,14 @@ bulkinsert(struct wire_requestqueue * Q, FILE * f)
 
 	/* Success! */
 	return (0);
+
+err2:
+	kvldskey_free(C.val);
+err1:
+	kvldskey_free(C.key);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 int

@@ -72,44 +72,66 @@ main(int argc, char * argv[])
 	while ((ch = getopt(argc, argv, "C:c:g:k:l:p:S:s:v:w:1")) != -1) {
 		switch (ch) {
 		case 'C':
+			if (opt_C != (uint64_t)(-1))
+				usage();
 			if (humansize_parse(optarg, &opt_C))
 				OPT_EINVAL(ch, optarg);
 			break;
 		case 'c':
+			if (opt_c != (uint64_t)(-1))
+				usage();
 			if (humansize_parse(optarg, &opt_c))
 				OPT_EINVAL(ch, optarg);
 			break;
 		case 'g':
+			if (opt_g != (uint64_t)(-1))
+				usage();
 			if (humansize_parse(optarg, &opt_g))
 				OPT_EINVAL(ch, optarg);
 			break;
 		case 'k':
+			if (opt_k != (uint64_t)(-1))
+				usage();
 			if (humansize_parse(optarg, &opt_k))
 				OPT_EINVAL(ch, optarg);
 			break;
 		case 'l':
+			if (opt_l != NULL)
+				usage();
 			if ((opt_l = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case 'p':
+			if (opt_p != NULL)
+				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case 'S':
+			if (opt_S != 1.0)
+				usage();
 			opt_S = strtod(optarg, NULL);
 			break;
 		case 's':
+			if (opt_s != NULL)
+				usage();
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case 'v':
+			if (opt_v != (uint64_t)(-1))
+				usage();
 			if (humansize_parse(optarg, &opt_v))
 				OPT_EINVAL(ch, optarg);
 			break;
 		case 'w':
+			if (opt_w != 0.0)
+				usage();
 			opt_w = strtod(optarg, NULL);
 			break;
 		case '1':
+			if (opt_1 != 0)
+				usage();
 			opt_1 = 1;
 			break;
 		default:

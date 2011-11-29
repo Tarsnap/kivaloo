@@ -74,6 +74,8 @@ main(int argc, char * argv[])
 			}
 			break;
 		case 'p':
+			if (opt_p != NULL)
+				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
@@ -103,6 +105,8 @@ main(int argc, char * argv[])
 			free(sas);
 			break;
 		case 't':
+			if (opt_t != NULL)
+				usage();
 			if ((opt_t = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;

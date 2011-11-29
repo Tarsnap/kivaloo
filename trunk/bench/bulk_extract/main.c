@@ -100,12 +100,12 @@ bulkextract(struct wire_requestqueue * Q)
 
 	/* Create null key (used as start and end of range). */
 	if ((C.nullkey = kvldskey_create(NULL, 0)) == NULL)
-		return (-1);
+		goto err0;
 
 	/* Get current time and store T+60s and T+50s. */
 	if (monoclock_get(&tv_now)) {
 		warnp("Error reading clock");
-		return (-1);
+		goto err1;
 	}
 	C.tv_60.tv_sec = tv_now.tv_sec + 60;
 	C.tv_60.tv_usec = tv_now.tv_usec;
@@ -114,12 +114,12 @@ bulkextract(struct wire_requestqueue * Q)
 
 	/* Launch the first RANGE request. */
 	if (startrange(&C))
-		return (-1);
+		goto err1;
 
 	/* Wait until we've finished. */
 	if (events_spin(&C.done) || C.failed) {
 		warnp("RANGE request failed");
-		return (-1);
+		goto err1;
 	}
 
 	/* Print number of pairs read in a single second. */
@@ -130,6 +130,12 @@ bulkextract(struct wire_requestqueue * Q)
 
 	/* Success! */
 	return (0);
+
+err1:
+	kvldskey_free(C.nullkey);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 int

@@ -57,30 +57,46 @@ main(int argc, char * argv[])
 	while ((ch = getopt(argc, argv, "b:d:l:Ln:p:s:1")) != -1) {
 		switch (ch) {
 		case 'b':
+			if (opt_b != -1)
+				usage();
 			opt_b = strtoimax(optarg, NULL, 0);
 			break;
 		case 'd':
+			if (opt_d != NULL)
+				usage();
 			if ((opt_d = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case 'l':
+			if (opt_l != 0)
+				usage();
 			opt_l = strtoimax(optarg, NULL, 0);
 			break;
 		case 'L':
+			if (opt_L != 0)
+				usage();
 			opt_L = 1;
 			break;
 		case 'n':
+			if (opt_n != 16)
+				usage();
 			opt_n = strtoimax(optarg, NULL, 0);
 			break;
 		case 'p':
+			if (opt_p != NULL)
+				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case 's':
+			if (opt_s != NULL)
+				usage();
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case '1':
+			if (opt_1 != 0)
+				usage();
 			opt_1 = 1;
 			break;
 		default:

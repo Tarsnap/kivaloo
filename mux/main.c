@@ -57,7 +57,10 @@ main(int argc, char * argv[])
 	WARNP_INIT;
 
 	/* We have no addresses to listen on yet. */
-	opt_s = addrlist_init(0);
+	if ((opt_s = addrlist_init(0)) == NULL) {
+		warnp("addrlist_init");
+		exit(1);
+	}
 
 	/* Parse the command line. */
 	while ((ch = getopt(argc, argv, "n:p:s:t:")) != -1) {

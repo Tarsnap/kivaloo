@@ -150,6 +150,9 @@ gotrequest(void * cookie, int status)
 			if (dispatch_request_free(D, R))
 				goto err0;
 			break;
+		default:
+			/* proto_lbs_request_read broke. */
+			assert(0);
 		}
 	} while (1);
 

@@ -23,7 +23,7 @@ The other options are:
   -p <pidfile>
 	Write the daemon's process ID to the file <pidfile>.  Defaults to
 	-p <source socket>.pid based on the first '-s <source socket>' option
-	specified.  (Note that if <kvlds socket> is not an absolute path, the
+	specified.  (Note that if <source socket> is not an absolute path, the
 	default pid file location is in the current directory.)
 
 Code structure

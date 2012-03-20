@@ -50,12 +50,6 @@ struct dispatch_state {
 };
 
 /**
- * dispatch_writresponse(cookie, status):
- * Callback for packet writes: kill the connection if a packet write failed.
- */
-int dispatch_writresponse(void *, int);
-
-/**
  * dispatch_response_send(dstate, thread):
  * Using the dispatch state ${dstate}, send a response for the work which was
  * just completed by thread ${thread}.

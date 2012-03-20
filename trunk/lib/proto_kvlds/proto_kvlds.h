@@ -175,21 +175,19 @@ int proto_kvlds_request_read(struct netbuf_read *,
 void proto_kvlds_request_free(struct proto_kvlds_request *);
 
 /**
- * proto_kvlds_response_params(Q, ID, kmax, vmax, callback, cookie):
+ * proto_kvlds_response_params(Q, ID, kmax, vmax):
  * Send a PARAMS response with ID ${ID} specifying that the maximum key
  * length is ${kmax} bytes and the maximum value length is ${vmax} bytes
- * to the write queue ${Q}.  Invoke ${callback}(${cookie}, 0/1) on packet
- * write success / failure.
+ * to the write queue ${Q}.
  */
 int proto_kvlds_response_params(struct netbuf_write *, uint64_t, uint32_t,
     uint32_t);
 
 /**
- * proto_kvlds_response_status(Q, ID, status, callback, cookie):
+ * proto_kvlds_response_status(Q, ID, status):
  * Send a SET/CAS/ADD/MODIFY/DELETE/CAD response with ID ${ID} and status
  * ${status} to the write queue ${Q} indicating that the request has been
- * completed with the specified status.  Invoke ${callback}(${cookie}, 0/1)
- * on packet write success / failure.
+ * completed with the specified status.
  */
 int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t);
 
@@ -207,22 +205,19 @@ int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t);
 	proto_kvlds_response_status(Q, ID, status)
 
 /**
- * proto_kvlds_response_get(Q, ID, status, value, callback, cookie):
+ * proto_kvlds_response_get(Q, ID, status, value):
  * Send a GET response with ID ${ID}, status ${status}, and value ${value}
  * (if ${status} == 0) to the write queue ${Q} indicating that the provided
- * key is associated with the specified data (or not).  Invoke
- * ${callback}(${cookie}, 0/1) on packet write success / failure.
+ * key is associated with the specified data (or not).
  */
 int proto_kvlds_response_get(struct netbuf_write *, uint64_t, uint32_t,
     const struct kvldskey *);
 
 /**
- * proto_kvlds_response_range(Q, ID, nkeys, next, keys, values,
- *     callback, cookie):
+ * proto_kvlds_response_range(Q, ID, nkeys, next, keys, values):
  * Send a RANGE response with ID ${ID}, next key ${next} and ${nkeys}
  * key-value pairs with the keys in ${keys} and values in ${values} to the
- * write queue ${Q}.  Invoke ${callback}(${cookie}, 0/1) on packet write
- * success / failure.
+ * write queue ${Q}.
  */
 int proto_kvlds_response_range(struct netbuf_write *, uint64_t, size_t,
     const struct kvldskey *, struct kvldskey **, struct kvldskey **);

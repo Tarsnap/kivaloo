@@ -113,8 +113,7 @@ err0:
  * proto_lbs_response_params(Q, ID, blklen, blkno):
  * Send a PARAMS response with ID ${ID} to the write queue ${Q} indicating
  * that the block size is ${blklen} bytes and the next available block # is
- * ${blkno}.  Invoke ${callback}(${cookie}, 0 / 1) on packet write success /
- * failure.
+ * ${blkno}.
  */
 int
 proto_lbs_response_params(struct netbuf_write * Q, uint64_t ID,
@@ -143,10 +142,9 @@ err0:
 }
 
 /**
- * proto_lbs_response_get(Q, ID, status, blklen, buf, callback, cookie):
+ * proto_lbs_response_get(Q, ID, status, blklen, buf):
  * Send a GET response with ID ${ID} to the write queue ${Q} with status code
  * ${status} and ${blklen} bytes of data from ${buf} if ${status} is zero.
- * Invoke ${callback}(${cookie}, 0 / 1) on packet write success / failure.
  */
 int
 proto_lbs_response_get(struct netbuf_write * Q, uint64_t ID,
@@ -180,10 +178,9 @@ err0:
 }
 
 /**
- * proto_lbs_response_append(Q, ID, status, blkno, callback, cookie):
+ * proto_lbs_response_append(Q, ID, status, blkno):
  * Send an APPEND response with ID ${ID} to the write queue ${Q} with status
  * code ${status} and next block number ${blkno} if ${status} is zero.
- * Invoke ${callback}(${cookie}, 0 / 1) on packet write success / failure.
  */
 int
 proto_lbs_response_append(struct netbuf_write * Q, uint64_t ID,
@@ -217,9 +214,8 @@ err0:
 }
 
 /**
- * proto_lbs_response_free(Q, ID, callback, cookie):
- * Send a FREE response with ID ${ID} to the write queue ${Q}.  Invoke
- * ${callback}(${cookie}, 0 / 1) on packet write success / failure.
+ * proto_lbs_response_free(Q, ID):
+ * Send a FREE response with ID ${ID} to the write queue ${Q}.
  */
 int
 proto_lbs_response_free(struct netbuf_write * Q, uint64_t ID)

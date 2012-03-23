@@ -55,4 +55,11 @@ void * http_request(struct sock_addr * const *, struct http_request *, size_t,
  */
 void http_request_cancel(void *);
 
+/**
+ * http_findheader(headers, nheaders, header):
+ * Search for ${header} in the ${nheaders} header structures ${headers}.
+ * Return a pointer to the associated value or NULL if it is not found.
+ */
+const char * http_findheader(struct http_header *, size_t, const char *);
+
 #endif /* !_HTTP_H_ */

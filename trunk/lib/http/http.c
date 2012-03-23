@@ -397,6 +397,8 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	char * s;
 	int major, minor;
 	size_t len;
+	const char * te;
+	const char * clen;
 
 	/* Suck the headers into a separate buffer. */
 	H->res_headlen = buflen;
@@ -492,17 +494,14 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	 * If we have a "Transfer-Encoding: chunked" header, read the response
 	 * body that way.
 	 */
-	for (i = 0; i < H->res.nheaders; i++) {
-		if (strcmp(H->res.headers[i].header,
-		    "Transfer-Encoding") == 0) {
-			if (strstr(H->res.headers[i].value,
-			    "chunked") != NULL) {
-				/* We're using chunked transfer-encoding. */
-				H->chunked = 1;
+	if ((te = http_findheader(H->res.headers, H->res.nheaders,
+	    "Transfer-Encoding")) != NULL) {
+		if (strstr(te, "chunked") != NULL) {
+			/* We're using chunked transfer-encoding. */
+			H->chunked = 1;
 
-				/* Read the first chunked header line. */
-				return (callback_chunkedheader(H, 0));
-			}
+			/* Read the first chunked header line. */
+			return (callback_chunkedheader(H, 0));
 		}
 	}
 
@@ -510,14 +509,13 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	 * If we have a Content-Length header, parse the value; then read the
 	 * specified number of bytes of body.
 	 */
-	for (i = 0; i < H->res.nheaders; i++) {
-		if (strcmp(H->res.headers[i].header, "Content-Length") == 0) {
-			/* Parse the value (strtoull skips LWS). */
-			len = strtoull(H->res.headers[i].value, NULL, 0);
+	if ((clen = http_findheader(H->res.headers, H->res.nheaders,
+	    "Content-Length")) != NULL) {
+		/* Parse the value (strtoull skips LWS). */
+		len = strtoull(clen, NULL, 0);
 
-			/* Read the body as a single blob. */
-			return (get_body_gotclen(H, len));
-		}
+		/* Read the body as a single blob. */
+		return (get_body_gotclen(H, len));
 	}
 
 	/* Otherwise we need to just read until the connection is closed. */
@@ -739,4 +737,25 @@ http_request_cancel(void * cookie)
 
 	/* Free the cookie. */
 	free(H);
+}
+
+/**
+ * http_findheader(headers, nheaders, header):
+ * Search for ${header} in the ${nheaders} header structures ${headers}.
+ * Return a pointer to the associated value or NULL if it is not found.
+ */
+const char *
+http_findheader(struct http_header * headers, size_t nheaders,
+    const char * header)
+{
+	size_t i;
+
+	/* Search for the header. */
+	for (i = 0; i < nheaders; i++) {
+		if (strcmp(headers[i].header, header) == 0)
+			return (headers[i].value);
+	}
+
+	/* Didn't find it. */
+	return (NULL);
 }

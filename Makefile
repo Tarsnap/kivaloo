@@ -1,4 +1,4 @@
-PROGS=	lbs kvlds mux
+PROGS=	lbs kvlds mux s3 lbs-s3
 TESTS=	tests perftests
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\

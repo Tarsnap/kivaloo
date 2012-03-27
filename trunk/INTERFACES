@@ -203,3 +203,63 @@ RANGE:	Request type = 0x00000131
 	[1 byte key length][X byte key][1 byte value length][X byte value]
 	...
 	[1 byte key length][X byte key][1 byte value length][X byte value]
+
+S3 interface
+------------
+
+PUT:	Request type = 0x00010000
+
+	Request:
+	[4 byte request type]
+	[1 byte bucket name length][X byte bucket name]
+	[1 byte object name length][X byte object name]
+	[4 byte object length][X byte object data]
+
+	Response:
+	[4 byte HTTP status]
+
+GET:	Request type = 0x00010010
+
+	Request:
+	[4 byte request type]
+	[1 byte bucket name length][X byte bucket name]
+	[1 byte object name length][X byte object name]
+	[4 byte maxlen]
+
+	Response:
+	[4 byte HTTP status]
+	[4 byte object length][X byte object data]
+
+RANGE:	Request type = 0x00010011
+
+	Request:
+	[4 byte request type]
+	[1 byte bucket name length][X byte bucket name]
+	[1 byte object name length][X byte object name]
+	[4 byte range offset]
+	[4 byte range length]
+
+	Response:
+	[4 byte HTTP status]
+	[4 byte object length][X byte object data]
+
+HEAD:	Request type = 0x00010020
+
+	Request:
+	[4 byte request type]
+	[1 byte bucket name length][X byte bucket name]
+	[1 byte object name length][X byte object name]
+
+	Response:
+	[4 byte HTTP status]
+	[4 byte object length]
+
+DELETE:	Request type = 0x00010030
+
+	Request:
+	[4 byte request type]
+	[1 byte bucket name length][X byte bucket name]
+	[1 byte object name length][X byte object name]
+
+	Response:
+	[4 byte HTTP status]

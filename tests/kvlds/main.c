@@ -614,8 +614,8 @@ main(int argc, char * argv[])
 	if (mutate(Q))
 		exit(1);
 
-	/* Test creating 10000 key-value pairs and reading them back. */
-	if (createmany(Q, 10000))
+	/* Test creating 40000 key-value pairs and reading them back. */
+	if (createmany(Q, 40000))
 		exit(1);
 
 	/* Free the request queue. */

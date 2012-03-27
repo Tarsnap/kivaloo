@@ -1,0 +1,16 @@
+GET failed = 1 len = -1
+GET data = NULL
+GET failed = 1 len = -1
+GET data = NULL
+RANGE failed = 1 buflen = -1
+RANGE data = NULL
+HEAD status = 404 len = -1
+PUT failed = 0
+GET failed = 0 len = 11
+GET data = >>>hello world<<<
+GET failed = 1 len = -1
+GET data = NULL
+RANGE failed = 0 buflen = 5
+RANGE data = >>>world<<<
+HEAD status = 200 len = 11
+DELETE failed = 0

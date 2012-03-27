@@ -97,7 +97,7 @@ Block store operations
 ----------------------
 
 The operations required of the underlying block store are:
-* PARAMS():
+* PARAMS(): [OBSOLETE]
 	Return the block size (which must be at least 512 bytes and at most
 	131072 bytes) and the first unused block number, which will be zero
 	if there are no blocks.

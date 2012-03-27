@@ -3,6 +3,7 @@
 
 /* Opaque types. */
 struct http_header;
+struct http_response;
 struct sock_addr;
 
 struct s3_request {

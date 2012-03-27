@@ -1,0 +1,212 @@
+LBS-S3 design
+=============
+
+The lbs-s3 block store is invoked as
+
+# kivaloo-lbs-s3 -s <lbs socket> -t <s3 socket> -b <block size> -B <S3 bucket>
+      [-1] [-p <pidfile>]
+
+It creates a socket <lbs socket> on which it listens for incoming connections,
+accepts one at a time, and performs <block size> byte I/Os following the LBS
+protocol.  It stores data in the Amazon S3 bucket <S3 bucket> via the
+kivaloo-s3 daemon bound to <s3 socket>; the user is responsible for ensuring
+that the S3 bucket has been created at the S3 region to which the kivaloo-s3
+daemon connects.
+
+The S3 bucket must have read-after-create consistency, i.e., it cannot reside
+in the US-Standard S3 region.  (Without this constraint, data loss may occur
+if lbs-s3 is stopped and restarted.)
+
+The other options are:
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <s3 socket>.pid.  (Note that if <s3 socket> is not an absolute path,
+	the default pid file location is in the current directory.)
+  -1
+	Exit after handling one connection.
+
+NOTE: THE USER MUST ENSURE THAT THERE ARE NEVER TWO LBS-S3 DAEMONS RUNNING
+WITH THE SAME <S3 bucket> PARAMETER.  Two daemons operating on the same bucket
+will overwrite each other's data and generally cause utter chaos, and since
+lbs-s3 must be able to resume after a crash, there is no way for it to "lock"
+a bucket.
+
+Overview
+--------
+
+LBS-S3 implements an "append multiple blocks" / "read one block" / "delete
+blocks up to" logging block store on top of Amazon S3 with sparse block #s.
+Each append is written as a new S3 object, with increasing object #s (object
+names are of the form hash_object#, but that is an implementation detail),
+and block #N occurs in object #(N/2^24 + 1).
+
+On launch LBS-S3 first locates the largest stored object # using the
+FindLast algorithm (see below); it issues a HEAD request to get the size of
+that object and divides by the block size to compute the last written block #.
+It then issues a PUT for an empty object to the following object # (in order
+to ensure that the object exists) and instructs the upstream daemon to start
+writing at block corresponding to the start of the next object (there must be
+a one-object gap in order to ensure that we never read an object which has
+had two PUTs with different data made, in case a previous LBS-S3 issued a PUT
+which had not yet completed at the time that this LBS-S3 was launched).
+
+GETs are handled by reading the appropriate byte-range from the appropriate
+S3 object.
+
+FREEs are discarded if freeing is already in progress; or handled via the
+DeleteTo algorithm (see below).
+
+Consistency and invariants
+--------------------------
+
+ASSUMPTION: If one or more S3 PUTs have been issued for an object, of which at
+least one has succeeded (i.e., returned an HTTP 200 status code), and no S3
+DELETE has been issued for the object, then an S3 GET or HEAD for the object
+(a) will return HTTP 200 (after HTTP connection failures and HTTP 500 and 503
+responses are retried, if necessary), and
+(b) will return data (or headers alone in the case of HEAD) consistent with at
+least one of the issued S3 PUTs.
+
+ASSUMPTION: If no S3 PUT has ever been issued for an object, then an S3 HEAD
+for the object will return HTTP 404.
+
+Definition: FINDSET(N) = {2^i : 2^i < N} U {N - (N mod 2^i) : 2^i < N} U {N}.
+Definition: KEEPSET(N) = FINDSET(N) U FINDSET(N+1) U FINDSET(N+2) U ...
+
+INVARIANT (sequential puts): If a PUT for S3 object #N has been issued, then
+S3 PUTs for objects #1 .. #(N-1) have succeeded.
+
+INVARIANT (keep set): If S3 object #N is still needed by the B+Tree, no S3
+DELETE has ever been issued for the S3 objects with numbers in FINDSET(N).
+
+Lemma: KEEPSET(N) = FINDSET(N) U {N+1, N+2, N+3, ...}
+
+Proof: Denote by S the set FINDSET(N) U {N+1, N+2, N+3, ...}.  Since each of
+the N+x is by definition a member of the corresponding FINDSET(N+x), we have
+that S is a subset of KEEPSET(N).
+
+Now let m be an arbitrary member of KEEPSET(N).  By the definition of FINDSET,
+there must be some M >= N such that m is in FINDSET(M).
+
+Consider three cases:
+1. m is in {2^i : 2^i < M}.  If m <= N then by it is in {2^i : 2^i < N} and by
+definition m is in FINDSET(N).  Otherwise, m > N.
+2. m is in {M - (M mod 2^i) : 2^i < M}.  Let i be a value such that 2^i < M and
+m = M - (M mod 2^i).  If 2^i > N then m >= 2^i > N.  Otherwise, since M >= N
+and this function is monotonically increasing, we must have
+M - (M mod 2^i) >= N - (N mod 2^i).  If equality holds, then
+m = N - (N mod 2^i) and by definition m is in FINDSET(N).  Otherwise, since
+both values are multiples of 2^i, m >= 2^i + N - (N mod 2^i) > N.
+3. m is in {M}.  Then M >= N.
+
+In all three cases we have either m > N or m in FINDSET(N); but from the
+definition of S, this implies that m is in S.  Thus KEEPSET(N) is a subset of
+S, and since both sets are subsets of the other, equality is implied.
+
+QED.
+
+Algorithm DeleteTo(N):
+1.  M = DeletedToMarker, or 1 if DeletedToMarker is not initialized
+2.  while M < N do
+3.      S = FINDSET(M) \ FINDSET(M + 1)
+4.      for X in S do
+5.          DELETE(X)
+6.      od
+7.      if ispowerof2(M) || (M mod 256 == 0)
+8.          PUT(M, "")
+9.      fi
+10.     M += 1
+11. od
+12. DeletedToMarker = M
+
+Theorem: As long as DeleteTo is never invoked on a value greater than the least
+number of an S3 object still needed by the B+Tree, the "keep set" invariant is
+maintained.
+
+Proof: The effect of the algorithm over multiple invocations is to run lines
+3--6 for every value M less than the greatest value passed to DeleteTo.  We
+prove by induction that after those lines are run with a value M, the set of
+objects for which DELETEs have been issued is disjoint from KEEPSET(M+1).
+
+In the base case M=0, no DELETEs have been run yet, so the set is trivially
+disjoint from KEEPSET(1) = {1}.
+
+Assume that the set of DELETEs is disjoint from KEEPSET(M), we run lines 3--6,
+and then there is a value X in KEEPSET(M+1) for which a DELETE has been issued.
+Since X is in KEEPSET(M+1) which is a subset of KEEPSET(M), X had not had a
+DELETE issued previously; so it must have been deleted at line 5.  Then X is
+in S = FINDSET(M) \ FINDSET(M+1).
+
+But we know that X is in KEEPSET(M+1) and from the lemma above we know that
+this is FINDSET(M+1) U {M+2, M+3, M+4, ...}.  Since S intersect FINDSET(M+1)
+is empty (by definition of S) and FINDSET(M) intersect {M+2, M+3, ...} is
+empty (since the largest element in FINDSET(M) is M) implies that S intersect
+{M+2, ...} is also empty, we conclude that S intersect KEEPSET(M+1) is empty
+and no such X can exist.
+
+By contradiction, the induction step holds; so by induction the condition holds
+for all M and the invariant is maintained.
+
+QED.
+
+Side note: The effect of lines 7--9 in DeleteTo is to avoid storing data for
+significantly longer than necessary; writing an empty object results in the
+data "eventually" being purged while still maintaining the "object has been
+PUT and not DELETEd" requirement.
+
+Algorithm FindLast:
+1.  N = 0
+2.  for i from 0 do
+3.      if HEAD(2^i) returns status 404 then break
+4.      N = 2^i
+5.  od
+6.  L = N
+7.  N = N / 2
+8.  while N > 0 do
+9.      if HEAD(L + N) returns status 200 then L = L + N
+10.     N = N / 2
+11. od
+12. return L
+
+Theorem: If X is the last numbered object successfully PUT to S3, then
+algorithm FindLast returns X.  If no objects have been successfully PUT to S3,
+then algorithm FindLast returns 0.
+
+Proof: Consider the first part.  From the "sequential puts" invariant, we note
+that PUTs for objects #1 .. #(X-1) have succeeded.  From the problem statement
+we know that a PUT for object #X has succeeded and no PUTs for objects >#X
+have succeeded.
+
+From the "keep set" invariant and the fact that the B+Tree always needs its
+highest numbered block (which resides in the highest numbered S3 object), we
+know that no S3 DELETE has ever been issued for any objects in FINDSET(X).
+
+From the consistency assumptions and the two preceding statements, we know that
+a HEAD(Y) will return an HTTP 200 status for any Y in FINDSET(X); and will
+return an HTTP 404 status for any Y > X.  Consequently the loop at lines 2-5
+will stop at the first 2^i > X; and at line 7, L will be the largest power of
+2 which is <= X, and N will be L / 2.
+
+Now we note that the loop at lines 8-11 form a binary search; that if L + N > X
+HEAD(L + N) will return 404; and that if L + N < X then L + N is in FINDSET(X)
+and HEAD(L + N) will return 200.  Thus we complete the loop with L = X and
+return the correct value.
+
+To complete the proof, we note that if no objects have been successfully PUT
+to S3 then HEAD(1) on line 3 returns 404, the loop on lines 8-11 doesn't run,
+and we return 0 as required.
+
+QED.
+
+Code structure
+--------------
+
+main.c		-- Processes command line, connects to target, initializes
+		   s3state, creates a listening socket, daemonizes, accepts
+		   one connection at once, and runs the event loop.
+dispatch.c	-- Reads requests from a connection and drops the connection
+		   if one cannot be read.  Passes requests to s3state.c.
+s3state.c	-- Manages the S3 storage state and processes requests.
+findlast.c	-- Implements the FindLast algorithm used for intialization.
+deleteto.c	-- Implements the DeleteTo algorithm.
+objmap.c	-- Converts object #s into object names (hash_object#).

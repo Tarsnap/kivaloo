@@ -28,6 +28,7 @@ proto_lbs_request_parse(const struct wire_packet * P,
 	/* Parse packet. */
 	switch (R->type) {
 	case PROTO_LBS_PARAMS:
+	case PROTO_LBS_PARAMS2:
 		if (P->len != 4)
 			goto err0;
 		/* Nothing to parse. */
@@ -131,6 +132,39 @@ proto_lbs_response_params(struct netbuf_write * Q, uint64_t ID,
 
 	/* Finish the packet. */
 	if (wire_writepacket_done(Q, wbuf, 12))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * proto_lbs_response_params2(Q, ID, blklen, blkno, lastblk):
+ * Send a PARAMS2 response with ID ${ID} to the write queue ${Q} indicating
+ * that the block size is ${blklen} bytes, the next available block # is
+ * ${blkno}, and the last block written was ${lastblk}.
+ */
+int
+proto_lbs_response_params2(struct netbuf_write * Q, uint64_t ID,
+    uint32_t blklen, uint64_t blkno, uint64_t lastblk)
+{
+	uint8_t * wbuf;
+
+	/* Get a packet data buffer. */
+	if ((wbuf = wire_writepacket_getbuf(Q, ID, 20)) == NULL)
+		goto err0;
+
+	/* Write the packet data. */
+	be32enc(&wbuf[0], blklen);
+	be64enc(&wbuf[4], blkno);
+	be64enc(&wbuf[12], lastblk);
+
+	/* Finish the packet. */
+	if (wire_writepacket_done(Q, wbuf, 20))
 		goto err0;
 
 	/* Success! */

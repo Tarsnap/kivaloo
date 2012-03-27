@@ -132,6 +132,10 @@ gotrequest(void * cookie, int status)
 			if (dispatch_request_params(D, R))
 				goto err0;
 			break;
+		case PROTO_LBS_PARAMS2:
+			if (dispatch_request_params2(D, R))
+				goto err0;
+			break;
 		case PROTO_LBS_GET:
 			if (dispatch_request_get(D, R))
 				goto err0;

@@ -715,6 +715,10 @@ http_request_cancel(void * cookie)
 	if (H->connect_cookie != NULL)
 		network_connect_cancel(H->connect_cookie);
 
+	/* If we have a network reader, cancel any in-progress read. */
+	if (H->R != NULL)
+		netbuf_read_wait_cancel(H->R);
+
 	/* Free the network reader and writer if they exist. */
 	if (H->W != NULL)
 		netbuf_write_free(H->W);

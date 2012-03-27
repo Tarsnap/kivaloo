@@ -111,7 +111,7 @@ The operations required of the underlying block store are:
 	If "blkno" is the the first unused block number (as returned by PARAM
 	or a previous APPEND request) then the "nblk"s blocks of data "data"
 	to blocks number "blkno", "blkno"+1, ... "blkno"+"nblk"-1.  Returns
-	the next available block number, which it not required to be
+	the next available block number, which is not required to be
 	"blkno"+"nblk".  If the value "blkno" is incorrect, an error status
 	is returned.  If the block store dies while an APPEND operation is in
 	progress, it may have written some but not all blocks; but will never

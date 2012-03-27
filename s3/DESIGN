@@ -1,0 +1,55 @@
+kivaloo-s3 design
+=================
+
+The kivaloo-s3 daemon is invoked as
+
+# kivaloo-s3 -s <s3 socket> -r <S3 region> -k <keyfile> [-1]
+    [-n <max # connections>] [-p <pidfile>]
+
+It creates a socket <s3 socket> on which it listens for incoming connections
+and accepts one at a time.  It reads S3 keys from the file <keyfile>, which
+must have lines ACCESS_KEY_ID=<keyid> and ACCESS_KEY_SECRET=<secret>, and uses
+these to make requests to the S3 region <S3 region>.
+
+The other options are:
+  -n <max # connections>
+	Open at most <max # connections> connections to S3 at once.  Defaults
+	to 16 connections.
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <s3 socket>.pid.  (Note that if <s3 socket> is not an absolute path,
+	the default pid file location is in the current directory.)
+  -1
+	Exit after handling one connection.
+
+S3 regions
+----------
+
+The S3 regions are "s3" and others of the form "s3-<geography>-#", e.g.,
+"s3-us-west-1", "s3-ap-northeast-1", et cetera.  Note that all incoming
+requests must be for buckets in the region the kivaloo-s3 daemon is configured
+to send requests to, as it will not obey HTTP 301 or 307 redirections.
+
+Note also that the "s3" (aka. US Standard) region has (as of 2012-03-17)
+weaker consistency guarantees than other S3 regions: All other S3 regions have
+strong read-after-create consistency while the US Standard S3 region has only
+eventual consistency.  This makes the "s3" region unusable for applications
+which rely on read-after-create consistency (e.g., kivaloo-lbs-s3).
+
+Code structure
+--------------
+
+main.c		-- Processes command line, creates an S3 request queue,
+		   creates a listening socket, daemonizes, starts DNS lookups,
+		   accepts one connection at once, and runs the event loop.
+dns.c		-- Performs an initial (blocking) DNS lookup, then forks off a
+		   child to perform more DNS lookups.  Adds the addresses to
+		   the S3 request queue.
+dispatch.c	-- Reads requests from a connection and drops the connection
+		   if one cannot be read.
+dispatch_request.c
+		-- Handles incoming requests, translating them and queueing
+		   them into the S3 request queue.
+dispatch_response.c
+		-- Handles completed S3 operations, translating resopnses and
+		   sending them back to the client.

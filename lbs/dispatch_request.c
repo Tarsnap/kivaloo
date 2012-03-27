@@ -43,6 +43,50 @@ err1:
 }
 
 /**
+ * dispatch_request_params2(dstate, R):
+ * Handle and free a PARAMS2 request.
+ */
+int
+dispatch_request_params2(struct dispatch_state * dstate,
+    struct proto_lbs_request * R)
+{
+	uint64_t blkno;
+	uint64_t lastblk;
+
+	/* Figure out what the first available block number is. */
+	if ((blkno = storage_nextblock(dstate->sstate)) == (uint64_t)(-1))
+		goto err1;
+
+	/*
+	 * If we have blocks, the last block written is the one immediately
+	 * prior to the first available block number.  Otherwise, we send a
+	 * (uint64_t)(-1) back.
+	 */
+	if (blkno != 0)
+		lastblk = blkno - 1;
+	else
+		lastblk = (uint64_t)(-1);
+
+	/* Send the response packet back. */
+	dstate->npending--;
+	if (proto_lbs_response_params2(dstate->writeq, R->ID,
+	    dstate->blocklen, blkno, lastblk))
+		goto err1;
+
+	/* Free the request structure. */
+	free(R);
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(R);
+
+	/* Failure! */
+	return (-1);
+}
+
+/**
  * dispatch_request_get(dstate, R):
  * Handle and free a GET request (queue it if necessary).
  */

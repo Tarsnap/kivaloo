@@ -64,6 +64,13 @@ int dispatch_request_params(struct dispatch_state *,
     struct proto_lbs_request *);
 
 /**
+ * dispatch_request_params2(dstate, R):
+ * Handle and free a PARAMS2 request.
+ */
+int dispatch_request_params2(struct dispatch_state *,
+    struct proto_lbs_request *);
+
+/**
  * dispatch_request_get(dstate, R):
  * Handle and free a GET request (queue it if necessary).
  */

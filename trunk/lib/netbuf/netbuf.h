@@ -29,7 +29,7 @@ int netbuf_read_wait(struct netbuf_read *, size_t,
 
 /**
  * netbuf_read_wait_cancel(R):
- * Cancel the in-progress wait on the reader ${R}.  Do not invoke the callback
+ * Cancel any in-progress wait on the reader ${R}.  Do not invoke the callback
  * associated with the wait.
  */
 void netbuf_read_wait_cancel(struct netbuf_read *);

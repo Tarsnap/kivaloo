@@ -202,15 +202,12 @@ failed:
 
 /**
  * netbuf_read_wait_cancel(R):
- * Cancel the in-progress wait on the reader ${R}.  Do not invoke the callback
+ * Cancel any in-progress wait on the reader ${R}.  Do not invoke the callback
  * associated with the wait.
  */
 void
 netbuf_read_wait_cancel(struct netbuf_read * R)
 {
-
-	/* Sanity-check: There should be a callback pending. */
-	assert((R->read_cookie != NULL) || (R->immediate_cookie != NULL));
 
 	/* If we have an in-progress read, cancel it. */
 	if (R->read_cookie != NULL) {

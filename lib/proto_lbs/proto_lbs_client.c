@@ -10,12 +10,18 @@
 #include "proto_lbs.h"
 
 static int callback_params(void *, uint8_t *, size_t);
+static int callback_params2(void *, uint8_t *, size_t);
 static int callback_get(void *, uint8_t *, size_t);
 static int callback_append(void *, uint8_t *, size_t);
 static int callback_free(void *, uint8_t *, size_t);
 
 struct params_cookie {
 	int (* callback)(void *, int, size_t, uint64_t);
+	void * cookie;
+};
+
+struct params2_cookie {
+	int (* callback)(void *, int, size_t, uint64_t, uint64_t);
 	void * cookie;
 };
 
@@ -105,6 +111,81 @@ callback_params(void * cookie, uint8_t * buf, size_t buflen)
 failed:
 	/* Invoke the upstream callback. */
 	rc = (C->callback)(C->cookie, failed, blklen, blkno);
+
+	/* Free the cookie. */
+	free(C);
+
+	/* Return status from callback. */
+	return (rc);
+}
+
+/**
+ * proto_lbs_request_params2(Q, callback, cookie):
+ * Send a PARAMS2 request via the request queue ${Q}.  Invoke
+ *     ${callback}(${cookie}, failed, blklen, blkno, lastblk)
+ * upon request completion, where failed is 0 on success and 1 on failure,
+ * blklen is the block size, blkno is the next block #, and lastblk is the
+ * last block #.
+ */
+int
+proto_lbs_request_params2(struct wire_requestqueue * Q,
+    int (* callback)(void *, int, size_t, uint64_t, uint64_t), void * cookie)
+{
+	struct params2_cookie * C;
+	uint8_t buf[4];
+
+	/* Bake a cookie. */
+	if ((C = malloc(sizeof(struct params2_cookie))) == NULL)
+		goto err0;
+	C->callback = callback;
+	C->cookie = cookie;
+
+	/* Construct request. */
+	be32enc(&buf[0], PROTO_LBS_PARAMS2);
+
+	/* Send request. */
+	if (wire_requestqueue_add(Q, buf, 4, callback_params2, C))
+		goto err1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(C);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/* PARAMS2 response-handling callback. */
+static int
+callback_params2(void * cookie, uint8_t * buf, size_t buflen)
+{
+	struct params2_cookie * C = cookie;
+	int failed = 1;
+	size_t blklen = 0;
+	uint64_t blkno = 0;
+	uint64_t lastblk = (uint64_t)(-1);
+	int rc;
+
+	/* If we have a packet, parse it. */
+	if (buf != NULL) {
+		/* Do we have the right packet length? */
+		if (buflen != 20)
+			BAD("PARAMS2", "bogus length");
+
+		/* Parse the packet. */
+		blklen = be32dec(&buf[0]);
+		blkno = be64dec(&buf[4]);
+		lastblk = be64dec(&buf[12]);
+
+		/* We succcessfully parsed this response. */
+		failed = 0;
+	}
+
+failed:
+	/* Invoke the upstream callback. */
+	rc = (C->callback)(C->cookie, failed, blklen, blkno, lastblk);
 
 	/* Free the cookie. */
 	free(C);

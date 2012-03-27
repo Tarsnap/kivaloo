@@ -101,6 +101,10 @@ The operations required of the underlying block store are:
 	Return the block size (which must be at least 512 bytes and at most
 	131072 bytes) and the first unused block number, which will be zero
 	if there are no blocks.
+* PARAMS2():
+	Return the block size (in [512, 131072]), the first unused block
+	number (which will be zero if there are no blocks), and the last used
+	block number (which will be -1 if there are no blocks).
 * GET(blkno):
 	Return the data for block number "blkno".
 * APPEND(blkno, nblk, data):
@@ -109,7 +113,9 @@ The operations required of the underlying block store are:
 	to blocks number "blkno", "blkno"+1, ... "blkno"+"nblk"-1.  Returns
 	the next available block number, which it not required to be
 	"blkno"+"nblk".  If the value "blkno" is incorrect, an error status
-	is returned.
+	is returned.  If the block store dies while an APPEND operation is in
+	progress, it may have written some but not all blocks; but will never
+	write the last block unless all previous blocks have been written.
 * FREE(blkno):
 	Optionally delete blocks with numbers less than "blkno".  (The block
 	store may ignore this entirely or delete only some of the blocks, but

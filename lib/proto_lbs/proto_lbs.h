@@ -18,6 +18,17 @@ int proto_lbs_request_params(struct wire_requestqueue *,
     int (*)(void *, int, size_t, uint64_t), void *);
 
 /**
+ * proto_lbs_request_params2(Q, callback, cookie):
+ * Send a PARAMS2 request via the request queue ${Q}.  Invoke
+ *     ${callback}(${cookie}, failed, blklen, blkno, lastblk)
+ * upon request completion, where failed is 0 on success and 1 on failure,
+ * blklen is the block size, blkno is the next block #, and lastblk is the
+ * last block #.
+ */
+int proto_lbs_request_params2(struct wire_requestqueue *,
+    int (*)(void *, int, size_t, uint64_t, uint64_t), void *);
+
+/**
  * proto_lbs_request_get(Q, blkno, blklen, callback, cookie):
  * Send a GET request to read block ${blkno} of length ${blklen} via the
  * request queue ${Q}.  Invoke
@@ -70,6 +81,7 @@ int proto_lbs_request_free(struct wire_requestqueue *, uint64_t,
 
 /* Packet types. */
 #define PROTO_LBS_PARAMS	0
+#define PROTO_LBS_PARAMS2	4
 #define PROTO_LBS_GET		1
 #define PROTO_LBS_APPEND	2
 #define PROTO_LBS_FREE		3
@@ -120,6 +132,15 @@ int proto_lbs_request_read(struct netbuf_read *, struct proto_lbs_request *);
  */
 int proto_lbs_response_params(struct netbuf_write *, uint64_t,
     uint32_t, uint64_t);
+
+/**
+ * proto_lbs_response_params2(Q, ID, blklen, blkno, lastblk):
+ * Send a PARAMS2 response with ID ${ID} to the write queue ${Q} indicating
+ * that the block size is ${blklen} bytes, the next available block # is
+ * ${blkno}, and the last block written was ${lastblk}.
+ */
+int proto_lbs_response_params2(struct netbuf_write *, uint64_t,
+    uint32_t, uint64_t, uint64_t);
 
 /**
  * proto_lbs_response_get(Q, ID, status, blklen, buf):

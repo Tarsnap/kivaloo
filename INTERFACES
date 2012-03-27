@@ -44,6 +44,16 @@ PARAMS:	Request type = 0x00000000
 	[4 byte block size]
 	[8 byte next block #]
 
+PARAMS2:Request type = 0x00000004
+
+	Request:
+	[4 byte request type]
+
+	Response:
+	[4 byte block size]
+	[8 byte next block #]
+	[8 byte last block #]
+
 GET:	Request type = 0x00000001
 
 	Request:

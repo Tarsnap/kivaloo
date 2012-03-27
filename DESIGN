@@ -127,6 +127,38 @@ more than one valid APPEND request at once (since the new "next block" value
 is not known until the earlier request completes); issuing multiple FREE or
 PARAMS requests is possible but pointless.
 
+S3 operations
+-------------
+
+The kivaloo-s3 daemon provides an interface to Amazon S3 object operations,
+abstracting away request queuing, DNS resolution, endpoint selection, and
+retrying of requests which fail due to internal S3 errors (HTTP 500/503):
+* PUT(bucket, object, len, data):
+	Store the provided data to the specified bucket/object path.  Return
+	the HTTP status code (200 for success; anything else is an error).
+* GET(bucket, object, maxlen):
+	Read the specified bucket/object, if it is no more than "maxlen"
+	bytes in length.  Return the HTTP status code (200 for success), the
+	object length, and the object data.  If the object is larger than
+	"maxlen" bytes, an object length of -1 will be returned with no data.
+	If the ETag provided by S3 does not match the MD5 of the object data,
+	a status code of 0 will be returned.  On HTTP statuses other than 200,
+	the returned length is unspecified and data MAY be provided.
+* RANGE(bucket, object, offset, length):
+	Read bytes "offset" ... "offset"+"length"-1 of the named bucket/object.
+	Return the HTTP status code (206 for success), the number of bytes
+	read (which may be less than "length" if object contains fewer than
+	"offset"+"length" bytes), and the (partial) object data.  On HTTP
+	statuses other than 206, the returned length is unspecified and data
+	MAY be provided.
+* HEAD(bucket, object):
+	Issue a HEAD request for the specified bucket/object.  Return the HTTP
+	status (200 for success) and the object length (if a Content-Length
+	header is returned by S3).
+* DELETE(bucket, object):
+	Issue a DELETE request for the specified bucket/object.  Return the
+	HTTP status (204 for success).
+
 Consistency guarantees
 ----------------------
 

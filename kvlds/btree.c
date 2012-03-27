@@ -17,6 +17,7 @@
 
 struct params_cookie {
 	struct btree * T;
+	uint64_t lastblk;
 	int failed;
 	int done;
 };
@@ -35,15 +36,17 @@ const struct timeval free_time = {
 	.tv_usec = 0
 };
 
-/* Callback for PARAMS request. */
+/* Callback for PARAMS2 request. */
 static int
-callback_params(void * cookie, int failed, size_t blklen, uint64_t blkno)
+callback_params(void * cookie, int failed, size_t blklen, uint64_t blkno,
+    uint64_t lastblk)
 {
 	struct params_cookie * C = cookie;
 
 	/* Record returned values. */
 	C->T->pagelen = blklen;
 	C->T->nextblk = blkno;
+	C->lastblk = lastblk;
 
 	/* We're done. */
 	C->failed = failed;
@@ -161,17 +164,28 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 	/* Attach LBS request queue to the tree. */
 	T->LBS = Q_lbs;
 
-	/* Issue a PARAMS request. */
+	/* Issue a PARAMS2 request. */
 	PC.T = T;
 	PC.failed = PC.done = 0;
-	if (proto_lbs_request_params(T->LBS, callback_params, &PC)) {
-		warnp("Failed to send PARAMS request");
+	if (proto_lbs_request_params2(T->LBS, callback_params, &PC)) {
+		warnp("Failed to send PARAMS2 request");
 		goto err1;
 	}
 	if (events_spin(&PC.done) || PC.failed) {
-		warnp("PARAMS request failed");
+		warnp("PARAMS2 request failed");
 		goto err1;
 	}
+
+	/*
+	 * If there's a gap between last-block-written and next-writable-block
+	 * then we're using a sparse block space; our cleaning code can't
+	 * handle this, since it estimates the number of "garbage" pages by
+	 * comparing the largest and smallest block #s against the number of
+	 * nodes, i.e., it implicitly assumes a dense block space.  Set the
+	 * storage cost to zero in this case (which disables cleaning).
+	 */
+	if (PC.lastblk + 1 != T->nextblk)
+		Scost = 0.0;
 
 	/* If we have neither npages nor npagebytes, default to 128 MB. */
 	if ((npages == (uint64_t)(-1)) && (npagebytes == (uint64_t)(-1)))
@@ -224,8 +238,11 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 	/* No root nodes yet. */
 	T->root_shadow = T->root_dirty = NULL;
 
-	/* Try to find a root node. */
-	for (rootblk = T->nextblk - 1; rootblk < T->nextblk; rootblk--) {
+	/*
+	 * Try to find a root node by scanning backwards from the last block
+	 * the block store reports having present.
+	 */
+	for (rootblk = PC.lastblk; rootblk < T->nextblk; rootblk--) {
 		/*
 		 * Create a node.  If we keep this node, we will fill in the
 		 * oldestleaf and pagesize values later.
@@ -331,6 +348,13 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		 */
 		goto err1;
 	}
+
+	/*
+	 * If the next writable block is not block #1, we're using a sparse
+	 * block space and need to disable cleaning (see comment above).
+	 */
+	if (T->nextblk != 1)
+		Scost = 0.0;
 
 gotroot:
 	/* Schedule a callback to invoke FREE. */

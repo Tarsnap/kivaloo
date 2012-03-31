@@ -361,5 +361,5 @@ wire_requestqueue_free(struct wire_requestqueue * Q)
 	netbuf_read_free(Q->R);
 
 	/* Free the request queue. */
-	free(Q);	
+	free(Q);
 }

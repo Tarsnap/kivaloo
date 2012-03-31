@@ -407,7 +407,7 @@ merge_fetch(void * cookie)
 
 	/* Call domerge if we've got everything. */
 	if (B->nmergefetch == 0) {
-		if (!events_immediate_register(domerge, B, 0))
+		if (!events_immediate_register(domerge, B, 1))
 			goto err0;
 	}
 
@@ -442,7 +442,7 @@ planmerge(struct balance_cookie * B)
 
 	/* If we don't need to fetch any nodes, call into domerge next. */
 	if (B->nmergefetch == 0) {
-		if (!events_immediate_register(domerge, B, 0))
+		if (!events_immediate_register(domerge, B, 1))
 			goto err0;
 	}
 

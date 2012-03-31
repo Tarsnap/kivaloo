@@ -103,6 +103,11 @@ struct node {
 	 *     v.cstate != NULL,
 	 * (d) once per present child node if type == NODE_TYPE_PARENT, and
 	 * (e) once plus once per callback if reading.
+	 * (f) once per priority-zero immediate event from btree_node_descend
+	 *     or btree_find_(leaf|range).
+	 *
+	 * At the point when a non-zero priority immediate event, a network
+	 * event, or a timer event is called, only (a)-(e) can apply.
 	 */
 	struct pool_elem * pool_cookie;
 
@@ -144,11 +149,6 @@ struct node {
 		 */
 		struct cleaning * cstate;
 	} v;
-
-#ifdef SANITY_CHECKS
-	/* Have we read this page but not finished perfoming callbacks? */
-	int read_callbacks_pending;
-#endif
 
 	/*
 	 * Serialized page if node is CLEAN or SHADOW.  Keys and values

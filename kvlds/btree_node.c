@@ -42,9 +42,6 @@ struct descend {
 };
 
 static int callback_fetch(void *, int, int, const uint8_t *);
-#ifdef SANITY_CHECKS
-static int callback_read_done(void *);
-#endif
 static int callback_descend(void *);
 
 /**
@@ -301,10 +298,6 @@ callback_fetch(void * cookie, int failed, int status, const uint8_t * buf)
 	/* Release our lock on the page. */
 	btree_node_unlock(R->T, N);
 
-#ifdef SANITY_CHECKS
-	N->read_callbacks_pending = 1;
-#endif
-
 	/* Schedule callbacks. */
 	for (i = 0; i < readerlist_getsize(R->list); i++) {
 		/* Get a reader structure. */
@@ -314,20 +307,6 @@ callback_fetch(void * cookie, int failed, int status, const uint8_t * buf)
 		if (!events_immediate_register(r->callback, r->cookie, 0))
 			goto err1;
 	}
-
-#ifdef SANITY_CHECKS
-	/*
-	 * Schedule a callback to unset the read_callbacks_pending flag once
-	 * all the read callbacks have completed; we rely on the fact that
-	 * events_immediate performs callbacks in registration order.  This
-	 * violates the "must hold a lock whenever we schedule a callback"
-	 * criterion, but is unlikely to cause a problem since the callbacks
-	 * immediately preceding this held locks and the page isn't likely to
-	 * get evicted immediately.
-	 */
-	if (!events_immediate_register(callback_read_done, N, 0))
-		goto err1;
-#endif
 
 	/* We've finished reading this page. */
 	readerlist_free(R->list);
@@ -345,20 +324,6 @@ err1:
 	/* Failure! */
 	return (-1);
 }
-
-#ifdef SANITY_CHECKS
-static int
-callback_read_done(void * cookie)
-{
-	struct node * N = cookie;
-
-	/* This was the last callback. */
-	N->read_callbacks_pending = 0;
-
-	/* Success! */
-	return (0);
-}
-#endif
 
 /**
  * btree_node_destroy(T, N):

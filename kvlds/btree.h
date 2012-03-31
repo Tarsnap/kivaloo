@@ -75,6 +75,8 @@ int btree_sync(struct btree *, int (*)(void *), void *);
  * btree_sanity(T):
  * Perform sanity-checks on the tree ${T}.  This is time consuming (it will
  * touch every paged-in node) and thus only exists for debugging purposes.
+ * This function may not be invoked while there are priority-zero immediate
+ * callbacks pending.
  */
 void btree_sanity(struct btree *);
 

@@ -131,7 +131,7 @@ dispatch_mr_launch(struct btree * T, struct proto_kvlds_request ** reqs,
 
 	/* If we don't need to find any leaves, schedule the next step. */
 	if ((B->leavestofind = B->nreqs) == 0) {
-		if (!events_immediate_register(callback_gotleaves, B, 0))
+		if (!events_immediate_register(callback_gotleaves, B, 1))
 			goto err2;
 	}
 
@@ -180,7 +180,7 @@ callback_gotleaf(void * cookie, struct node * N)
 
 	/* If we've found all of them, move on to the next step. */
 	if (B->leavestofind == 0) {
-		if (!events_immediate_register(callback_gotleaves, B, 0))
+		if (!events_immediate_register(callback_gotleaves, B, 1))
 			goto err0;
 	}
 

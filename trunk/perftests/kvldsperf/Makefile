@@ -147,10 +147,10 @@ prof:	all
 	kill `cat stor/sock_kvlds.pid`
 	kill `cat stor/sock_lbs.pid`
 	./test_kvldsperf `pwd`/stor/${TARGETSOCK} 2>/dev/null || true
-	if [ -f mux.gmon ]; then gprof ../../mux/mux mux.gmon > mux.gprof; fi 
+	if [ -f mux.gmon ]; then gprof ../../mux/mux mux.gmon > mux.gprof; fi
 .else
 	sleep 5
-	if [ -f kvlds.gmon ]; then gprof ../../kvlds/kvlds kvlds.gmon > kvlds-ADD.gprof; fi 
+	if [ -f kvlds.gmon ]; then gprof ../../kvlds/kvlds kvlds.gmon > kvlds-ADD.gprof; fi
 .endif
 	rm -f stor/sock*
 	../../lbs/lbs -s `pwd`/stor/sock_lbs -d stor -b 2048 ${SINGLE} ${DASHL}
@@ -165,7 +165,7 @@ prof:	all
 	./test_kvldsperf `pwd`/stor/${TARGETSOCK} 2>/dev/null || true
 .else
 	sleep 5
-	if [ -f kvlds.gmon ]; then gprof ../../kvlds/kvlds kvlds.gmon > kvlds-MODIFY.gprof; fi 
+	if [ -f kvlds.gmon ]; then gprof ../../kvlds/kvlds kvlds.gmon > kvlds-MODIFY.gprof; fi
 .endif
 	rm -r stor
 

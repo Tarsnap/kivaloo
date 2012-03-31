@@ -49,7 +49,7 @@ int proto_lbs_request_get(struct wire_requestqueue *, uint64_t, size_t,
  *    ${callback}(${cookie}, failed, status, blkno)
  * upon request completion, where failed is 0 on success and 1 on failure,
  * status is 0 if the append completed and 1 otherwise, and blkno is the
- * next available block number. 
+ * next available block number.
  */
 int proto_lbs_request_append_blks(struct wire_requestqueue *,
     uint32_t, uint64_t, size_t, const uint8_t * const *,
@@ -63,7 +63,7 @@ int proto_lbs_request_append_blks(struct wire_requestqueue *,
  *    ${callback}(${cookie}, failed, status, blkno)
  * upon request completion, where failed is 0 on success and 1 on failure,
  * status is 0 if the append completed and 1 otherwise, and blkno is the
- * next available block number. 
+ * next available block number.
  */
 int proto_lbs_request_append(struct wire_requestqueue *,
     uint32_t, uint64_t, size_t, const uint8_t *,

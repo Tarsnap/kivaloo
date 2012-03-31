@@ -162,7 +162,7 @@ pool_delqueue(struct pool * P, void * rec)
 	/* If this is the only record in the queue, it becomes empty. */
 	if ((P->evict_head == rec) && (P->evict_tail == rec)) {
 		P->evict_head = P->evict_tail = NULL;
-	} else 
+	} else
 	/* If this is the head, we have a new head. */
 	    if (P->evict_head == rec) {
 		P->evict_head = next;
@@ -172,7 +172,7 @@ pool_delqueue(struct pool * P, void * rec)
 	    if (P->evict_tail == rec) {
 		P->evict_tail = prev;
 		get_pool_elem(P, prev)->next = NULL;
-	} else 
+	} else
 	/* This is in the middle; point prev and next to each other. */
 	    {
 		get_pool_elem(P, next)->prev = prev;

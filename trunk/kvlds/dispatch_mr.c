@@ -133,7 +133,7 @@ dispatch_mr_launch(struct btree * T, struct proto_kvlds_request ** reqs,
 	if ((B->leavestofind = B->nreqs) == 0) {
 		if (!events_immediate_register(callback_gotleaves, B, 0))
 			goto err2;
-	}	
+	}
 
 	/* Look for the leaves. */
 	for (i = 0; i < B->nreqs; i++) {

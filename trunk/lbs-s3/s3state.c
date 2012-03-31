@@ -152,7 +152,7 @@ s3state_get(struct s3state * S, struct proto_lbs_request * R,
 	C->cookie = cookie;
 
 	/* Send the S3 request. */
-	if (proto_s3_request_range(S->Q_S3, S->bucket, 
+	if (proto_s3_request_range(S->Q_S3, S->bucket,
 	    objmap(BLK2OBJECT(R->r.get.blkno)),
 	    BLKOFFSET(R->r.get.blkno, S->blklen), S->blklen,
 	    callback_get, C))
@@ -202,7 +202,7 @@ callback_get(void * cookie, int failed, size_t buflen, const uint8_t * buf)
  * the S3 state ${S}.  Invoke ${callback}(${cookie}, ${R}, nextblk) when done,
  * where ${nextblk} is the next available block # after this append.
  */
-int 
+int
 s3state_append(struct s3state * S, struct proto_lbs_request * R,
     int (* callback)(void *, struct proto_lbs_request *, uint64_t),
     void * cookie)

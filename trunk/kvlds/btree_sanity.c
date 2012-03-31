@@ -117,7 +117,7 @@ sanity(struct btree * T, struct node * N, int state)
 		nlcks += 1;
 	if (N->type == NODE_TYPE_READ)
 		nlcks += btree_node_fetch_lockcount(N);
-	if ((N->type != NODE_TYPE_NP) && (N->read_callbacks_pending == 0))
+	if (N->type != NODE_TYPE_NP)
 		assert(pool_rec_lockcount(T->P, N) == nlcks);
 }
 
@@ -125,6 +125,8 @@ sanity(struct btree * T, struct node * N, int state)
  * btree_sanity(T):
  * Perform sanity-checks on the tree ${T}.  This is time consuming (it will
  * touch every paged-in node) and thus only exists for debugging purposes.
+ * This function may not be invoked while there are priority-zero immediate
+ * callbacks pending.
  */
 void
 btree_sanity(struct btree * T)

@@ -399,6 +399,10 @@ readreqs(struct dispatch_state * D)
 	if (D->dying)
 		goto done;
 
+	/* If we don't have a reader, don't try to read. */
+	if (D->readq == NULL)
+		goto done;
+
 	/* If we are already reading, do nothing. */
 	if (D->read_cookie != NULL)
 		goto done;
@@ -588,6 +592,7 @@ dispatch_accept(int s, struct btree * T,
 
 	/* Initialize dispatcher. */
 	D->dying = 0;
+	D->readq = NULL;
 	D->read_cookie = NULL;
 	D->T = T;
 	D->kmax = kmax;

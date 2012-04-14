@@ -14,7 +14,6 @@
 #include <unistd.h>
 
 #include "imalloc.h"
-#include "sysendian.h"
 #include "warnp.h"
 
 #include "sock.h"

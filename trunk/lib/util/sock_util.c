@@ -1,0 +1,132 @@
+#include <stdlib.h>
+#include <string.h>
+
+#include "sock_util.h"
+#include "sock_internal.h"
+
+/**
+ * sock_addr_cmp(sa1, sa2):
+ * Return non-zero iff the socket addresses ${sa1} and ${sa2} are different.
+ */
+int
+sock_addr_cmp(const struct sock_addr * sa1, const struct sock_addr * sa2)
+{
+
+	/* Family, socket type, and name length must match. */
+	if ((sa1->ai_family != sa2->ai_family) ||
+	    (sa1->ai_socktype != sa2->ai_socktype) ||
+	    (sa1->namelen != sa2->namelen))
+		return (1);
+
+	/* The required length of the sockaddr must match. */
+	if (memcmp(sa1->name, sa2->name, sa1->namelen) != 0)
+		return (1);
+
+	/* Everything matched. */
+	return (0);
+}
+
+/**
+ * sock_addr_dup(sa):
+ * Duplicate the provided socket address.
+ */
+struct sock_addr *
+sock_addr_dup(const struct sock_addr * sa)
+{
+	struct sock_addr * sa2;
+
+	/* Allocate a struct sock_addr and copy fields. */
+	if ((sa2 = malloc(sizeof(struct sock_addr))) == NULL)
+		goto err0;
+	sa2->ai_family = sa->ai_family;
+	sa2->ai_socktype = sa->ai_socktype;
+	sa2->namelen = sa->namelen;
+
+	/* Allocate and copy the sockaddr. */
+	if ((sa2->name = malloc(sa2->namelen)) == NULL)
+		goto err1;
+	memcpy(sa2->name, sa->name, sa2->namelen);
+
+	/* Success! */
+	return (sa2);
+
+err1:
+	free(sa2);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
+ * sock_addr_serialize(sa, buf, buflen):
+ * Allocate a buffer and serialize the socket address ${sa} into it.  Return
+ * the buffer via ${buf} and its length via ${buflen}.  The serialization is
+ * machine and operating system dependent.
+ */
+int
+sock_addr_serialize(const struct sock_addr * sa,
+    uint8_t ** buf, size_t * buflen)
+{
+	uint8_t * p;
+
+	/* Compute buffer length and allocate buffer. */
+	*buflen = 2 * sizeof(int) + sizeof(socklen_t) + sa->namelen;
+	if ((p = *buf = malloc(*buflen)) == NULL)
+		goto err0;
+
+	/* Copy in data. */
+	memcpy(p, &sa->ai_family, sizeof(int));
+	p += sizeof(int);
+	memcpy(p, &sa->ai_socktype, sizeof(int));
+	p += sizeof(int);
+	memcpy(p, &sa->namelen, sizeof(socklen_t));
+	p += sizeof(socklen_t);
+	memcpy(p, sa->name, sa->namelen);
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * sock_addr_deserialize(buf, buflen):
+ * Deserialize the ${buflen}-byte serialized socket address from ${buf}.
+ */
+struct sock_addr *
+sock_addr_deserialize(const uint8_t * buf, size_t buflen)
+{
+	struct sock_addr * sa;
+
+	/* Sanity check. */
+	if (buflen < 2 * sizeof(int) + sizeof(socklen_t))
+		goto err0;
+
+	/* Allocate a structure and copy in fields. */
+	if ((sa = malloc(sizeof(struct sock_addr))) == NULL)
+		goto err0;
+	memcpy(&sa->ai_family, buf, sizeof(int));
+	buf += sizeof(int);
+	memcpy(&sa->ai_socktype, buf, sizeof(int));
+	buf += sizeof(int);
+	memcpy(&sa->namelen, buf, sizeof(socklen_t));
+	buf += sizeof(socklen_t);
+
+	/* Allocate and copy the sockaddr. */
+	if (buflen != 2 * sizeof(int) + sizeof(socklen_t) + sa->namelen)
+		goto err1;
+	if ((sa->name = malloc(sa->namelen)) == NULL)
+		goto err1;
+	memcpy(sa->name, buf, sa->namelen);
+
+	/* Success! */
+	return (sa);
+
+err1:
+	free(sa);
+err0:
+	/* Failure! */
+	return (NULL);
+}

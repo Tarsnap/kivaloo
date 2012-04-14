@@ -6,6 +6,7 @@
 #include "elasticarray.h"
 #include "monoclock.h"
 #include "sock.h"
+#include "sock_util.h"
 
 #include "s3_serverpool.h"
 

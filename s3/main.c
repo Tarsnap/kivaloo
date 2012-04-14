@@ -7,6 +7,7 @@
 #include "asprintf.h"
 #include "daemonize.h"
 #include "events.h"
+#include "logging.h"
 #include "s3_request_queue.h"
 #include "sock.h"
 #include "warnp.h"
@@ -19,7 +20,8 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: kivaloo-s3 -s <s3 socket> -r <s3 region> "
-	    "-k <keyfile> [-n <max # connections>] [-1] [-p <pidfile>]\n");
+	    "-k <keyfile> [-l <logfile>] [-n <max # connections>] [-1] "
+	    "[-p <pidfile>]\n");
 	exit(1);
 }
 
@@ -127,6 +129,7 @@ main(int argc, char * argv[])
 
 	/* Command-line parameters. */
 	char * opt_k = NULL;
+	char * opt_l = NULL;
 	char * opt_p = NULL;
 	intmax_t opt_n = 16;
 	char * opt_r = NULL;
@@ -138,18 +141,25 @@ main(int argc, char * argv[])
 	char * s3_key_secret;
 	struct sock_addr ** sas;
 	char * s3_host;
+	struct logging_file * logfile;
 	size_t i;
 	int ch;
 
 	WARNP_INIT;
 
 	/* Parse the command line. */
-	while ((ch = getopt(argc, argv, "k:p:r:s:1")) != -1) {
+	while ((ch = getopt(argc, argv, "k:l:n:p:r:s:1")) != -1) {
 		switch (ch) {
 		case 'k':
 			if (opt_k != NULL)
 				usage();
 			if ((opt_k = strdup(optarg)) == NULL)
+				OPT_EPARSE(ch, optarg);
+			break;
+		case 'l':
+			if (opt_l != NULL)
+				usage();
+			if ((opt_l = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
 		case 'n':
@@ -254,6 +264,17 @@ main(int argc, char * argv[])
 	if ((s = sock_listener(sas[0])) == -1)
 		exit(1);
 
+	/* If requested, create a log file. */
+	if (opt_l != NULL) {
+		if ((logfile = logging_open(opt_l)) == NULL) {
+			warnp("Cannot open log file");
+			exit(1);
+		}
+		s3_request_queue_log(Q, logfile);
+	} else {
+		logfile = NULL;
+	}
+
 	/* Daemonize and write pid. */
 	if (opt_p == NULL) {
 		if (asprintf(&opt_p, "%s.pid", opt_s) == -1) {
@@ -299,6 +320,10 @@ main(int argc, char * argv[])
 	/* Free the S3 request queue. */
 	s3_request_queue_free(Q);
 
+	/* Close the log file, if we have one. */
+	if (logfile != NULL)
+		logging_close(logfile);
+
 	/* Close the listening socket. */
 	close(s);
 
@@ -318,6 +343,7 @@ main(int argc, char * argv[])
 
 	/* Free option strings. */
 	free(opt_k);
+	free(opt_l);
 	free(opt_p);
 	free(opt_r);
 	free(opt_s);

@@ -3,9 +3,12 @@
 #include <string.h>
 
 #include "http.h"
+#include "logging.h"
+#include "monoclock.h"
 #include "s3_request.h"
 #include "s3_serverpool.h"
 #include "sock.h"
+#include "sock_util.h"
 
 #include "s3_request_queue.h"
 
@@ -19,6 +22,9 @@ struct request {
 	size_t maxrlen;
 	int (* callback)(void *, struct http_response *);
 	void * cookie;
+
+	/* Start time. */
+	struct timeval t_start;
 
 	/* Internal state. */
 	struct sock_addr * addrs[2];	/* Endpoint address, NULL. */
@@ -34,6 +40,7 @@ struct s3_request_queue {
 	char * key_id;
 	char * key_secret;
 	struct s3_serverpool * SP;
+	struct logging_file * logfile;
 	size_t reqsip_max;
 	size_t reqsip;
 	struct request * reqs_queued_head;
@@ -53,7 +60,35 @@ callback_reqdone(void * cookie, struct http_response * res)
 {
 	struct request * R = cookie;
 	struct s3_request_queue * Q = R->Q;
-	int rc;
+	struct timeval t_end;
+	long t_micros;
+	char * addr;
+	int rc = 0;
+	int rc2;
+
+	/* Compute how long the request took. */
+	if (monoclock_get(&t_end))
+		rc = -1;
+	t_micros = (t_end.tv_sec - R->t_start.tv_sec) * 1000000 +
+	    (t_end.tv_usec - R->t_start.tv_usec);
+
+	/* If we have a log file, log the S3 request. */
+	if (Q->logfile != NULL) {
+		/* Prettyprint the address we used. */
+		addr = sock_addr_prettyprint(R->addrs[0]);
+
+		/* Write to the log file.  Ignore errors. */
+		if (logging_printf(Q->logfile, "|%s|/%s%s|%d|%s|%ld|%zu|%zu",
+		    R->request->method, R->request->bucket, R->request->path,
+		    (res != NULL) ? res->status : 0,
+		    (addr != NULL) ? addr : "(unknown)",
+		    t_micros, R->request->bodylen,
+		    (res->bodylen != (size_t)(-1)) ? res->bodylen : 0) == -1)
+			rc = -1;
+
+		/* Free the address string. */
+		free(addr);
+	}
 
 	/* This address has been tried. */
 	sock_addr_free(R->addrs[0]);
@@ -82,7 +117,8 @@ callback_reqdone(void * cookie, struct http_response * res)
 		goto tryagain;
 
 	/* Send the response upstream. */
-	rc = (R->callback)(R->cookie, res);
+	rc2 = (R->callback)(R->cookie, res);
+	rc = rc2 ? rc2 : rc;
 
 	/* Free the request structure. */
 	free(R);
@@ -147,6 +183,10 @@ poke(struct s3_request_queue * Q)
 		goto err0;
 	R->addrs[1] = NULL;
 
+	/* Record when we send this request. */
+	if (monoclock_get(&R->t_start))
+		goto err0;
+
 	/* Launch the S3 request. */
 	if ((R->http_cookie = s3_request(R->addrs, Q->key_id, Q->key_secret,
 	    R->request, R->maxrlen, callback_reqdone, R)) == NULL)
@@ -207,6 +247,9 @@ s3_request_queue_init(const char * key_id, const char * key_secret,
 	if ((Q->key_secret = strdup(key_secret)) == NULL)
 		goto err3;
 
+	/* No log file yet. */
+	Q->logfile = NULL;
+
 	/* No requests queued or in progress. */
 	Q->reqsip = 0;
 	Q->reqs_queued_head = Q->reqs_queued_tail = NULL;
@@ -227,6 +270,17 @@ err1:
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * s3_request_queue_log(Q, F):
+ * Log all S3 requests performed by the queue ${Q} to the log file ${F}.
+ */
+void
+s3_request_queue_log(struct s3_request_queue * Q, struct logging_file * F)
+{
+
+	Q->logfile = F;
 }
 
 /**

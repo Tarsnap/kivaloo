@@ -11,6 +11,7 @@
 #include "network.h"
 #include "s3_request_queue.h"
 #include "sock.h"
+#include "sock_util.h"
 #include "warnp.h"
 
 #include "dns.h"

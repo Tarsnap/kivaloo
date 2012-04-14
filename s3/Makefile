@@ -25,6 +25,7 @@ SRCS	+=	daemonize.c
 SRCS	+=	hexify.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
+SRCS	+=	sock_util.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ../lib/util
 

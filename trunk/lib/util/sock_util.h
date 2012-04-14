@@ -32,4 +32,14 @@ int sock_addr_serialize(const struct sock_addr *, uint8_t **, size_t *);
  */
 struct sock_addr * sock_addr_deserialize(const uint8_t *, size_t);
 
+/**
+ * sock_addr_prettyprint(sa):
+ * Allocate and return a string in one of the forms
+ * /path/to/unix/socket
+ * [ip.v4.ad.dr]:port
+ * [ipv6:add::ress]:port
+ * representing the provided socket address.
+ */
+char * sock_addr_prettyprint(const struct sock_addr *);
+
 #endif /* !_SOCK_H_ */

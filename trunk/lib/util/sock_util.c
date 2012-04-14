@@ -1,5 +1,14 @@
+#include <sys/socket.h>
+#include <sys/un.h>
+
+#include <netinet/in.h>
+
+#include <arpa/inet.h>
+
 #include <stdlib.h>
 #include <string.h>
+
+#include "asprintf.h"
 
 #include "sock_util.h"
 #include "sock_internal.h"
@@ -129,4 +138,76 @@ err1:
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/* Prettyprint an IPv4 address. */
+static char *
+prettyprint_ipv4(struct sockaddr_in * name)
+{
+	char addr[INET_ADDRSTRLEN];
+	char * s;
+
+	/* Convert IP address to string. */
+	if (inet_ntop(AF_INET, &name->sin_addr, addr, sizeof(addr)) == NULL)
+		return (NULL);
+
+	/* Construct address string. */
+	if (asprintf(&s, "[%s]:%d", addr, ntohs(name->sin_port)) == -1)
+		return (NULL);
+
+	/* Success! */
+	return (s);
+}
+
+/* Prettyprint an IPv6 address. */
+static char *
+prettyprint_ipv6(struct sockaddr_in6 * name)
+{
+	char addr[INET6_ADDRSTRLEN];
+	char * s;
+
+	/* Convert IPv6 address to string. */
+	if (inet_ntop(AF_INET6, &name->sin6_addr, addr, sizeof(addr)) == NULL)
+		return (NULL);
+
+	/* Construct address string. */
+	if (asprintf(&s, "[%s]:%d", addr, ntohs(name->sin6_port)) == -1)
+		return (NULL);
+
+	/* Success! */
+	return (s);
+}
+
+/* Prettyprint a UNIX address. */
+static char *
+prettyprint_unix(struct sockaddr_un * name)
+{
+
+	/* Just strdup the path. */
+	return (strdup(name->sun_path));
+}
+
+/**
+ * sock_addr_prettyprint(sa):
+ * Allocate and return a string in one of the forms
+ * /path/to/unix/socket
+ * [ip.v4.ad.dr]:port
+ * [ipv6:add::ress]:port
+ * representing the provided socket address.
+ */
+char *
+sock_addr_prettyprint(const struct sock_addr * sa)
+{
+
+	/* Handle different types of addresses differently. */
+	switch (sa->ai_family) {
+	case AF_INET:
+		return (prettyprint_ipv4((struct sockaddr_in *)(sa->name)));
+	case AF_INET6:
+		return (prettyprint_ipv6((struct sockaddr_in6 *)(sa->name)));
+	case AF_UNIX:
+		return (prettyprint_unix((struct sockaddr_un *)(sa->name)));
+	default:
+		return (strdup("Unknown address"));
+	}
 }

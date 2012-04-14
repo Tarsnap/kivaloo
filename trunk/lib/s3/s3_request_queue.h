@@ -3,6 +3,7 @@
 
 /* Opaque types. */
 struct http_response;
+struct logging_file;
 struct sock_addr;
 struct s3_request;
 struct s3_request_queue;
@@ -14,6 +15,12 @@ struct s3_request_queue;
  */
 struct s3_request_queue * s3_request_queue_init(const char *, const char *,
     size_t);
+
+/**
+ * s3_request_queue_log(Q, F):
+ * Log all S3 requests performed by the queue ${Q} to the log file ${F}.
+ */
+void s3_request_queue_log(struct s3_request_queue *, struct logging_file *);
 
 /**
  * s3_request_queue_addaddr(Q, addr, ttl):

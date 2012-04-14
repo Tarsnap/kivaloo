@@ -7,6 +7,7 @@ TMPDIR=`pwd`/tmp
 SOCKS3=$TMPDIR/sock_s3
 REGION=s3-us-west-2
 BUCKET=kivaloo-test
+LOGFILE=s3.log
 
 # Clean up any old tests
 rm -rf $TMPDIR
@@ -14,7 +15,7 @@ rm -rf $TMPDIR
 # Start S3 daemon
 mkdir $TMPDIR
 chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key
+$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE
 
 # Run tests
 echo -n "test_s3... "
@@ -33,7 +34,7 @@ rm $SOCKS3.pid $SOCKS3
 # Make sure we don't leak memory
 echo -n "Checking for memory leaks in S3 daemon..."
 ktrace -i -f ktrace-s3.out env MALLOC_OPTIONS=JUV		\
-    $S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -1
+    $S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE -1
 ktrace -i -f ktrace-test_s3.out env MALLOC_OPTIONS=JUV		\
     $TESTS3 $SOCKS3 $BUCKET >/dev/null
 sleep 1

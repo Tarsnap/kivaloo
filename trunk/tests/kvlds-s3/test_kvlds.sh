@@ -11,6 +11,7 @@ SOCKL=$TMPDIR/sock_lbs
 SOCKK=$TMPDIR/sock_kvlds
 REGION=s3-us-west-2
 BUCKET=kivaloo-test
+LOGFILE=s3.log
 
 # Clean up any old tests
 rm -rf $TMPDIR
@@ -18,7 +19,7 @@ rm -rf $TMPDIR
 # Start S3 daemon
 mkdir $TMPDIR
 chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key
+$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE
 
 # Start LBS
 $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET
@@ -84,7 +85,7 @@ rm -r $TMPDIR
 echo -n "Checking for memory leaks in LBS-S3..."
 mkdir $TMPDIR
 chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -1
+$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE -1
 ktrace -i -f ktrace-lbs-s3.out env MALLOC_OPTIONS=JUV		\
     $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET -1
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024 -1

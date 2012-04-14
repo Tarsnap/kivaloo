@@ -66,5 +66,6 @@ test:	all
 
 CLEANFILES+=	s3.leak ktrace-s3.out kdump-s3.out
 CLEANFILES+=	test_s3.leak ktrace-test_s3.out kdump-test_s3.out
+CLEANFILES+=	s3.log
 
 .include <bsd.prog.mk>

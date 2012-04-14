@@ -12,6 +12,8 @@ must have lines ACCESS_KEY_ID=<keyid> and ACCESS_KEY_SECRET=<secret>, and uses
 these to make requests to the S3 region <S3 region>.
 
 The other options are:
+  -l <logfile>
+	Log S3 requests to <logfile>.
   -n <max # connections>
 	Open at most <max # connections> connections to S3 at once.  Defaults
 	to 16 connections.

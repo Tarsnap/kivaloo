@@ -29,6 +29,11 @@ SRCS	+=	sock_util.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ../lib/util
 
+# Logging code
+.PATH.c	:	../lib/logging
+SRCS	+=	logging.c
+IDIRS	+=	-I ../lib/logging
+
 # Fundamental algorithms
 .PATH.c	:	../lib/alg
 SRCS	+=	crc32c.c

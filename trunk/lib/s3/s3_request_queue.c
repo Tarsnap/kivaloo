@@ -63,6 +63,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 	struct timeval t_end;
 	long t_micros;
 	char * addr;
+	size_t rslen;
 	int rc = 0;
 	int rc2;
 
@@ -77,13 +78,16 @@ callback_reqdone(void * cookie, struct http_response * res)
 		/* Prettyprint the address we used. */
 		addr = sock_addr_prettyprint(R->addrs[0]);
 
-		/* Write to the log file.  Ignore errors. */
+		/* Write to the log file. */
+		if ((res != NULL) && (res->bodylen != (size_t)(-1)))
+			rslen = res->bodylen;
+		else
+			rslen = 0;
 		if (logging_printf(Q->logfile, "|%s|/%s%s|%d|%s|%ld|%zu|%zu",
 		    R->request->method, R->request->bucket, R->request->path,
 		    (res != NULL) ? res->status : 0,
 		    (addr != NULL) ? addr : "(unknown)",
-		    t_micros, R->request->bodylen,
-		    (res->bodylen != (size_t)(-1)) ? res->bodylen : 0) == -1)
+		    t_micros, R->request->bodylen, rslen) == -1)
 			rc = -1;
 
 		/* Free the address string. */

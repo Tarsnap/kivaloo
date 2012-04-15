@@ -109,3 +109,25 @@ else
 	echo && echo "  -> memory leaks shown in lbs-s3.leak"
 fi
 rm leak.tmp
+
+# Launch the stack again and wait until garbage collection is finished
+mkdir $TMPDIR
+chflags nodump $TMPDIR
+$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE
+$LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET
+$KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024
+while true; do
+	touch $TMPDIR/marker
+	sleep 1
+	if [ $LOGFILE -ot $TMPDIR/marker ]; then
+		break;
+	fi
+done
+rm $TMPDIR/marker
+kill `cat $SOCKK.pid`
+rm $SOCKK.pid $SOCKK
+kill `cat $SOCKL.pid`
+rm $SOCKL.pid $SOCKL
+kill `cat $SOCKS3.pid`
+rm $SOCKS3.pid $SOCKS3
+rmdir $TMPDIR

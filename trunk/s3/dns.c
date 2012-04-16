@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "network.h"
+#include "noeintr.h"
 #include "s3_request_queue.h"
 #include "sock.h"
 #include "sock_util.h"
@@ -51,11 +52,13 @@ dnsrun(const char * target, int s)
 		for (i = 0; sas[i] != NULL; i++) {
 			/* Serialize the address. */
 			if (sock_addr_serialize(sas[i], &addr, &addrlen))
-				_exit(1);
+				goto die;
 
 			/* Send it to our parent. */
-			write(s, &addrlen, sizeof(addrlen));
-			write(s, addr, addrlen);
+			if (noeintr_write(s, &addrlen, sizeof(addrlen)) == -1)
+				goto die;
+			if (noeintr_write(s, addr, addrlen) == -1)
+				goto die;
 
 			/* Free the serialized address. */
 			free(addr);
@@ -65,7 +68,10 @@ dnsrun(const char * target, int s)
 		sock_addr_freelist(sas);
 	}
 
-	_exit(0);
+	/* NOTREACHED */
+
+die:
+	_exit(1);
 }
 
 /* Callback: We have an address length. */

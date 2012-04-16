@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "noeintr.h"
 #include "warnp.h"
 
 #include "storage.h"
@@ -97,7 +98,7 @@ workthread(void * cookie)
 
 		/* We've done the work; notify the master thread. */
 		ctl->workdone = 1;
-		if (write(ctl->wakeupsock, &ctl->ID, sizeof(size_t)) <
+		if (noeintr_write(ctl->wakeupsock, &ctl->ID, sizeof(size_t)) <
 		    (ssize_t)sizeof(size_t)) {
 			warnp("Error writing to wakeup socket");
 			exit(1);

@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "noeintr.h"
 #include "warnp.h"
 
 #include "disk.h"
@@ -146,8 +147,6 @@ disk_write(const char * path, int create, size_t nbytes, const uint8_t * buf,
     int nosync)
 {
 	int fd;
-	size_t bufpos;
-	ssize_t lenwrit;
 
 	/* Open or create the file, depending on ${creat}. */
 	do {
@@ -169,20 +168,8 @@ disk_write(const char * path, int create, size_t nbytes, const uint8_t * buf,
 	}
 
 	/* Write from the buffer. */
-	for (bufpos = 0; bufpos < nbytes; bufpos += lenwrit) {
-		/* Write some bytes. */
-		lenwrit = write(fd, &buf[bufpos], nbytes - bufpos);
-
-		/* EINTR is harmless. */
-		if ((lenwrit == -1) && (errno == EINTR))
-			lenwrit = 0;
-
-		/* If we had an error, fail. */
-		if (lenwrit == -1) {
-			warnp("Error writing file: %s", path);
-			goto err1;
-		}
-	}
+	if (noeintr_write(fd, buf, nbytes) != (ssize_t)nbytes)
+		goto err1;
 
 	/* Ask to have the write flushed to disk. */
 	if (nosync == 0) {

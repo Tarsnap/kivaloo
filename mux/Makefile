@@ -22,6 +22,7 @@ IDIRS	+=	-I ../lib/datastruct
 SRCS	+=	asprintf.c
 SRCS	+=	daemonize.c
 SRCS	+=	monoclock.c
+SRCS	+=	noeintr.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ../lib/util

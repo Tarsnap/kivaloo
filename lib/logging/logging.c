@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "events.h"
+#include "noeintr.h"
 #include "warnp.h"
 
 #include "logging.h"
@@ -64,7 +65,7 @@ doopen(const char * path)
 
 	/* EOL-terminate the file. */
 	lastbyte = '\n';
-	if (write(fd, &lastbyte, 1) != 1) {
+	if (noeintr_write(fd, &lastbyte, 1) != 1) {
 		warnp("Cannot EOL-terminate log file: %s", path);
 		goto err1;
 	}
@@ -239,7 +240,7 @@ logging_printf(struct logging_file * F, const char * format, ...)
 	str[20 + len] = '\0';
 
 	/* Write the final string (sans terminating NUL) to the file. */
-	if (write(F->fd, str, buflen - 1) != (ssize_t)(buflen - 1)) {
+	if (noeintr_write(F->fd, str, buflen - 1) != (ssize_t)(buflen - 1)) {
 		warnp("Cannot write to log file: %s", F->path);
 		goto err1;
 	}

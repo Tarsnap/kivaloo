@@ -24,6 +24,7 @@ SRCS	+=	b64encode.c
 SRCS	+=	daemonize.c
 SRCS	+=	hexify.c
 SRCS	+=	monoclock.c
+SRCS	+=	noeintr.c
 SRCS	+=	sock.c
 SRCS	+=	sock_util.c
 SRCS	+=	warnp.c

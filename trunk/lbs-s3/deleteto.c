@@ -179,7 +179,7 @@ poke(struct deleteto * D)
 	 * (b) we want to optimize for the common case, which is a long-lived
 	 * lbs-s3 process.
 	 */
-	if ((D->M % 256 == 0) || && (D->updateDeletedTo == 1)) {
+	if ((D->M % 256 == 0) && (D->updateDeletedTo == 1)) {
 		D->idle = 0;
 		D->npending += 1;
 		be64enc(DeletedMarker, D->M);

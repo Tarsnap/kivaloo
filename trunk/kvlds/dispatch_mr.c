@@ -265,8 +265,9 @@ batch_dirty(struct batch * B)
 	for (i = 0; i < B->nreqs; i++)
 		btree_node_unlock(B->T, B->reqs[i]->leaf);
 
-	/* Sort the shadow/dirty pairs. */
-	qsort(shadowdirty, Nsd, sizeof(struct nodepair), compar_snp);
+	/* Sort the shadow/dirty pairs if we have any. */
+	if (Nsd > 0)
+		qsort(shadowdirty, Nsd, sizeof(struct nodepair), compar_snp);
 
 	/* Translate shadow node pointers to dirty node pointers. */
 	for (i = 0; i < B->nreqs; i++)

@@ -170,12 +170,16 @@ poke(struct deleteto * D)
 	/*
 	 * Store the M to object DeletedMarker if it's a multiple of 256
 	 * (periodic stores so DeletedMarker doesn't fall too far behind
-	 * reality if we ar doing a very large number of deletes) of if M=N
-	 * (store the value now in case we don't come back here for a while),
-	 * and we haven't yet stored this valud of M.
+	 * reality if we are doing a very large number of deletes) and we
+	 * haven't yet stored this value of M.
+	 *
+	 * If we crash and restart, we may end up re-issuing as many as ~256
+	 * deletes;but  this is better than more-frequent updating of the
+	 * deletion marker since (a) DELETEs are free but PUTs aren't, and
+	 * (b) we want to optimize for the common case, which is a long-lived
+	 * lbs-s3 process.
 	 */
-	if (((D->M % 256 == 0) || (D->M == D->N)) &&
-	    (D->updateDeletedTo == 1)) {
+	if ((D->M % 256 == 0) || && (D->updateDeletedTo == 1)) {
 		D->idle = 0;
 		D->npending += 1;
 		be64enc(DeletedMarker, D->M);

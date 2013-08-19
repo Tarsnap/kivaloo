@@ -1,6 +1,6 @@
 .POSIX:
 
-PROGS=		lbs kvlds mux
+PROGS=		s3 lbs-s3 lbs kvlds mux
 BENCH=		bench/mkpairs bench/bulk_insert bench/bulk_update \
 		bench/bulk_extract bench/hotspot_read bench/random_read \
 		bench/random_mixed

@@ -1,40 +1,45 @@
 PROG=	test_kvldsperf
 SRCS=	main.c
 
-# Data structures
-.PATH.c	:	../../lib/datastruct
+# Data structures (libcperciva)
+.PATH.c	:	../../libcperciva/datastruct
 SRCS	+=	elasticarray.c
 SRCS	+=	ptrheap.c
 SRCS	+=	timerqueue.c
 SRCS	+=	elasticqueue.c
 SRCS	+=	seqptrmap.c
+CFLAGS	+=	-I ../../libcperciva/datastruct
+
+# Data structures
+.PATH.c	:	../../lib/datastruct
 SRCS	+=	kvldskey.c
 CFLAGS	+=	-I ../../lib/datastruct
 
 # Utility functions
-.PATH.c	:	../../lib/util
+.PATH.c	:	../../libcperciva/util
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
-CFLAGS	+=	-I ../../lib/util
+CFLAGS	+=	-I ../../libcperciva/util
 
 # Fundamental algorithms
-.PATH.c	:	../../lib/alg
+.PATH.c	:	../../libcperciva/alg
 SRCS	+=	crc32c.c
-CFLAGS	+=	-I ../../lib/alg
+CFLAGS	+=	-I ../../libcperciva/alg
 
 # Event loop
-.PATH.c	:	../../lib/events
+.PATH.c	:	../../libcperciva/events
 SRCS	+=	events_immediate.c
 SRCS	+=	events_network.c
+SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 SRCS	+=	events.c
-CFLAGS	+=	-I ../../lib/events
+CFLAGS	+=	-I ../../libcperciva/events
 
 # Event-driven networking
-.PATH.c	:	../../lib/network
+.PATH.c	:	../../libcperciva/network
 SRCS	+=	network_buf.c
-CFLAGS	+=	-I ../../lib/network
+CFLAGS	+=	-I ../../libcperciva/network
 
 # Buffered networking
 .PATH.c	:	../../lib/netbuf

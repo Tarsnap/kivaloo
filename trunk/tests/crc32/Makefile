@@ -1,9 +1,9 @@
 PROG=	test_crc32
 SRCS=	main.c
 
-.PATH	:	../../lib/alg
+.PATH	:	../../libcperciva/alg
 SRCS	+=	crc32c.c
-IDIRS	+=	-I ../../lib/alg
+IDIRS	+=	-I ../../libcperciva/alg
 
 test:	test_crc32
 	@./test_crc32

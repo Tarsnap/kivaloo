@@ -2,40 +2,41 @@ PROG=	test_s3
 SRCS=	main.c
 
 # Fundamental algorithms
-.PATH.c	:	../../lib/alg
+.PATH.c	:	../../libcperciva/alg
 SRCS	+=	md5.c
 SRCS	+=	sha1.c
-IDIRS	+=	-I ../../lib/alg
+IDIRS	+=	-I ../../libcperciva/alg
 
 # Data structures
-.PATH.c	:	../../lib/datastruct
+.PATH.c	:	../../libcperciva/datastruct
 SRCS	+=	elasticarray.c
 SRCS	+=	ptrheap.c
 SRCS	+=	timerqueue.c
-IDIRS	+=	-I ../../lib/datastruct
+IDIRS	+=	-I ../../libcperciva/datastruct
 
 # Utility functions
-.PATH.c	:	../../lib/util
+.PATH.c	:	../../libcperciva/util
 SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../../lib/util
+IDIRS	+=	-I ../../libcperciva/util
 
 # Event loop
-.PATH.c	:	../../lib/events
+.PATH.c	:	../../libcperciva/events
 SRCS	+=	events_immediate.c
 SRCS	+=	events_network.c
+SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 SRCS	+=	events.c
-IDIRS	+=	-I ../../lib/events
+IDIRS	+=	-I ../../libcperciva/events
 
 # Event-driven networking
-.PATH.c	:	../../lib/network
+.PATH.c	:	../../libcperciva/network
 SRCS	+=	network_buf.c
 SRCS	+=	network_connect.c
-IDIRS	+=	-I ../../lib/network
+IDIRS	+=	-I ../../libcperciva/network
 
 # Buffered networking
 .PATH.c	:	../../lib/netbuf

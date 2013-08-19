@@ -2,9 +2,9 @@ PROG=	mkpairs
 SRCS=	main.c
 
 # Utility functions
-.PATH.c	:	../../lib/util
+.PATH.c	:	../../libcperciva/util
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../../lib/util
+IDIRS	+=	-I ../../libcperciva/util
 .PATH.c	:	../lib/
 SRCS	+=	mkpair.c
 SRCS	+=	sha256.c

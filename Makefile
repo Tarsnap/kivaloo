@@ -3,7 +3,7 @@ TESTS=	tests perftests
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs
-PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE lib bench
+PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE lib libcperciva bench
 
 test:
 	make -C tests test

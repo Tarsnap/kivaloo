@@ -1,10 +1,10 @@
 PROG=	test_heap
 SRCS=	main.c
 
-.PATH	:	../../lib/datastruct
+.PATH	:	../../libcperciva/datastruct
 SRCS	+=	ptrheap.c
 SRCS	+=	elasticarray.c
-IDIRS	+=	-I ../../lib/datastruct
+IDIRS	+=	-I ../../libcperciva/datastruct
 
 test:	test_heap
 	@echo -n "Heapsorting main.c..."

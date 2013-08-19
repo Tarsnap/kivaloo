@@ -7,8 +7,12 @@ SRCS	+=	warnp.c
 IDIRS	+=	-I ../../libcperciva/util
 .PATH.c	:	../lib/
 SRCS	+=	mkpair.c
-SRCS	+=	sha256.c
 IDIRS	+=	-I ../lib
+
+# Fundamental algorithms
+.PATH.c	:	../../libcperciva/alg
+SRCS	+=	sha256.c
+IDIRS	+=	-I ../../libcperciva/alg
 
 # Debugging options
 #CFLAGS	+=	-g

@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "asprintf.h"
+#include "sock.h"
 
 #include "sock_util.h"
 #include "sock_internal.h"
@@ -61,6 +62,50 @@ sock_addr_dup(const struct sock_addr * sa)
 
 err1:
 	free(sa2);
+err0:
+	/* Failure! */
+	return (NULL);
+}
+
+/**
+ * sock_addr_duplist(sas):
+ * Duplicate the provided list of socket addresses.
+ */
+struct sock_addr **
+sock_addr_duplist(struct sock_addr * const * sas)
+{
+	struct sock_addr ** sas2;
+	size_t i;
+
+	/* Count socket addresses. */
+	for (i = 0; sas[i] != NULL; i++)
+		continue;
+
+	/* Allocate the list to hold addresses plus a NULL terminator. */
+	if ((sas2 = malloc((i + 1) * sizeof(struct sock_addr *))) == NULL)
+		goto err0;
+
+	/* Fill the list with NULLs to make error-path cleanup simpler. */
+	for (i = 0; sas[i] != NULL; i++)
+		sas2[i] = NULL;
+	sas2[i] = NULL;
+
+	/* Duplicate addresses. */
+	for (i = 0; sas[i] != NULL; i++) {
+		if ((sas2[i] = sock_addr_dup(sas[i])) == NULL)
+			goto err1;
+	}
+
+	/* Success! */
+	return (sas2);
+
+err1:
+	/*
+	 * Regardless of how many addresses we managed to duplicate before
+	 * failing and being sent here, we have a valid socket address list,
+	 * so we can free it and its constituent addresses easily.
+	 */
+	sock_addr_freelist(sas2);
 err0:
 	/* Failure! */
 	return (NULL);

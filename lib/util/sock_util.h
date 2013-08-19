@@ -19,6 +19,12 @@ int sock_addr_cmp(const struct sock_addr *, const struct sock_addr *);
 struct sock_addr * sock_addr_dup(const struct sock_addr *);
 
 /**
+ * sock_addr_duplist(sas):
+ * Duplicate the provided list of socket addresses.
+ */
+struct sock_addr ** sock_addr_duplist(struct sock_addr * const *);
+
+/**
  * sock_addr_serialize(sa, buf, buflen):
  * Allocate a buffer and serialize the socket address ${sa} into it.  Return
  * the buffer via ${buf} and its length via ${buflen}.  The serialization is

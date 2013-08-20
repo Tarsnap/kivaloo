@@ -1,8 +1,9 @@
 # Program name
 PROG	=	lbs-s3
 
-# Library code required
+# Libraries which are sometimes merged into libc
 LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
 
 # LBS code
 SRCS	=	main.c

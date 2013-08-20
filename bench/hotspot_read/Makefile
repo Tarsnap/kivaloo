@@ -1,6 +1,9 @@
 PROG=	hotspot_read
 SRCS=	main.c
-LDADD=	-lrt
+
+# Libraries which are sometimes merged into libc
+LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
 
 # Data structures (libcperciva)
 .PATH.c	:	../../libcperciva/datastruct

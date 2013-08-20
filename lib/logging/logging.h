@@ -1,6 +1,8 @@
 #ifndef _LOGGING_H_
 #define _LOGGING_H_
 
+#include <unistd.h>
+
 /**
  * Rotatable log file writer.  If the log file /path/to/foo.log is written by
  * a single process using these functions, the operations

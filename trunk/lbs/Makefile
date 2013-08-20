@@ -1,8 +1,12 @@
 # Program name
 PROG	=	lbs
 
+# Libraries which are sometimes merged into libc
+LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
+
 # Library code required
-LDADD	=	-lpthread -lrt
+LDADD_REQ	=	-lpthread
 
 # LBS code
 SRCS	=	main.c

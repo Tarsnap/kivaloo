@@ -1,8 +1,9 @@
 # Program name.
 PROG	=	mux
 
-# Library code required
+# Libraries which are sometimes merged into libc
 LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
 
 # MUX code
 SRCS	=	main.c

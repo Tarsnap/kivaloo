@@ -1,8 +1,9 @@
 # Program name.
 PROG	=	kvlds
 
-# Library code required
+# Libraries which are sometimes merged into libc
 LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
 
 # KVLDS code
 SRCS	=	main.c

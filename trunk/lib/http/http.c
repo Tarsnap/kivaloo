@@ -137,7 +137,7 @@ findeol(uint8_t * buf, size_t buflen)
 
 /* Grab and NUL-terminate a \r\n terminated line.  (Assert that one exists.) */
 static uint8_t *
-getline(uint8_t * buf, size_t buflen, size_t * bufpos, size_t * linelen)
+sgetline(uint8_t * buf, size_t buflen, size_t * bufpos, size_t * linelen)
 {
 	uint8_t * s = &buf[*bufpos];
 
@@ -399,6 +399,7 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	size_t len;
 	const char * te;
 	const char * clen;
+	size_t cpos;
 
 	/* Suck the headers into a separate buffer. */
 	H->res_headlen = buflen;
@@ -430,7 +431,7 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	bufpos = 0;
 
 	/* Find the status-line and check for premature NULs. */
-	s = getline(H->res_head, H->res_headlen, &bufpos, &linelen);
+	s = sgetline(H->res_head, H->res_headlen, &bufpos, &linelen);
 	if (strlen(s) < linelen) {
 		warn0("Status line contains NUL byte");
 		return (fail(H));
@@ -449,15 +450,17 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	/* Parse headers. */
 	for (i = 0; i < H->res.nheaders; i++) {
 		/* Grab a line. */
-		s = getline(H->res_head, H->res_headlen, &bufpos, &linelen);
+		s = sgetline(H->res_head, H->res_headlen, &bufpos, &linelen);
 		if (strlen(s) < linelen) {
 			warn0("Header contains NUL byte");
 			return (fail(H));
 		}
 
 		/* Split into header and value. */
-		H->res.headers[i].header = strsep(&s, ":");
-		H->res.headers[i].value = s;
+		cpos = strcspn(s, ":");
+		H->res.headers[i].header = s;
+		H->res.headers[i].value = s[cpos] ? &s[cpos + 1] : &s[cpos];
+		s[cpos] = '\0';
 	}
 
 	/* We should be 2 bytes (\r\n) away from the end of the buffer. */

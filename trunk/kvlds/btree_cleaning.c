@@ -38,7 +38,7 @@ struct cleaner {
 };
 
 /* Time between ticks of the cleaning debt clock. */
-const struct timeval onesec = {.tv_sec = 1, .tv_usec = 0};
+static const struct timeval onesec = {.tv_sec = 1, .tv_usec = 0};
 
 static int poke(struct cleaner *);
 

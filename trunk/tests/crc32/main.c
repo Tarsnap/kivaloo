@@ -5,7 +5,7 @@
 
 #include "crc32c.h"
 
-struct testcase {
+static struct testcase {
 	const char * s;
 	uint8_t cbuf[4];
 } tests[] = {

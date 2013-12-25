@@ -93,7 +93,7 @@ struct pool_elem {
 
 /* Find the pool_elem within a record. */
 #define get_pool_elem(P, rec)					\
-	(*(struct pool_elem **)((uint8_t *)(rec) + (P->offset)))
+	(*(struct pool_elem **)(void *)((uint8_t *)(rec) + (P->offset)))
 
 /**
  * pool_addqueue(P, rec):

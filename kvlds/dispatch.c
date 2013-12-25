@@ -94,7 +94,7 @@ static int gotrequest(void *, int);
 static int readreqs(struct dispatch_state *);
 
 /* Time between ticks of the 'flush cleans if we have had no MRs' clock. */
-const struct timeval fivesec = {.tv_sec = 5, .tv_usec = 0};
+static const struct timeval fivesec = {.tv_sec = 5, .tv_usec = 0};
 
 /* The connection is dying.  Help speed up the process. */
 static int

@@ -31,7 +31,7 @@ struct sync_cookie {
 };
 
 /* Time between FREE calls. */
-const struct timeval free_time = {
+static const struct timeval free_time = {
 	.tv_sec = 1,
 	.tv_usec = 0
 };

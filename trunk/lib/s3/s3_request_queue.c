@@ -379,6 +379,7 @@ s3_request_queue_flush(struct s3_request_queue * Q)
 		Q->reqs_queued_head = R->next;
 		free(R);
 	}
+	Q->reqs_queued_tail = NULL;
 
 	/* Cancel in-progress requests and free them. */
 	while ((R = Q->reqs_ip_head) != NULL) {
@@ -387,6 +388,7 @@ s3_request_queue_flush(struct s3_request_queue * Q)
 		sock_addr_free(R->addrs[0]);
 		free(R);
 	}
+	Q->reqs_ip_tail = NULL;
 }
 
 /**

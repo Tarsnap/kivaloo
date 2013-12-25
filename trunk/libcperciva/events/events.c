@@ -85,6 +85,7 @@ events_run(void)
 {
 	struct eventrec * r;
 	struct timeval * tv;
+	struct timeval tv2;
 	int rc = 0;
 
 	/* If we have any immediate events, process them and return. */
@@ -133,7 +134,8 @@ events_run(void)
 		}
 
 		/* Check if any new network events are available. */
-		if (events_network_select(&tv_zero))
+		memcpy(&tv2, &tv_zero, sizeof(struct timeval));
+		if (events_network_select(&tv2))
 			goto err0;
 		if ((r = events_network_get()) != NULL) {
 			if ((rc = doevent(r)) != 0)

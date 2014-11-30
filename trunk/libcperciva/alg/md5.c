@@ -10,7 +10,7 @@
  * (uint8_t) in little-endian form.  Assumes len is a multiple of 4.
  */
 static void
-le32enc_vect(uint8_t *dst, const uint32_t *src, size_t len)
+le32enc_vect(uint8_t * dst, const uint32_t * src, size_t len)
 {
 	size_t i;
 
@@ -23,7 +23,7 @@ le32enc_vect(uint8_t *dst, const uint32_t *src, size_t len)
  * len/4 vector of (uint32_t).  Assumes len is a multiple of 4.
  */
 static void
-le32dec_vect(uint32_t *dst, const uint8_t *src, size_t len)
+le32dec_vect(uint32_t * dst, const uint8_t * src, size_t len)
 {
 	size_t i;
 
@@ -210,11 +210,11 @@ MD5_Init(MD5_CTX * ctx)
  * Input ${len} bytes from ${in} into the MD5 context ${ctx}.
  */
 void
-MD5_Update(MD5_CTX * ctx, const void *in, size_t len)
+MD5_Update(MD5_CTX * ctx, const void * in, size_t len)
 {
 	uint32_t bitlen[2];
 	uint32_t r;
-	const uint8_t *src = in;
+	const uint8_t * src = in;
 
 	/* Return immediately if we have nothing to do. */
 	if (len == 0)
@@ -334,7 +334,7 @@ HMAC_MD5_Init(HMAC_MD5_CTX * ctx, const void * _K, size_t Klen)
  * Input ${len} bytes from ${in} into the HMAC-MD5 context ${ctx}.
  */
 void
-HMAC_MD5_Update(HMAC_MD5_CTX * ctx, const void *in, size_t len)
+HMAC_MD5_Update(HMAC_MD5_CTX * ctx, const void * in, size_t len)
 {
 
 	/* Feed data to the inner MD5 operation. */

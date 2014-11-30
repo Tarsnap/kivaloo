@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "insecure_memzero.h"
 #include "sysendian.h"
 
 #include "md5.h"
@@ -154,8 +155,8 @@ MD5_Transform(uint32_t * state, const uint8_t block[64])
 		state[i] += S[i];
 
 	/* Clean the stack. */
-	memset(W, 0, 64);
-	memset(S, 0, 16);
+	insecure_memzero(W, 64);
+	insecure_memzero(S, 16);
 }
 
 static uint8_t PAD[64] = {
@@ -271,7 +272,7 @@ MD5_Final(uint8_t digest[16], MD5_CTX * ctx)
 	le32enc_vect(digest, ctx->state, 16);
 
 	/* Clear the context state. */
-	memset((void *)ctx, 0, sizeof(*ctx));
+	insecure_memzero(ctx, sizeof(MD5_CTX));
 }
 
 /**
@@ -325,8 +326,8 @@ HMAC_MD5_Init(HMAC_MD5_CTX * ctx, const void * _K, size_t Klen)
 	MD5_Update(&ctx->octx, pad, 64);
 
 	/* Clean the stack. */
-	memset(khash, 0, 16);
-	memset(pad, 0, 64);
+	insecure_memzero(khash, 16);
+	insecure_memzero(pad, 64);
 }
 
 /**
@@ -361,7 +362,7 @@ HMAC_MD5_Final(uint8_t digest[16], HMAC_MD5_CTX * ctx)
 	MD5_Final(digest, &ctx->octx);
 
 	/* Clean the stack. */
-	memset(ihash, 0, 16);
+	insecure_memzero(ihash, 16);
 }
 
 /**

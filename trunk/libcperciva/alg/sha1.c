@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "insecure_memzero.h"
 #include "sysendian.h"
 
 #include "sha1.h"
@@ -180,8 +181,8 @@ SHA1_Transform(uint32_t * state, const uint8_t block[64])
 		state[i] += S[i];
 
 	/* Clean the stack. */
-	memset(W, 0, 320);
-	memset(S, 0, 20);
+	insecure_memzero(W, 320);
+	insecure_memzero(S, 20);
 }
 
 static uint8_t PAD[64] = {
@@ -298,7 +299,7 @@ SHA1_Final(uint8_t digest[20], SHA1_CTX * ctx)
 	be32enc_vect(digest, ctx->state, 20);
 
 	/* Clear the context state. */
-	memset((void *)ctx, 0, sizeof(*ctx));
+	insecure_memzero(ctx, sizeof(SHA1_CTX));
 }
 
 /**
@@ -351,8 +352,8 @@ HMAC_SHA1_Init(HMAC_SHA1_CTX * ctx, const void * _K, size_t Klen)
 	SHA1_Update(&ctx->octx, pad, 64);
 
 	/* Clean the stack. */
-	memset(khash, 0, 20);
-	memset(pad, 0, 64);
+	insecure_memzero(khash, 20);
+	insecure_memzero(pad, 64);
 }
 
 /**
@@ -387,7 +388,7 @@ HMAC_SHA1_Final(uint8_t digest[20], HMAC_SHA1_CTX * ctx)
 	SHA1_Final(digest, &ctx->octx);
 
 	/* Clean the stack. */
-	memset(ihash, 0, 20);
+	insecure_memzero(ihash, 20);
 }
 
 /**

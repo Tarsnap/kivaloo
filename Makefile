@@ -7,21 +7,21 @@ BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib libcperciva bench
 
 test:
-	make -C tests test
+	${MAKE} -C tests test
 
 .for D in ${PROGS} ${BENCHES}
 ${PKG}-${VERSION}/${D}/Makefile:
 	echo '.POSIX:' > $@
-	( cd ${D} && echo -n 'PROG=kivaloo-' && make -V PROG ) >> $@
-	( cd ${D} && echo -n 'SRCS=' && make -V SRCS ) >> $@
-	( cd ${D} && echo -n 'IDIRS=' && make -V IDIRS ) >> $@
-	( cd ${D} && echo -n 'LDADD_REQ=' && make -V LDADD_REQ ) >> $@
+	( cd ${D} && echo -n 'PROG=kivaloo-' && ${MAKE} -V PROG ) >> $@
+	( cd ${D} && echo -n 'SRCS=' && ${MAKE} -V SRCS ) >> $@
+	( cd ${D} && echo -n 'IDIRS=' && ${MAKE} -V IDIRS ) >> $@
+	( cd ${D} && echo -n 'LDADD_REQ=' && ${MAKE} -V LDADD_REQ ) >> $@
 	cat Makefile.prog >> $@
-	( cd ${D} && make -V SRCS |	\
+	( cd ${D} && ${MAKE} -V SRCS |	\
 	    tr ' ' '\n' |		\
 	    sed -E 's/.c$$/.o/' |	\
 	    while read F; do		\
-		S=`make source-$${F}`;	\
+		S=`${MAKE} source-$${F}`;	\
 		echo "$${F}: $${S}";	\
 		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L \$${IDIRS} -c $${S} -o $${F}"; \
 	    done ) >> $@
@@ -42,7 +42,7 @@ publish: clean
 	    tar -xf- -C ${PKG}-${VERSION}
 	cp Makefile.POSIX ${PKG}-${VERSION}/Makefile
 .for D in ${PROGS} ${BENCHES}
-	make ${PKG}-${VERSION}/${D}/Makefile
+	${MAKE} ${PKG}-${VERSION}/${D}/Makefile
 .endfor
 	tar -cvzf ${PKG}-${VERSION}.tgz ${PKG}-${VERSION}
 	rm -r ${PKG}-${VERSION}

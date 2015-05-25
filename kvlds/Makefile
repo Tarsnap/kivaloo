@@ -50,6 +50,7 @@ IDIRS	+=	-I ../lib/datastruct
 SRCS	+=	asprintf.c
 SRCS	+=	daemonize.c
 SRCS	+=	humansize.c
+SRCS	+=	insecure_memzero.c
 SRCS	+=	monoclock.c
 SRCS	+=	noeintr.c
 SRCS	+=	sock.c

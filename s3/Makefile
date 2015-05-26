@@ -24,6 +24,7 @@ SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
 SRCS	+=	daemonize.c
 SRCS	+=	hexify.c
+SRCS	+=	insecure_memzero.c
 SRCS	+=	monoclock.c
 SRCS	+=	noeintr.c
 SRCS	+=	sock.c

@@ -75,3 +75,5 @@ CLEANFILES+=	kvlds.leak ktrace-kvlds.out kdump-kvlds.out
 CLEANFILES+=	test_kvlds.leak ktrace-test_kvlds.out kdump-test_kvlds.out
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

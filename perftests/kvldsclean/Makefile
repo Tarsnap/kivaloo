@@ -84,3 +84,5 @@ test:	all
 	@rm -r stor
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

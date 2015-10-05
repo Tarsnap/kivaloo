@@ -70,3 +70,5 @@ test:
 #CFLAGS	+=	-pg
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

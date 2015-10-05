@@ -3,6 +3,7 @@ SRCS=	main.c
 
 # Utility functions
 .PATH.c	:	../../libcperciva/util
+SRCS	+=	insecure_memzero.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ../../libcperciva/util
 .PATH.c	:	../lib/

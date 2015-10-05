@@ -179,3 +179,5 @@ CLEANFILES+=	kvlds.gmon kvlds-ADD.gprof kvlds-MODIFY.gprof
 CLEANFILES+=	mux.gmon mux.gprof
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

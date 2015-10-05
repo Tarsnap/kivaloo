@@ -10,6 +10,7 @@ IDIRS	+=	-I ../../libcperciva/datastruct
 
 # Utility functions
 .PATH.c	:	../../libcperciva/util
+SRCS	+=	asprintf.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
@@ -50,3 +51,5 @@ test:	test_http
 	@./test_http www.tarsnap.com /kivaloo.html
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

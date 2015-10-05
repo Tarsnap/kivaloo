@@ -85,3 +85,5 @@ IDIRS	+=	-I ../lib/proto_lbs
 #CFLAGS	+=	-pg
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

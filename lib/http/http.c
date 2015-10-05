@@ -268,7 +268,7 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
 	H->req_headlen += 2;			/* Blank line. */
 
 	/* Allocate space for header plus NUL byte (so we can use stpcpy). */
-	if ((s = H->req_head = malloc(H->req_headlen + 1)) == NULL)
+	if ((s = (char *)(H->req_head = malloc(H->req_headlen + 1))) == NULL)
 		goto err1;
 
 	/* Construct request line. */
@@ -431,7 +431,7 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	bufpos = 0;
 
 	/* Find the status-line and check for premature NULs. */
-	s = sgetline(H->res_head, H->res_headlen, &bufpos, &linelen);
+	s = (char *)(sgetline(H->res_head, H->res_headlen, &bufpos, &linelen));
 	if (strlen(s) < linelen) {
 		warn0("Status line contains NUL byte");
 		return (fail(H));
@@ -450,7 +450,8 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	/* Parse headers. */
 	for (i = 0; i < H->res.nheaders; i++) {
 		/* Grab a line. */
-		s = sgetline(H->res_head, H->res_headlen, &bufpos, &linelen);
+		s = (char*)
+		    (sgetline(H->res_head, H->res_headlen, &bufpos, &linelen));
 		if (strlen(s) < linelen) {
 			warn0("Header contains NUL byte");
 			return (fail(H));
@@ -615,7 +616,7 @@ callback_chunkedheader(void * cookie, int status)
 	/* If we found one, handle the line. */
 	if (eolpos != buflen) {
 		/* Parse the chunk length. */
-		clen = strtoull(buf, NULL, 16);
+		clen = strtoull((const char *)buf, NULL, 16);
 
 		/* Consume the line and EOL. */
 		netbuf_read_consume(H->R, eolpos + 2);

@@ -21,6 +21,7 @@ IDIRS	+=	-I ../../lib/datastruct
 
 # Utility functions
 .PATH.c	:	../../libcperciva/util
+SRCS	+=	insecure_memzero.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
@@ -76,3 +77,5 @@ IDIRS	+=	-I ../../lib/proto_kvlds
 #CFLAGS	+=	-pg
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

@@ -4,6 +4,8 @@
 
 #include "ptrheap.h"
 
+#define MAX_LINE_LENGTH 128
+
 static int
 compar(void * cookie, const void * x, const void * y)
 {
@@ -20,7 +22,7 @@ main(int argc, char * argv[])
 {
 	struct ptrheap * H;
 	char * s, * dups;
-	size_t l;
+	char input[MAX_LINE_LENGTH];
 
 	(void)argc; /* UNUSED */
 	(void)argv; /* UNUSED */
@@ -30,12 +32,12 @@ main(int argc, char * argv[])
 		exit(1);
 
 	/* Suck in the input. */
-	while ((s = fgetln(stdin, &l)) != NULL) {
-		/* NUL-terminate. */
-		s[l-1] = '\0';
+	while (fgets(input, MAX_LINE_LENGTH, stdin) != NULL) {
+		/* Remove final newline. */
+		input[strlen(input)-1] = '\0';
 
 		/* Duplicate string. */
-		if ((dups = strdup(s)) == NULL)
+		if ((dups = strdup(input)) == NULL)
 			exit(1);
 
 		/* Insert string. */

@@ -61,3 +61,5 @@ test:	test_s3
 	./test_s3 `head -1 ~/.aws/aws_test_key` `tail -1 ~/.aws/aws_test_key`
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

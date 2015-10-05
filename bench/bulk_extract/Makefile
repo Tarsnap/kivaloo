@@ -72,3 +72,5 @@ IDIRS	+=	-I ../../lib/proto_kvlds
 #CFLAGS	+=	-pg
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

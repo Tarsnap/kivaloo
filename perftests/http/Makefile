@@ -50,3 +50,5 @@ test:	test_http
 	@./test_http www.tarsnap.com /kivaloo.html
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

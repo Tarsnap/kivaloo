@@ -71,3 +71,5 @@ IDIRS	+=	-I ../lib/wire
 #CFLAGS	+=	-pg
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

@@ -18,3 +18,4 @@ test:	test_heap
 
 .include <bsd.prog.mk>
 
+CFLAGS	+=	-Wno-unused-function

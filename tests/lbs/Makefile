@@ -68,3 +68,5 @@ test:	all
 CLEANFILES+=	lbs.leak test_lbs.leak
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

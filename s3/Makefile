@@ -99,3 +99,5 @@ IDIRS	+=	-I ../lib/proto_s3
 #CFLAGS	+=	-pg
 
 .include <bsd.prog.mk>
+
+CFLAGS +=	-Wno-unused-function

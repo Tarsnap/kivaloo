@@ -73,3 +73,5 @@ test:	all
 CLEANFILES+=	mux.leak
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

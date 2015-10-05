@@ -76,3 +76,5 @@ CLEANFILES+=	lbs-s3.leak ktrace-lbs-s3.out kdump-lbs-s3.out
 CLEANFILES+=	s3.log
 
 .include <bsd.prog.mk>
+
+CFLAGS	+=	-Wno-unused-function

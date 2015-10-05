@@ -10,6 +10,7 @@ IDIRS	+=	-I ../../libcperciva/datastruct
 
 # Utility functions
 .PATH.c	:	../../libcperciva/util
+SRCS	+=	asprintf.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c

@@ -208,11 +208,11 @@ pingpong(struct wire_requestqueue * Q, const char * key, const char * to,
 	int i;
 
 	/* Create key and values. */
-	if ((k = kvldskey_create(key, strlen(key))) == NULL)
+	if ((k = kvldskey_create((const uint8_t *)key, strlen(key))) == NULL)
 		return (-1);
-	if ((v0 = kvldskey_create(from, strlen(from))) == NULL)
+	if ((v0 = kvldskey_create((const uint8_t *)from, strlen(from))) == NULL)
 		return (-1);
-	if ((v1 = kvldskey_create(to, strlen(to))) == NULL)
+	if ((v1 = kvldskey_create((const uint8_t *)to, strlen(to))) == NULL)
 		return (-1);
 
 	/* Write initial value if we're starting the pingpong. */
@@ -266,7 +266,7 @@ createmany(struct wire_requestqueue * Q, size_t N, char * prefix)
 	values = malloc(N * sizeof(struct kvldskey *));
 	for (i = 0; i < N; i++) {
 		sprintf(valbuf, "%zu", i);
-		values[i] = kvldskey_create(valbuf, strlen(valbuf));
+		values[i] = kvldskey_create((uint8_t *)valbuf, strlen(valbuf));
 	}
 
 	/* Store N key-value pairs. */

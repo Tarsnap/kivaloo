@@ -51,7 +51,7 @@ batch_set(struct wire_requestqueue * Q, size_t start, size_t N)
 	for (x = start; x < start + N; x++) {
 		/* Set "$x" = "$x". */
 		sprintf(buf, "%08zu", x);
-		if ((key = kvldskey_create(buf, 8)) == NULL)
+		if ((key = kvldskey_create((uint8_t *)buf, 8)) == NULL)
 			goto err0;
 		if (proto_kvlds_request_set(Q, key, key, callback_done, &C)) {
 			warnp("Failed to send SET request");
@@ -93,7 +93,7 @@ batch_delete(struct wire_requestqueue * Q, size_t start, size_t N)
 	for (x = start; x < start + N; x++) {
 		/* Delete "$x". */
 		sprintf(buf, "%08zu", x);
-		if ((key = kvldskey_create(buf, 8)) == NULL)
+		if ((key = kvldskey_create((uint8_t *)buf, 8)) == NULL)
 			goto err0;
 		if (proto_kvlds_request_delete(Q, key, callback_done, &C)) {
 			warnp("Failed to send DELETE request");

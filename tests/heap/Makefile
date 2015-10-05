@@ -9,7 +9,7 @@ IDIRS	+=	-I ../../libcperciva/datastruct
 test:	test_heap
 	@echo -n "Heapsorting main.c..."
 	@./test_heap < main.c > main.c.sorted
-	@if sort < main.c | cmp - main.c.sorted; then	\
+	@if LC_ALL=C sort < main.c | cmp - main.c.sorted; then	\
 		echo " PASSED!";			\
 		rm main.c.sorted;			\
 	else						\

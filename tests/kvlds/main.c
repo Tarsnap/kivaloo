@@ -396,9 +396,10 @@ err0:
 static int
 mutate(struct wire_requestqueue * Q)
 {
-	struct kvldskey * key = kvldskey_create("key", 3);
-	struct kvldskey * value = kvldskey_create("value", 5);
-	struct kvldskey * value2 = kvldskey_create("value2", 100);
+	struct kvldskey * key = kvldskey_create((const uint8_t *)"key", 3);
+	struct kvldskey * value = kvldskey_create((const uint8_t *)"value", 5);
+	struct kvldskey * value2 = kvldskey_create((const uint8_t *)"value2",
+	    100);
 
 	/*
 	 * Test B+Tree mutation code paths, one by one:
@@ -501,7 +502,7 @@ createmany(struct wire_requestqueue * Q, size_t N)
 	values = malloc(N * sizeof(struct kvldskey *));
 	for (i = 0; i < N; i++) {
 		sprintf(valbuf, "%zu", i);
-		values[i] = kvldskey_create(valbuf, strlen(valbuf));
+		values[i] = kvldskey_create((uint8_t *)valbuf, strlen(valbuf));
 	}
 
 	/* Store N key-value pairs. */

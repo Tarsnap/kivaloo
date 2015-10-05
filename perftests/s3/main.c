@@ -67,7 +67,7 @@ main(int argc, char * argv[])
 	R.nheaders = 0;
 	R.headers = NULL;
 	R.bodylen = strlen("ha-ha\n");
-	R.body = "ha-ha\n";
+	R.body = (const uint8_t *)"ha-ha\n";
 
 	/* Send PUT request. */
 	done = 0;

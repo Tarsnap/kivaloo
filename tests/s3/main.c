@@ -146,8 +146,8 @@ putfile(struct wire_requestqueue * Q, const char * bucket)
 
 	/* PUT the object. */
 	opdone = 0;
-	if (proto_s3_request_put(Q, bucket, "s3-testfile", 11, "hello world",
-	    callback_put, NULL) ||
+	if (proto_s3_request_put(Q, bucket, "s3-testfile", 11,
+	    (const uint8_t *)"hello world", callback_put, NULL) ||
 	    events_spin(&opdone)) {
 		warn0("PUT failed");
 		exit(1);

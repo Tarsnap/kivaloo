@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "asprintf.h"
 #include "events.h"
 #include "http.h"
 #include "sock.h"

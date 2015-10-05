@@ -18,6 +18,7 @@ IDIRS	+=	-I ../../libcperciva/datastruct
 .PATH.c	:	../../libcperciva/util
 SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
+SRCS	+=	insecure_memzero.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c

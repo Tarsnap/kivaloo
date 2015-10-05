@@ -21,6 +21,7 @@ IDIRS	+=	-I ../../lib/datastruct
 
 # Utility functions
 .PATH.c	:	../../libcperciva/util
+SRCS	+=	insecure_memzero.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c

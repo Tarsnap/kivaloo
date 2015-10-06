@@ -6,7 +6,7 @@ source-${X:.c=.o}: ${X}
 
 # Defaults for all kivaloo code
 NO_MAN	?=	yes
-WARNS	?=	6
+WARNS	?=	3
 
 # Make logic (bits which are separated out in individual Makefiles).
 CFLAGS	+=	${IDIRS}

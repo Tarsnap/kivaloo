@@ -136,7 +136,7 @@ findeol(uint8_t * buf, size_t buflen)
 }
 
 /* Grab and NUL-terminate a \r\n terminated line.  (Assert that one exists.) */
-static uint8_t *
+static char *
 sgetline(uint8_t * buf, size_t buflen, size_t * bufpos, size_t * linelen)
 {
 	uint8_t * s = &buf[*bufpos];
@@ -154,7 +154,7 @@ sgetline(uint8_t * buf, size_t buflen, size_t * bufpos, size_t * linelen)
 	*bufpos += *linelen + 2;
 
 	/* Return string. */
-	return (s);
+	return (char *)(s);
 }
 
 /* Add data to the body buffer. */

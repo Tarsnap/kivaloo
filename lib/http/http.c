@@ -136,7 +136,7 @@ findeol(uint8_t * buf, size_t buflen)
 }
 
 /* Grab and NUL-terminate a \r\n terminated line.  (Assert that one exists.) */
-static uint8_t *
+static char *
 sgetline(uint8_t * buf, size_t buflen, size_t * bufpos, size_t * linelen)
 {
 	uint8_t * s = &buf[*bufpos];
@@ -154,7 +154,7 @@ sgetline(uint8_t * buf, size_t buflen, size_t * bufpos, size_t * linelen)
 	*bufpos += *linelen + 2;
 
 	/* Return string. */
-	return (s);
+	return (char *)(s);
 }
 
 /* Add data to the body buffer. */
@@ -268,7 +268,7 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
 	H->req_headlen += 2;			/* Blank line. */
 
 	/* Allocate space for header plus NUL byte (so we can use stpcpy). */
-	if ((s = H->req_head = malloc(H->req_headlen + 1)) == NULL)
+	if ((s = (char *)(H->req_head = malloc(H->req_headlen + 1))) == NULL)
 		goto err1;
 
 	/* Construct request line. */
@@ -615,7 +615,7 @@ callback_chunkedheader(void * cookie, int status)
 	/* If we found one, handle the line. */
 	if (eolpos != buflen) {
 		/* Parse the chunk length. */
-		clen = strtoull(buf, NULL, 16);
+		clen = strtoull((const char *)buf, NULL, 16);
 
 		/* Consume the line and EOL. */
 		netbuf_read_consume(H->R, eolpos + 2);

@@ -5,6 +5,12 @@ SRCS=	main.c
 SRCS	+=	ptrheap.c
 SRCS	+=	elasticarray.c
 IDIRS	+=	-I ../../libcperciva/datastruct
+.PATH	:	../../libcperciva/util
+SRCS	+=	warnp.c
+IDIRS	+=	-I ../../libcperciva/util
+
+# FreeBSD hides getline by default
+CFLAGS	+=	-D_POSIX_C_SOURCE=200809L
 
 test:	test_heap
 	@echo -n "Heapsorting main.c..."
@@ -17,4 +23,3 @@ test:	test_heap
 	fi
 
 .include <bsd.prog.mk>
-

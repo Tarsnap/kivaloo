@@ -224,8 +224,10 @@ main(int argc, char * argv[])
 	/* Shut down the event subsystem. */
 	events_shutdown();
 
-	/* Close all streams, in order to free malloced internal buffer. */
-	fcloseall();
+	/* Close all streams, in order to free malloced internal buffers. */
+	fclose(stdin);
+	fclose(stdout);
+	fclose(stderr);
 
 	/* Success! */
 	exit(0);

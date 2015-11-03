@@ -370,6 +370,10 @@ callback_range(void * cookie, uint8_t * buf, size_t buflen)
 				BAD("RANGE", "bogus length");
 		}
 
+		/* Warn about HTTP 200 responses. */
+		if (status == 200)
+			BAD("RANGE", "HTTP 200 response");
+
 		/* Did the operation succeed? */
 		if (status == 206)
 			failed = 0;

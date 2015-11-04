@@ -86,7 +86,7 @@ echo -n "Checking for memory leaks in LBS-S3..."
 mkdir $TMPDIR
 chflags nodump $TMPDIR
 $S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE -1
-ktrace -i -f ktrace-lbs-s3.out env MALLOC_OPTIONS=JUV		\
+ktrace -i -f ktrace-lbs-s3.out env MALLOC_CONF="junk:true,utrace:true"		\
     $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET -1
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024 -1
 $TESTKVLDS $SOCKK

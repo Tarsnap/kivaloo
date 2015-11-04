@@ -116,7 +116,7 @@ rm $SOCKM $SOCKM.pid
 
 # Check for memory leaks
 echo -n "Checking for memory leaks... "
-ktrace -i -f ktrace-mux.out env MALLOC_OPTIONS=JUV		\
+ktrace -i -f ktrace-mux.out env MALLOC_CONF="junk:true,utrace:true"		\
 	$MUX -t $SOCKK -s $SOCKM
 jot 2 | while read X; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed ) &

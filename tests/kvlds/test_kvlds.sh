@@ -145,9 +145,9 @@ rm -r $STOR
 echo -n "Checking for memory leaks in KVLDS..."
 mkdir $STOR
 $LBS -s $SOCKL -d $STOR -b 512 -l 1000000 -1
-ktrace -i -f ktrace-kvlds.out env MALLOC_OPTIONS=JUV		\
+ktrace -i -f ktrace-kvlds.out env MALLOC_CONF="junk:true,utrace:true"		\
     $KVLDS -s $SOCKK -l $SOCKL -v 104 -1
-ktrace -i -f ktrace-test_kvlds.out env MALLOC_OPTIONS=JUV	\
+ktrace -i -f ktrace-test_kvlds.out env MALLOC_CONF="junk:true,utrace:true"	\
     $TESTKVLDS $SOCKK
 sleep 1
 rm $SOCKK.pid $SOCKK

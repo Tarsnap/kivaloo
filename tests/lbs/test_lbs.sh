@@ -87,9 +87,9 @@ done
 echo -n "Checking for memory leaks in LBS..."
 mkdir $STOR
 chflags nodump $STOR
-ktrace -i -f ktrace-lbs.out env MALLOC_OPTIONS=JUV	\
+ktrace -i -f ktrace-lbs.out env MALLOC_CONF="junk:true,utrace:true"	\
     $LBS -s $SOCK -d $STOR -b 512 -1
-ktrace -i -f ktrace-test_lbs.out env MALLOC_OPTIONS=JUV	\
+ktrace -i -f ktrace-test_lbs.out env MALLOC_CONF="junk:true,utrace:true"	\
     $TESTLBS $SOCK
 sleep 1
 rm $SOCK.pid $SOCK

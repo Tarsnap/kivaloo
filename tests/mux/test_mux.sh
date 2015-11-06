@@ -33,7 +33,7 @@ fi
 # Verify running several clients at once.
 #	( while ! [ -f .failed ]; do $TESTMUX $SOCKM ${X}. || touch .failed; done ) &
 echo -n "Testing multiple clients... "
-jot 10 | while read X; do
+for X in 1 2 3 4 5 6 7 8 9 10; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed; ) &
 done
 sleep 1
@@ -125,7 +125,7 @@ fi
 echo -n "Checking for memory leaks... "
 ktrace -i -f ktrace-mux.out env MALLOC_CONF="junk:true,utrace:true"		\
 	$MUX -t $SOCKK -s $SOCKM
-jot 2 | while read X; do
+for X in 1 2; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed ) &
 done
 sleep 1

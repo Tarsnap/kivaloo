@@ -168,7 +168,7 @@ netbuf_write_init(int s, int (* fail_callback)(void *), void * fail_cookie)
 	 * might not even be operating on a TCP socket.
 	 */
 	val = 1;
-	setsockopt(W->s, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(int));
+	(void)setsockopt(W->s, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(int));
 
 	/* Success! */
 	return (W);

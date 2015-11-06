@@ -275,11 +275,15 @@ batch_dirty(struct batch * B)
 		    finddirty(shadowdirty, Nsd, B->reqs[i]->leaf);
 
 	/* Create a list of dirty leaves for future reference. */
-	B->ndirty = Nsd;
-	if (IMALLOC(B->dirties, B->ndirty, struct node *))
-		goto err1;
-	for (i = 0; i < B->ndirty; i++)
-		B->dirties[i] = shadowdirty[i].dirty;
+	if ((B->ndirty = Nsd) > 0) {
+		if (IMALLOC(B->dirties, B->ndirty, struct node *))
+			goto err1;
+		for (i = 0; i < B->ndirty; i++)
+			B->dirties[i] = shadowdirty[i].dirty;
+	} else {
+		/* No dirty leaves. */
+		B->dirties = NULL;
+	}
 
 	/* Free the shadow/dirty pairs. */
 	free(shadowdirty);

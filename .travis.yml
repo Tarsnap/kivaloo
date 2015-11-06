@@ -2,6 +2,14 @@ language: C
 script: bmake test
 sudo: required
 dist: trusty
+env:
+  global:
+    - secure: "JrEXxFFVL/0U4qsSK/JXUai977k9LAQdW0KCQ6mErXOdsJ7GRtoOP4XQMKpBF2XzVWNFXQjRsAdKkb0mw6n3T32rPHgu0SH2UX/E6IyvdbXnq0/YOhwypctbeOuX1IyNsZngWOktZpEefFLNuBnFkIygu/NbFruWZI30sKxdHNQr/OaKTwSpkaDs1ea4rAd5IT7WkeRKLY0VkBL9TscC1wFcjlvaObt7xA1FUxuUt612RmQVVoYvMJWmnwCOaMzzjX24fDnTBKUZkCj8+EryL56pqi+TEZL/sCUtuwIUe/xeHJD5M+GK8g8B/a49Hjx41nSmzfFQJjOqpZ1g51gtxbWEF9tFAmq4jB4a+EI2hTVOMOSenpB85X2xUxvteCPh2VUgufvgqfKOHk2UzlVWITDwqbFu0VkyXVsmrg1r/GgllCySSLwkXpCqnVvY6sP54s0dU70ofFJoxW/ypUXhWydnpdZMsRn3Gg90xs86Z0cSrwih/aAOOlJSOoInMHENs1xwCWGEGN1MAvEfv2sGkaL2q5KBbQpYpzjHW87PYb3mpYZlf0VYzAXWFTUlz6ejLF2SNq5MtdpkXofzyfUNNBB6L5rLN5gXxgzek4W7pABzpWxl6ASP00yBvzRC8BfUDkjfOt8uvZjB4HiZOXwM3ntq+7hem/0OZpyIMWLPDGg="
+    - COVERITY_SCAN_PROJECT_NAME="Tarsnap/kivaloo"
+    - COVERITY_SCAN_BRANCH_PATTERN="coverity-scan"
+    - COVERITY_SCAN_NOTIFICATION_EMAIL="cperciva@tarsnap.com"
+    - COVERITY_SCAN_BUILD_COMMAND="bmake all clean"
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq bmake
+  - curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true

@@ -6,7 +6,7 @@ BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/mkpairs
 PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib libcperciva bench
 
-test:
+test:	all
 	${MAKE} -C tests test
 
 .for D in ${PROGS} ${BENCHES}

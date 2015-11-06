@@ -85,7 +85,7 @@ callback_read_len(void * cookie, ssize_t readlen)
 		goto err1;
 
 	/* Sanity-check. */
-	if (readlen > SSIZE_MAX)
+	if (DR->addrlen > SSIZE_MAX)
 		goto err1;
 
 	/* Allocate space to hold the address. */

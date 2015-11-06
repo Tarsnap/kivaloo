@@ -8,14 +8,20 @@ SOCKS3=$TMPDIR/sock_s3
 REGION=s3-us-west-2
 BUCKET=kivaloo-test
 LOGFILE=s3.log
+AWSKEY=~/.s3/aws.key
+
+# If you don't have my AWS keys, you can't run this test.
+if ! [ -f $AWSKEY ]; then
+	echo "Can't run S3 tests without AWS keys"
+	exit 0
+fi
 
 # Clean up any old tests
 rm -rf $TMPDIR
 
 # Start S3 daemon
 mkdir $TMPDIR
-chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE
+$S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE
 
 # Run tests
 echo -n "test_s3... "
@@ -31,10 +37,17 @@ fi
 kill `cat $SOCKS3.pid`
 rm $SOCKS3.pid $SOCKS3
 
+# If we're not running on FreeBSD, we can't use utrace and jemalloc to
+# check for memory leaks
+if ! [ `uname` = "FreeBSD" ]; then
+	echo "Can't check for memory leaks on `uname`"
+	exit 0
+fi
+
 # Make sure we don't leak memory
 echo -n "Checking for memory leaks in S3 daemon..."
 ktrace -i -f ktrace-s3.out env MALLOC_CONF="junk:true,utrace:true"	\
-    $S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE -1
+    $S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE -1
 ktrace -i -f ktrace-test_s3.out env MALLOC_CONF="junk:true,utrace:true"	\
     $TESTS3 $SOCKS3 $BUCKET >/dev/null
 sleep 1

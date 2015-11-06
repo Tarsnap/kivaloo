@@ -16,7 +16,7 @@ rm -f .failed
 
 # Start LBS, KVLDS, and MUX
 mkdir $STOR
-chflags nodump $STOR
+[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 $LBS -s $SOCKL -d $STOR -b 512 -L
 $KVLDS -s $SOCKK -l $SOCKL -C 1024
 $MUX -t $SOCKK -s $SOCKM
@@ -113,6 +113,13 @@ else
 fi
 kill `cat $SOCKM.pid`
 rm $SOCKM $SOCKM.pid
+
+# If we're not running on FreeBSD, we can't use utrace and jemalloc to
+# check for memory leaks
+if ! [ `uname` = "FreeBSD" ]; then
+	echo "Can't check for memory leaks on `uname`"
+	exit 0
+fi
 
 # Check for memory leaks
 echo -n "Checking for memory leaks... "

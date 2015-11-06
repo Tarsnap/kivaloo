@@ -12,14 +12,20 @@ SOCKK=$TMPDIR/sock_kvlds
 REGION=s3-us-west-2
 BUCKET=kivaloo-test
 LOGFILE=s3.log
+AWSKEY=~/.s3/aws.key
+
+# If you don't have my AWS keys, you can't run this test.
+if ! [ -f $AWSKEY ]; then
+	echo "Can't run S3 tests without AWS keys"
+	exit 0
+fi
 
 # Clean up any old tests
 rm -rf $TMPDIR
 
 # Start S3 daemon
 mkdir $TMPDIR
-chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE
+$S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE
 
 # Start LBS
 $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET
@@ -81,11 +87,17 @@ kill `cat $SOCKS3.pid`
 rm $SOCKS3.pid $SOCKS3
 rm -r $TMPDIR
 
+# If we're not running on FreeBSD, we can't use utrace and jemalloc to
+# check for memory leaks
+if ! [ `uname` = "FreeBSD" ]; then
+	echo "Can't check for memory leaks on `uname`"
+	exit 0
+fi
+
 # Make sure LBS-S3 doesn't leak memory
 echo -n "Checking for memory leaks in LBS-S3..."
 mkdir $TMPDIR
-chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE -1
+$S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE -1
 ktrace -i -f ktrace-lbs-s3.out env MALLOC_CONF="junk:true,utrace:true"		\
     $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET -1
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024 -1
@@ -112,8 +124,7 @@ rm leak.tmp
 
 # Launch the stack again and wait until garbage collection is finished
 mkdir $TMPDIR
-chflags nodump $TMPDIR
-$S3 -s $SOCKS3 -r $REGION -k ~/.s3/aws.key -l $LOGFILE
+$S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE
 $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024
 while true; do

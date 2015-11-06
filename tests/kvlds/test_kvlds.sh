@@ -13,7 +13,7 @@ rm -rf $STOR
 
 # Start LBS
 mkdir $STOR
-chflags nodump $STOR
+[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 $LBS -s $SOCKL -d $STOR -b 512 -l 1000000
 
 # 96-byte keys are too big for 512-byte blocks
@@ -141,9 +141,17 @@ kill `cat $SOCKL.pid`
 rm $SOCKL.pid $SOCKL
 rm -r $STOR
 
+# If we're not running on FreeBSD, we can't use utrace and jemalloc to
+# check for memory leaks
+if ! [ `uname` = "FreeBSD" ]; then
+	echo "Can't check for memory leaks on `uname`"
+	exit 0
+fi
+
 # Make sure we don't leak memory
 echo -n "Checking for memory leaks in KVLDS..."
 mkdir $STOR
+[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 $LBS -s $SOCKL -d $STOR -b 512 -l 1000000 -1
 ktrace -i -f ktrace-kvlds.out env MALLOC_CONF="junk:true,utrace:true"		\
     $KVLDS -s $SOCKK -l $SOCKL -v 104 -1

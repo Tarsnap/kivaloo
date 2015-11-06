@@ -11,7 +11,7 @@ rm -rf $STOR
 
 # Start LBS
 mkdir $STOR
-chflags nodump $STOR
+[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 $LBS -s $SOCK -d $STOR -b 512 -l 1000000
 
 # Perform a first test
@@ -70,7 +70,7 @@ rm -rf $STOR
 for S in "localhost:1234" "[127.0.0.1]:1235" "[::1]:1236"; do
 	echo -n "Testing LBS with socket at $S..."
 	mkdir $STOR
-	chflags nodump $STOR
+	[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 	$LBS -s $S -d $STOR -b 512 -l 1000000 -p $SOCK.pid 2>/dev/null
 	if $TESTLBS $S; then
 		echo " PASSED!"
@@ -83,10 +83,17 @@ for S in "localhost:1234" "[127.0.0.1]:1235" "[::1]:1236"; do
 	rm -r $STOR
 done
 
+# If we're not running on FreeBSD, we can't use utrace and jemalloc to
+# check for memory leaks
+if ! [ `uname` = "FreeBSD" ]; then
+	echo "Can't check for memory leaks on `uname`"
+	exit 0
+fi
+
 # Make sure we don't leak memory
 echo -n "Checking for memory leaks in LBS..."
 mkdir $STOR
-chflags nodump $STOR
+[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 ktrace -i -f ktrace-lbs.out env MALLOC_CONF="junk:true,utrace:true"	\
     $LBS -s $SOCK -d $STOR -b 512 -1
 ktrace -i -f ktrace-test_lbs.out env MALLOC_CONF="junk:true,utrace:true"	\

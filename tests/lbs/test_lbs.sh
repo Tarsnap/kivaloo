@@ -69,6 +69,10 @@ rm -rf $STOR
 # Test connecting via different addresses
 for S in "localhost:1234" "[127.0.0.1]:1235" "[::1]:1236"; do
 	echo -n "Testing LBS with socket at $S..."
+	if [ "$TRAVIS$S" = "true[::1]:1236" ]; then
+		echo " can't test IPv6 in Travis-CI."
+		break;
+	fi
 	mkdir $STOR
 	[ `uname` = "FreeBSD" ] && chflags nodump $STOR
 	$LBS -s $S -d $STOR -b 512 -l 1000000 -p $SOCK.pid 2>/dev/null

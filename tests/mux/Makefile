@@ -68,7 +68,7 @@ IDIRS	+=	-I ../../lib/proto_kvlds
 #CFLAGS	+=	-pg
 
 test:	all
-	@./test_mux.sh
+	@/bin/sh test_mux.sh
 
 CLEANFILES+=	mux.leak
 

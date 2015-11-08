@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "imalloc.h"
 #include "netbuf.h"
 #include "network.h"
 #include "sock.h"
@@ -423,8 +424,7 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	H->res.nheaders -= 2;
 
 	/* Allocate header structures. */
-	if ((H->res.headers =
-	    malloc(H->res.nheaders * sizeof(struct http_header))) == NULL)
+	if (IMALLOC(H->res.headers, H->res.nheaders, struct http_header))
 		return (die(H));
 
 	/* Go back to the start of the buffer for the parsing pass. */

@@ -51,9 +51,11 @@ static int callback_response(void *, struct http_response *);
 
 /* Remove a request from the in-progress list. */
 static void
-request_dequeue(struct request * R)
+request_dequeue(struct dispatch_state * D, struct request * R)
 {
-	struct dispatch_state * D = R->D;
+
+	/* Sanity-check linked list. */
+	assert(D == R->D);
 
 	/* Free the contents of the kivaloo-S3 request structure. */
 	proto_s3_request_free(&R->R);
@@ -63,14 +65,18 @@ request_dequeue(struct request * R)
 	free(R->range);
 
 	/* Remove from the linked list. */
-	if (R->prev == NULL) {
+	if (D->ip_head == R) {
+		assert(R->prev == NULL);
 		D->ip_head = R->next;
 	} else {
+		assert(R->prev != NULL);
 		R->prev->next = R->next;
 	}
-	if (R->next == NULL) {
+	if (D->ip_tail == R) {
+		assert(R->next == NULL);
 		D->ip_tail = R->prev;
 	} else {
+		assert(R->next != NULL);
 		R->next->prev = R->prev;
 	}
 
@@ -99,7 +105,7 @@ dropconnection(void * cookie)
 
 	/* Free the list of in-progress requests. */
 	while (D->ip_head != NULL)
-		request_dequeue(D->ip_head);
+		request_dequeue(D, D->ip_head);
 
 	/* Success!  (We can't fail -- but netbuf_write doesn't know that.) */
 	return (0);
@@ -291,14 +297,14 @@ callback_response(void * cookie, struct http_response * res)
 	free(res->body);
 
 	/* Remove this request from the in-progress list. */
-	request_dequeue(R);
+	request_dequeue(D, R);
 
 	/* Success! */
 	return (0);
 
 err1:
 	free(res->body);
-	request_dequeue(R);
+	request_dequeue(D, R);
 
 	/* Failure! */
 	return (-1);

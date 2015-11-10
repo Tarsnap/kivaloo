@@ -379,10 +379,10 @@ rangedone(struct nmr_cookie * C)
 err4:
 	for (i = 0; i < C->nkeys; i++)
 		kvldskey_free(values[i]);
-	free(values);
-err3:
 	for (i = 0; i < C->nkeys; i++)
 		kvldskey_free(keys[i]);
+	free(values);
+err3:
 	free(keys);
 err2:
 	ptrheap_free(C->H);

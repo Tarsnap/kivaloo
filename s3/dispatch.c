@@ -208,6 +208,7 @@ gotrequest(void * cookie, int status)
 			R->prev->next = R;
 		}
 		R->next = NULL;
+		D->ip_tail = R;
 	} while (1);
 
 	/* Free the (unused) request structure. */

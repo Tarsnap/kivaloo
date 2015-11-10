@@ -50,6 +50,7 @@ main(int argc, char * argv[])
 	char * opt_s_1 = NULL;
 
 	/* Working variables. */
+	size_t opt_s_size;
 	struct sock_addr ** sas;
 	size_t i;
 	int ch;
@@ -122,7 +123,7 @@ main(int argc, char * argv[])
 	/* Sanity-check options. */
 	if ((opt_n < 0) || (opt_n > 65535))
 		usage();
-	if (addrlist_getsize(opt_s) == 0)
+	if ((opt_s_size = addrlist_getsize(opt_s)) == 0)
 		usage();
 	if (opt_t == NULL)
 		usage();
@@ -151,21 +152,20 @@ main(int argc, char * argv[])
 	}
 
 	/* Allocate array of source sockets. */
-	if ((socks_s =
-	    malloc(addrlist_getsize(opt_s) * sizeof(int))) == NULL) {
+	if ((socks_s = malloc(opt_s_size * sizeof(int))) == NULL) {
 		warnp("malloc");
 		exit(1);
 	}
 
 	/* Create listening sockets. */
-	for (i = 0; i < addrlist_getsize(opt_s); i++) {
+	for (i = 0; i < opt_s_size; i++) {
 		if ((socks_s[i] =
 		    sock_listener(*addrlist_get(opt_s, i))) == -1)
 			exit(1);
 	}
 
 	/* Initialize the dispatcher. */
-	if ((dstate = dispatch_init(socks_s, addrlist_getsize(opt_s),
+	if ((dstate = dispatch_init(socks_s, opt_s_size,
 	    Q_t, opt_n ? (size_t)opt_n : SIZE_MAX)) == NULL) {
 		warnp("Failed to initialize dispatcher");
 		exit(1);
@@ -199,7 +199,7 @@ main(int argc, char * argv[])
 	wire_requestqueue_free(Q_t);
 
 	/* Close sockets. */
-	for (i = 0; i < addrlist_getsize(opt_s); i++)
+	for (i = 0; i < opt_s_size; i++)
 		close(socks_s[i]);
 	free(socks_s);
 	close(sock_t);

@@ -32,7 +32,7 @@ callback_get(void * cookie, int failed, size_t len, const uint8_t * buf)
 	(void)cookie; /* UNUSED */
 
 	/* Print status. */
-	printf("GET failed = %d len = %zd\n", failed, len);
+	printf("GET failed = %d len = %zd\n", failed, (ssize_t)len);
 
 	/* Print data. */
 	if (buf != NULL) {
@@ -55,7 +55,7 @@ callback_range(void * cookie, int failed, size_t buflen, const uint8_t * buf)
 	(void)cookie; /* UNUSED */
 
 	/* Print status. */
-	printf("RANGE failed = %d buflen = %zd\n", failed, buflen);
+	printf("RANGE failed = %d buflen = %zd\n", failed, (ssize_t)buflen);
 
 	/* Print data. */
 	if (buf != NULL) {
@@ -78,7 +78,7 @@ callback_head(void * cookie, int status, size_t len)
 	(void)cookie; /* UNUSED */
 
 	/* Print status. */
-	printf("HEAD status = %d len = %zd\n", status, len);
+	printf("HEAD status = %d len = %zd\n", status, (ssize_t)len);
 
 	/* We're done. */
 	opdone = 1;

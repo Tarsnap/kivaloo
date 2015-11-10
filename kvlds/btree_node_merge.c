@@ -35,9 +35,11 @@ merge_leaf(struct btree * T, struct node ** c_in, struct node ** c_out,
 		goto err0;
 
 	/* Copy in pointers to keys and values. */
-	for (j = i = 0; i <= nsep; j += c_in[i]->nkeys, i++)
-		memcpy(&pairs[j], c_in[i]->u.pairs,
-		    c_in[i]->nkeys * sizeof(struct kvpair_const));
+	for (j = i = 0; i <= nsep; j += c_in[i]->nkeys, i++) {
+		if (c_in[i]->nkeys > 0)
+			memcpy(&pairs[j], c_in[i]->u.pairs,
+			    c_in[i]->nkeys * sizeof(struct kvpair_const));
+	}
 
 	/* Create a node. */
 	if ((N = btree_node_mkleaf(T, nkeys, pairs)) == NULL)

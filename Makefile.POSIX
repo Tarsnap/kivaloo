@@ -9,8 +9,8 @@ CFLAGS_DEFAULT=	-O2
 
 all:
 	export CFLAGS=$${CFLAGS:-${CFLAGS_DEFAULT}}     \
-	export LDADD_POSIX=`export CC=${CC}; cd POSIX && command -p sh posix-l.sh`;	\
-	export CFLAGS_POSIX=`export CC=${CC}; cd POSIX && command -p sh posix-cflags.sh`;	\
+	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh`;	\
+	export CFLAGS_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-cflags.sh`;	\
 	for D in ${PROGS}; do				\
 		( cd $${D} && make all ) || exit 2;	\
 	done
@@ -23,7 +23,7 @@ install: all
 
 all-bench:
 	export CFLAGS=$${CFLAGS:-${CFLAGS_DEFAULT}}     \
-	export LDADD_POSIX=`export CC=${CC}; cd POSIX && command -p sh posix-l.sh`;	\
+	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh`;	\
 	for D in ${BENCH}; do				\
 		( cd $${D} && make all ) || exit 2;	\
 	done

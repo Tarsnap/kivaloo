@@ -74,7 +74,8 @@ fi
 
 # Make sure garbage got collected
 echo -n "Verifying that old blocks got deleted..."
-sleep 1
+# 1 second is not enough to reliably delete all old blocks
+sleep 10
 if [ `ls $STOR/blks_* | wc -l` = 1 ]; then
 	echo " PASSED!"
 else

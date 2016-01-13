@@ -118,6 +118,16 @@ rm $SOCKM $SOCKM.pid
 # check for memory leaks
 if ! [ `uname` = "FreeBSD" ]; then
 	echo "Can't check for memory leaks on `uname`"
+
+	# Kill the upstream server
+	kill `cat $SOCKK.pid`
+	rm $SOCKK $SOCKK.pid
+	kill `cat $SOCKL.pid`
+	rm $SOCKL $SOCKL.pid
+
+	# Clean up storage directory
+	rm -rf $STOR
+
 	exit 0
 fi
 

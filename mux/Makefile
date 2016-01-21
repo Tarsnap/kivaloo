@@ -22,6 +22,7 @@ IDIRS	+=	-I ../libcperciva/datastruct
 .PATH.c	:	../libcperciva/util
 SRCS	+=	asprintf.c
 SRCS	+=	daemonize.c
+SRCS	+=	getopt.c
 SRCS	+=	insecure_memzero.c
 SRCS	+=	monoclock.c
 SRCS	+=	noeintr.c

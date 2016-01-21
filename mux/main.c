@@ -9,6 +9,7 @@
 #include "daemonize.h"
 #include "elasticarray.h"
 #include "events.h"
+#include "getopt.h"
 #include "sock.h"
 #include "warnp.h"
 #include "wire.h"
@@ -53,7 +54,7 @@ main(int argc, char * argv[])
 	size_t opt_s_size;
 	struct sock_addr ** sas;
 	size_t i;
-	int ch;
+	const char * ch;
 
 	WARNP_INIT;
 
@@ -64,9 +65,9 @@ main(int argc, char * argv[])
 	}
 
 	/* Parse the command line. */
-	while ((ch = getopt(argc, argv, "n:p:s:t:")) != -1) {
-		switch (ch) {
-		case 'n':
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("-n"):
 			if (opt_n != 0)
 				usage();
 			if ((opt_n = strtoimax(optarg, NULL, 0)) == 0) {
@@ -74,13 +75,13 @@ main(int argc, char * argv[])
 				exit(1);
 			}
 			break;
-		case 'p':
+		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
 				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 's':
+		GETOPT_OPTARG("-s"):
 			/* Keep a copy of the path for pidfile generation. */
 			if ((opt_s_1 == NULL) &&
 			    ((opt_s_1 = strdup(optarg)) == NULL))
@@ -105,19 +106,24 @@ main(int argc, char * argv[])
 			/* Free the array (but keep the addresses). */
 			free(sas);
 			break;
-		case 't':
+		GETOPT_OPTARG("-t"):
 			if (opt_t != NULL)
 				usage();
 			if ((opt_t = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		default:
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	/* We should have processed all the arguments. */
-	if (argc != optind)
+	if (argc != 0)
 		usage();
 
 	/* Sanity-check options. */

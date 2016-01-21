@@ -7,6 +7,7 @@
 #include "asprintf.h"
 #include "daemonize.h"
 #include "events.h"
+#include "getopt.h"
 #include "logging.h"
 #include "s3_request_queue.h"
 #include "sock.h"
@@ -143,60 +144,65 @@ main(int argc, char * argv[])
 	char * s3_host;
 	struct logging_file * logfile;
 	size_t i;
-	int ch;
+	const char * ch;
 
 	WARNP_INIT;
 
 	/* Parse the command line. */
-	while ((ch = getopt(argc, argv, "k:l:n:p:r:s:1")) != -1) {
-		switch (ch) {
-		case 'k':
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("-k"):
 			if (opt_k != NULL)
 				usage();
 			if ((opt_k = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'l':
+		GETOPT_OPTARG("-l"):
 			if (opt_l != NULL)
 				usage();
 			if ((opt_l = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'n':
+		GETOPT_OPTARG("-n"):
 			if (opt_n != 16)
 				usage();
 			opt_n = strtoimax(optarg, NULL, 0);
 			break;
-		case 'p':
+		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
 				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'r':
+		GETOPT_OPTARG("-r"):
 			if (opt_r != NULL)
 				usage();
 			if ((opt_r = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 's':
+		GETOPT_OPTARG("-s"):
 			if (opt_s != NULL)
 				usage();
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case '1':
+		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();
 			opt_1 = 1;
 			break;
-		default:
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	/* We should have processed all the arguments. */
-	if (argc != optind)
+	if (argc != 0)
 		usage();
 
 	/* Sanity-check options. */

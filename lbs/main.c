@@ -7,6 +7,7 @@
 #include "asprintf.h"
 #include "daemonize.h"
 #include "events.h"
+#include "getopt.h"
 #include "sock.h"
 #include "warnp.h"
 
@@ -49,63 +50,68 @@ main(int argc, char * argv[])
 
 	/* Working variables. */
 	struct sock_addr ** sas;
-	int ch;
+	const char * ch;
 
 	WARNP_INIT;
 
 	/* Parse the command line. */
-	while ((ch = getopt(argc, argv, "b:d:l:Ln:p:s:1")) != -1) {
-		switch (ch) {
-		case 'b':
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("-b"):
 			if (opt_b != -1)
 				usage();
 			opt_b = strtoimax(optarg, NULL, 0);
 			break;
-		case 'd':
+		GETOPT_OPTARG("-d"):
 			if (opt_d != NULL)
 				usage();
 			if ((opt_d = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'l':
+		GETOPT_OPTARG("-l"):
 			if (opt_l != 0)
 				usage();
 			opt_l = strtoimax(optarg, NULL, 0);
 			break;
-		case 'L':
+		GETOPT_OPT("-L"):
 			if (opt_L != 0)
 				usage();
 			opt_L = 1;
 			break;
-		case 'n':
+		GETOPT_OPTARG("-n"):
 			if (opt_n != 16)
 				usage();
 			opt_n = strtoimax(optarg, NULL, 0);
 			break;
-		case 'p':
+		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
 				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 's':
+		GETOPT_OPTARG("-s"):
 			if (opt_s != NULL)
 				usage();
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case '1':
+		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();
 			opt_1 = 1;
 			break;
-		default:
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	/* We should have processed all the arguments. */
-	if (argc != optind)
+	if (argc != 0)
 		usage();
 
 	/* Sanity-check options. */

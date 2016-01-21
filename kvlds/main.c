@@ -7,6 +7,7 @@
 #include "asprintf.h"
 #include "daemonize.h"
 #include "events.h"
+#include "getopt.h"
 #include "humansize.h"
 #include "sock.h"
 #include "warnp.h"
@@ -64,83 +65,88 @@ main(int argc, char * argv[])
 	/* Working variables. */
 	struct sock_addr ** sas_s;
 	struct sock_addr ** sas_l;
-	int ch;
+	const char * ch;
 
 	WARNP_INIT;
 
 	/* Parse the command line. */
-	while ((ch = getopt(argc, argv, "C:c:g:k:l:p:S:s:v:w:1")) != -1) {
-		switch (ch) {
-		case 'C':
+	while ((ch = GETOPT(argc, argv)) != NULL) {
+		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("-C"):
 			if (opt_C != (uint64_t)(-1))
 				usage();
 			if (humansize_parse(optarg, &opt_C))
 				OPT_EINVAL(ch, optarg);
 			break;
-		case 'c':
+		GETOPT_OPTARG("-c"):
 			if (opt_c != (uint64_t)(-1))
 				usage();
 			if (humansize_parse(optarg, &opt_c))
 				OPT_EINVAL(ch, optarg);
 			break;
-		case 'g':
+		GETOPT_OPTARG("-g"):
 			if (opt_g != (uint64_t)(-1))
 				usage();
 			if (humansize_parse(optarg, &opt_g))
 				OPT_EINVAL(ch, optarg);
 			break;
-		case 'k':
+		GETOPT_OPTARG("-k"):
 			if (opt_k != (uint64_t)(-1))
 				usage();
 			if (humansize_parse(optarg, &opt_k))
 				OPT_EINVAL(ch, optarg);
 			break;
-		case 'l':
+		GETOPT_OPTARG("-l"):
 			if (opt_l != NULL)
 				usage();
 			if ((opt_l = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'p':
+		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
 				usage();
 			if ((opt_p = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'S':
+		GETOPT_OPTARG("-S"):
 			if (opt_S != 1.0)
 				usage();
 			opt_S = strtod(optarg, NULL);
 			break;
-		case 's':
+		GETOPT_OPTARG("-s"):
 			if (opt_s != NULL)
 				usage();
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
-		case 'v':
+		GETOPT_OPTARG("-v"):
 			if (opt_v != (uint64_t)(-1))
 				usage();
 			if (humansize_parse(optarg, &opt_v))
 				OPT_EINVAL(ch, optarg);
 			break;
-		case 'w':
+		GETOPT_OPTARG("-w"):
 			if (opt_w != 0.0)
 				usage();
 			opt_w = strtod(optarg, NULL);
 			break;
-		case '1':
+		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();
 			opt_1 = 1;
 			break;
-		default:
+		GETOPT_MISSING_ARG:
+			warn0("Missing argument to %s\n", ch);
+			/* FALLTHROUGH */
+		GETOPT_DEFAULT:
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	/* We should have processed all the arguments. */
-	if (argc != optind)
+	if (argc != 0)
 		usage();
 
 	/* Sanity-check options. */

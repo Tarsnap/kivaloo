@@ -1,6 +1,8 @@
 PKG=	kivaloo
 PROGS=	lbs kvlds mux s3 lbs-s3
 TESTS=	tests perftests
+SUBST_VERSION_FILES=	lbs/main.c kvlds/main.c mux/main.c s3/main.c \
+			lbs-s3/main.c
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs
@@ -43,6 +45,13 @@ publish: clean
 	cp Makefile.POSIX ${PKG}-${VERSION}/Makefile
 .for D in ${PROGS} ${BENCHES}
 	${MAKE} ${PKG}-${VERSION}/${D}/Makefile
+.endfor
+.for F in ${SUBST_VERSION_FILES}
+	# We need to write a temporary file because FreeBSD and GNU behaviour
+	# of sed -i is different.
+	sed -e 's/@VERSION@/${VERSION}/' -e 's/@DATE@/${RELEASEDATE}/' \
+	    < ${PKG}-${VERSION}/${F} > ${PKG}-${VERSION}/${F}.tmp
+	mv ${PKG}-${VERSION}/${F}.tmp ${PKG}-${VERSION}/${F}
 .endfor
 	tar -cvzf ${PKG}-${VERSION}.tgz ${PKG}-${VERSION}
 	rm -r ${PKG}-${VERSION}

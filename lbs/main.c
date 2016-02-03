@@ -21,6 +21,7 @@ usage(void)
 	fprintf(stderr, "usage: kivaloo-lbs -s <lbs socket> -d <storage dir> "
 	    "-b <block size> [-n <# of readers>] [-p <pidfile>] "
 	    "[-1] [-L] [-l <read latency in ns>]\n");
+	fprintf(stderr, "       kivaloo-lbs --version\n");
 	exit(1);
 }
 
@@ -95,6 +96,9 @@ main(int argc, char * argv[])
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "kivaloo-lbs @VERSION@\n");
+			exit(0);
 		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();

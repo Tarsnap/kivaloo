@@ -26,6 +26,7 @@ usage(void)
 	    "[-k <max key length>] [-v <max value length>] [-p <pidfile>] "
 	    "[-S <cost of storage per GB-month>] "
 	    "[-w <commit delay time>] [-g <min forced commit size>]\n");
+	fprintf(stderr, "       kivaloo-kvlds --version\n");
 	exit(1);
 }
 
@@ -130,6 +131,9 @@ main(int argc, char * argv[])
 				usage();
 			opt_w = strtod(optarg, NULL);
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "kivaloo-kvlds @VERSION@\n");
+			exit(0);
 		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();

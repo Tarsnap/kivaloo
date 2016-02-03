@@ -23,6 +23,7 @@ usage(void)
 	fprintf(stderr, "usage: kivaloo-s3 -s <s3 socket> -r <s3 region> "
 	    "-k <keyfile> [-l <logfile>] [-n <max # connections>] [-1] "
 	    "[-p <pidfile>]\n");
+	fprintf(stderr, "       kivaloo-s3 --version\n");
 	exit(1);
 }
 
@@ -186,6 +187,9 @@ main(int argc, char * argv[])
 			if ((opt_s = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "kivaloo-s3 @VERSION@\n");
+			exit(0);
 		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();

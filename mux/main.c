@@ -25,6 +25,7 @@ usage(void)
 	fprintf(stderr, "usage: kivaloo-mux -t <target socket> "
 	    "-s <source socket> [-s <source socket> ...] "
 	    "[-n <max # connections] [-p <pidfile>]\n");
+	fprintf(stderr, "       kivaloo-mux --version\n");
 	exit(1);
 }
 
@@ -112,6 +113,9 @@ main(int argc, char * argv[])
 			if ((opt_t = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "kivaloo-mux @VERSION@\n");
+			exit(0);
 		GETOPT_MISSING_ARG:
 			warn0("Missing argument to %s\n", ch);
 			/* FALLTHROUGH */

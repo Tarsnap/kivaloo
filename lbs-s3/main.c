@@ -22,6 +22,7 @@ usage(void)
 
 	fprintf(stderr, "usage: kivaloo-lbs-s3 -s <lbs socket> -t <s3 socket> "
 	    "-b <block size> -B <S3 bucket> [-1] [-p <pidfile>]\n");
+	fprintf(stderr, "       kivaloo-lbs-s3 --version\n");
 	exit(1);
 }
 
@@ -89,6 +90,9 @@ main(int argc, char * argv[])
 			if ((opt_t = strdup(optarg)) == NULL)
 				OPT_EPARSE(ch, optarg);
 			break;
+		GETOPT_OPT("--version"):
+			fprintf(stderr, "kivaloo-lbs-s3 @VERSION@\n");
+			exit(0);
 		GETOPT_OPT("-1"):
 			if (opt_1 != 0)
 				usage();

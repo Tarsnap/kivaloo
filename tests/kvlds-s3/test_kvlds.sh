@@ -34,7 +34,7 @@ $LBS -s $SOCKL -t $SOCKS3 -b 512 -B $BUCKET
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024
 
 # Test basic operations
-echo -n "Testing KVLDS operations against LBS-S3... "
+printf "Testing KVLDS operations against LBS-S3... "
 if $TESTKVLDS $SOCKK; then
 	echo " PASSED!"
 else
@@ -43,7 +43,7 @@ else
 fi
 
 # Test shutting down and restarting KVLDS
-echo -n "Testing disconnect and reconnect to LBS-S3... "
+printf "Testing disconnect and reconnect to LBS-S3... "
 kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024
@@ -57,7 +57,7 @@ kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 
 # Check that killing KVLDS can't break it
-echo -n "Testing LBS-S3 tolerance of KVLDS crashes..."
+printf "Testing LBS-S3 tolerance of KVLDS crashes..."
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
 sleep 0.1 && kill `cat $SOCKK.pid`
@@ -95,7 +95,7 @@ if ! [ `uname` = "FreeBSD" ]; then
 fi
 
 # Make sure LBS-S3 doesn't leak memory
-echo -n "Checking for memory leaks in LBS-S3..."
+printf "Checking for memory leaks in LBS-S3..."
 mkdir $TMPDIR
 $S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE -1
 ktrace -i -f ktrace-lbs-s3.out env MALLOC_CONF="junk:true,utrace:true"		\

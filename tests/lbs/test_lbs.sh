@@ -15,7 +15,7 @@ mkdir $STOR
 $LBS -s $SOCK -d $STOR -b 512 -l 1000000
 
 # Perform a first test
-echo -n "Testing LBS operations..."
+printf "Testing LBS operations..."
 if $TESTLBS $SOCK; then
 	echo " PASSED!"
 else
@@ -24,7 +24,7 @@ else
 fi
 
 # Perform a second run
-echo -n "Testing LBS connection-closing cleanup..."
+printf "Testing LBS connection-closing cleanup..."
 if ! $TESTLBS $SOCK; then
 	echo " FAILED!"
 	exit 1
@@ -37,7 +37,7 @@ else
 fi
 
 # Check that an unclean disconnect is handled appropriately
-echo -n "Testing LBS disconnection cleanup..."
+printf "Testing LBS disconnection cleanup..."
 ( $TESTLBS $SOCK & ) 2>/dev/null
 sleep 0.1 && killall test_lbs
 if $TESTLBS $SOCK; then
@@ -48,7 +48,7 @@ else
 fi
 
 # Check that connections queue appropriately
-echo -n "Testing LBS connection queuing..."
+printf "Testing LBS connection queuing..."
 $TESTLBS $SOCK &
 sleep 0.1
 $TESTLBS $SOCK &
@@ -68,7 +68,7 @@ rm -rf $STOR
 
 # Test connecting via different addresses
 for S in "localhost:1234" "[127.0.0.1]:1235" "[::1]:1236"; do
-	echo -n "Testing LBS with socket at $S..."
+	printf "Testing LBS with socket at $S..."
 	if [ "$TRAVIS$S" = "true[::1]:1236" ]; then
 		echo " can't test IPv6 in Travis-CI."
 		break;
@@ -95,7 +95,7 @@ if ! [ `uname` = "FreeBSD" ]; then
 fi
 
 # Make sure we don't leak memory
-echo -n "Checking for memory leaks in LBS..."
+printf "Checking for memory leaks in LBS..."
 mkdir $STOR
 [ `uname` = "FreeBSD" ] && chflags nodump $STOR
 ktrace -i -f ktrace-lbs.out env MALLOC_CONF="junk:true,utrace:true"	\
@@ -121,7 +121,7 @@ fi
 rm leak.tmp
 
 # Process ktrace-test_lbs output
-echo -n "Checking for memory leaks in LBS client code..."
+printf "Checking for memory leaks in LBS client code..."
 kdump -Ts -f ktrace-test_lbs.out |		\
     grep ' test_lbs ' > kdump-test_lbs.out
 sh ../tools/memleak/memleak.sh kdump-test_lbs.out test_lbs.leak 2>leak.tmp

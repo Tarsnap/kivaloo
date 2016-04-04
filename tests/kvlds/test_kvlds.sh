@@ -17,7 +17,7 @@ mkdir $STOR
 $LBS -s $SOCKL -d $STOR -b 512 -l 1000000
 
 # 96-byte keys are too big for 512-byte blocks
-echo -n "Testing keys too large for the block size... "
+printf "Testing keys too large for the block size... "
 if ! $KVLDS -s $SOCKK -l $SOCKL -k 96 -v 32 2>/dev/null; then
 	echo " PASSED!"
 else
@@ -27,7 +27,7 @@ fi
 rm $SOCKK
 
 # 200-byte values are too big for 512-byte blocks
-echo -n "Testing values too large for the block size... "
+printf "Testing values too large for the block size... "
 if ! $KVLDS -s $SOCKK -l $SOCKL -v 200 2>/dev/null; then
 	echo " PASSED!"
 else
@@ -37,7 +37,7 @@ fi
 rm $SOCKK
 
 # Try big requests to a server with a low maximum value length
-echo -n "Testing requests with values too large... "
+printf "Testing requests with values too large... "
 $KVLDS -s $SOCKK -l $SOCKL -v 50
 if ! $TESTKVLDS $SOCKK 2>/dev/null; then
 	echo " PASSED!"
@@ -49,7 +49,7 @@ kill `cat $SOCKK.pid`
 rm $SOCKK
 
 # Try big requests to a server with a low maximum key length
-echo -n "Testing requests with keys too large... "
+printf "Testing requests with keys too large... "
 $KVLDS -s $SOCKK -l $SOCKL -k 5
 if ! $TESTKVLDS $SOCKK 2>/dev/null; then
 	echo " PASSED!"
@@ -64,7 +64,7 @@ rm $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024
 
 # Test basic operations
-echo -n "Testing KVLDS operations... "
+printf "Testing KVLDS operations... "
 if $TESTKVLDS $SOCKK; then
 	echo " PASSED!"
 else
@@ -73,7 +73,7 @@ else
 fi
 
 # Make sure garbage got collected
-echo -n "Verifying that old blocks got deleted..."
+printf "Verifying that old blocks got deleted..."
 # 1 second is not enough to reliably delete all old blocks
 sleep 10
 if [ `ls $STOR/blks_* | wc -l` = 1 ]; then
@@ -84,7 +84,7 @@ else
 fi
 
 # Make sure a second test works
-echo -n "Testing KVLDS connection-closing cleanup..."
+printf "Testing KVLDS connection-closing cleanup..."
 if ! $TESTKVLDS $SOCKK; then
 	echo " FAILED!"
 	exit 1
@@ -97,7 +97,7 @@ else
 fi
 
 # Check that an unclean disconnect is handled appropriately
-echo -n "Testing KVLDS disconnection cleanup..."
+printf "Testing KVLDS disconnection cleanup..."
 ( $TESTKVLDS $SOCKK & ) 2>/dev/null
 sleep 0.1 && killall test_kvlds
 ( $TESTKVLDS $SOCKK & ) 2>/dev/null
@@ -114,7 +114,7 @@ kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 
 # Check that killing KVLDS can't break it
-echo -n "Testing KVLDS crash-safety..."
+printf "Testing KVLDS crash-safety..."
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
 sleep 0.1 && kill `cat $SOCKK.pid`
@@ -150,7 +150,7 @@ if ! [ `uname` = "FreeBSD" ]; then
 fi
 
 # Make sure we don't leak memory
-echo -n "Checking for memory leaks in KVLDS..."
+printf "Checking for memory leaks in KVLDS..."
 mkdir $STOR
 [ `uname` = "FreeBSD" ] && chflags nodump $STOR
 $LBS -s $SOCKL -d $STOR -b 512 -l 1000000 -1
@@ -178,7 +178,7 @@ fi
 rm leak.tmp
 
 # Process ktrace-test_kvlds output
-echo -n "Checking for memory leaks in KVLDS client code..."
+printf "Checking for memory leaks in KVLDS client code..."
 kdump -Ts -f ktrace-test_kvlds.out |		\
     grep ' test_kvlds ' > kdump-test_kvlds.out
 sh ../tools/memleak/memleak.sh kdump-test_kvlds.out test_kvlds.leak 2>leak.tmp

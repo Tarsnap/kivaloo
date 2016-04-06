@@ -22,7 +22,7 @@ $KVLDS -s $SOCKK -l $SOCKL -C 1024
 $MUX -t $SOCKK -s $SOCKM
 
 # Verify that we can run requests through MUX.
-echo -n "Testing KVLDS via MUX... "
+printf "Testing KVLDS via MUX... "
 if $TESTMUX $SOCKM 0.; then
 	echo " PASSED!"
 else
@@ -32,7 +32,7 @@ fi
 
 # Verify running several clients at once.
 #	( while ! [ -f .failed ]; do $TESTMUX $SOCKM ${X}. || touch .failed; done ) &
-echo -n "Testing multiple clients... "
+printf "Testing multiple clients... "
 for X in 1 2 3 4 5 6 7 8 9 10; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed; ) &
 done
@@ -48,7 +48,7 @@ else
 fi
 
 # Verify that we can ping-pong via KVLDS.
-echo -n "Testing ping-pong... "
+printf "Testing ping-pong... "
 ( $TESTMUX $SOCKM ping || touch .failed ) &
 ( $TESTMUX $SOCKM pong || touch .failed ) &
 sleep 2
@@ -63,7 +63,7 @@ else
 fi
 
 # Verify that we survive the client dying
-echo -n "Testing client disconnection cleanup... "
+printf "Testing client disconnection cleanup... "
 ( $TESTMUX $SOCKM loop &) 2>/dev/null
 sleep 1 && killall test_mux
 if $TESTMUX $SOCKM 0.; then
@@ -74,7 +74,7 @@ else
 fi
 
 # Verify that we die if the upstream server dies
-echo -n "Testing server disconnection death... "
+printf "Testing server disconnection death... "
 ( $TESTMUX $SOCKM loop &) 2>/dev/null
 sleep 1 && kill `cat $SOCKK.pid`
 rm $SOCKK $SOCKK.pid
@@ -90,7 +90,7 @@ rm $SOCKM $SOCKM.pid
 $KVLDS -s $SOCKK -l $SOCKL -C 1024
 
 # Check that connection limit is enforced
-echo -n "Verifying that connection limit is enforced... "
+printf "Verifying that connection limit is enforced... "
 $MUX -t $SOCKK -s $SOCKM -n 1
 ( $TESTMUX $SOCKM ping & ) 2>/dev/null
 ( $TESTMUX $SOCKM pong & ) 2>/dev/null
@@ -104,7 +104,7 @@ fi
 killall test_mux
 
 # Check that the connection limit doesn't block connections permanently.
-echo -n "Verifying that connection acceptance is resumed... "
+printf "Verifying that connection acceptance is resumed... "
 if $TESTMUX $SOCKM 0.; then
 	echo " PASSED!"
 else
@@ -132,7 +132,7 @@ if ! [ `uname` = "FreeBSD" ]; then
 fi
 
 # Check for memory leaks
-echo -n "Checking for memory leaks... "
+printf "Checking for memory leaks... "
 ktrace -i -f ktrace-mux.out env MALLOC_CONF="junk:true,utrace:true"		\
 	$MUX -t $SOCKK -s $SOCKM
 for X in 1 2; do

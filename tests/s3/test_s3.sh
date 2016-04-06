@@ -24,7 +24,7 @@ mkdir $TMPDIR
 $S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE
 
 # Run tests
-echo -n "test_s3... "
+printf "test_s3... "
 $TESTS3 $SOCKS3 $BUCKET > test_s3.log
 if cmp -s test_s3.log test_s3.good; then
 	rm test_s3.log
@@ -45,7 +45,7 @@ if ! [ `uname` = "FreeBSD" ]; then
 fi
 
 # Make sure we don't leak memory
-echo -n "Checking for memory leaks in S3 daemon..."
+printf "Checking for memory leaks in S3 daemon..."
 ktrace -i -f ktrace-s3.out env MALLOC_CONF="junk:true,utrace:true"	\
     $S3 -s $SOCKS3 -r $REGION -k $AWSKEY -l $LOGFILE -1
 ktrace -i -f ktrace-test_s3.out env MALLOC_CONF="junk:true,utrace:true"	\
@@ -68,7 +68,7 @@ fi
 rm leak.tmp
 
 # Process ktrace-test_s3 output
-echo -n "Checking for memory leaks in s3 client code..."
+printf "Checking for memory leaks in s3 client code..."
 kdump -Ts -f ktrace-test_s3.out |		\
     grep ' test_s3 ' > kdump-test_s3.out
 sh ../tools/memleak/memleak.sh kdump-test_s3.out test_s3.leak 2>leak.tmp

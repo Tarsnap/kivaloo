@@ -14,10 +14,10 @@ test:	all
 .for D in ${PROGS} ${BENCHES}
 ${PKG}-${VERSION}/${D}/Makefile:
 	echo '.POSIX:' > $@
-	( cd ${D} && echo -n 'PROG=kivaloo-' && ${MAKE} -V PROG ) >> $@
-	( cd ${D} && echo -n 'SRCS=' && ${MAKE} -V SRCS ) >> $@
-	( cd ${D} && echo -n 'IDIRS=' && ${MAKE} -V IDIRS ) >> $@
-	( cd ${D} && echo -n 'LDADD_REQ=' && ${MAKE} -V LDADD_REQ ) >> $@
+	( cd ${D} && printf 'PROG=kivaloo-' && ${MAKE} -V PROG ) >> $@
+	( cd ${D} && printf 'SRCS=' && ${MAKE} -V SRCS ) >> $@
+	( cd ${D} && printf 'IDIRS=' && ${MAKE} -V IDIRS ) >> $@
+	( cd ${D} && printf 'LDADD_REQ=' && ${MAKE} -V LDADD_REQ ) >> $@
 	cat Makefile.prog >> $@
 	( cd ${D} && ${MAKE} -V SRCS |	\
 	    tr ' ' '\n' |		\

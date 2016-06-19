@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "crc32c.h"
 

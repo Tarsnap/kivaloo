@@ -110,7 +110,7 @@ elasticqueue_delete(struct elasticqueue * EQ)
 
 /**
  * elasticqueue_getlen(EQ):
- * Returns the length of the elastic queue ${EQ}.
+ * Return the length of the elastic queue ${EQ}.
  */
 size_t
 elasticqueue_getlen(struct elasticqueue * EQ)

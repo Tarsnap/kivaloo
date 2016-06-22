@@ -13,3 +13,4 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq bmake
   - curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
+  - 'if [[ "$CC" == "gcc" ]]; then CC="gcc -std=c99"; $CC --version; fi'

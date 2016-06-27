@@ -8,24 +8,24 @@ SRCS	+=	ptrheap.c
 SRCS	+=	timerqueue.c
 SRCS	+=	elasticqueue.c
 SRCS	+=	seqptrmap.c
-CFLAGS	+=	-I ../../libcperciva/datastruct
+IDIRS	+=	-I ../../libcperciva/datastruct
 
 # Data structures
 .PATH.c	:	../../lib/datastruct
 SRCS	+=	kvldskey.c
-CFLAGS	+=	-I ../../lib/datastruct
+IDIRS	+=	-I ../../lib/datastruct
 
 # Utility functions
 .PATH.c	:	../../libcperciva/util
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
-CFLAGS	+=	-I ../../libcperciva/util
+IDIRS	+=	-I ../../libcperciva/util
 
 # Fundamental algorithms
 .PATH.c	:	../../libcperciva/alg
 SRCS	+=	crc32c.c
-CFLAGS	+=	-I ../../libcperciva/alg
+IDIRS	+=	-I ../../libcperciva/alg
 
 # Event loop
 .PATH.c	:	../../libcperciva/events
@@ -34,19 +34,19 @@ SRCS	+=	events_network.c
 SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 SRCS	+=	events.c
-CFLAGS	+=	-I ../../libcperciva/events
+IDIRS	+=	-I ../../libcperciva/events
 
 # Event-driven networking
 .PATH.c	:	../../libcperciva/network
 SRCS	+=	network_read.c
 SRCS	+=	network_write.c
-CFLAGS	+=	-I ../../libcperciva/network
+IDIRS	+=	-I ../../libcperciva/network
 
 # Buffered networking
 .PATH.c	:	../../lib/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-CFLAGS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ../../lib/netbuf
 
 # Wire protocol
 .PATH.c	:	../../lib/wire
@@ -54,12 +54,12 @@ SRCS	+=	wire_packet.c
 SRCS	+=	wire_readpacket.c
 SRCS	+=	wire_writepacket.c
 SRCS	+=	wire_requestqueue.c
-CFLAGS	+=	-I ../../lib/wire
+IDIRS	+=	-I ../../lib/wire
 
 # KVLDS request/response packets
 .PATH.c	:	../../lib/proto_kvlds
 SRCS	+=	proto_kvlds_client.c
-CFLAGS	+=	-I ../../lib/proto_kvlds
+IDIRS	+=	-I ../../lib/proto_kvlds
 
 # Debugging options
 #CFLAGS	+=	-g

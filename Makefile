@@ -13,7 +13,7 @@ all:
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
 	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh "$$PATH"`;	\
 	export CFLAGS_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-cflags.sh "$$PATH"`;	\
-	for D in ; do				\
+	for D in ${PROGS}; do				\
 		( cd $${D} && ${MAKE} all ) || exit 2;	\
 	done
 

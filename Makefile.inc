@@ -9,7 +9,7 @@ NO_MAN	?=	yes
 WARNS	?=	3
 
 # Use POSIX standard
-CFLAGS	+=	-D_POSIX_C_SOURCE=200809L
+CFLAGS	+=	-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 
 # Make logic (bits which are separated out in individual Makefiles).
 CFLAGS	+=	${IDIRS}

@@ -8,6 +8,9 @@ source-${X:.c=.o}: ${X}
 NO_MAN	?=	yes
 WARNS	?=	3
 
+# Use POSIX standard
+CFLAGS	+=	-D_POSIX_C_SOURCE=200809L
+
 # Make logic (bits which are separated out in individual Makefiles).
 CFLAGS	+=	${IDIRS}
 LDADD	+=	${LDADD_REQ}

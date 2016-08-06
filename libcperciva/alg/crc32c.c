@@ -63,7 +63,7 @@ init(void)
 
 	/* Fill in tables. */
 	for (i = 0; i < 256; i++) {
-		r = reverse(i);
+		r = reverse((uint32_t)i);
 		T0[i] = reverse(r = times256(r));
 		T1[i] = reverse(r = times256(r));
 		T2[i] = reverse(r = times256(r));

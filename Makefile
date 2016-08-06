@@ -1,60 +1,41 @@
+.POSIX:
+
 PKG=	kivaloo
 PROGS=	lbs kvlds mux s3 lbs-s3
-TESTS=	tests perftests
-SUBST_VERSION_FILES=	lbs/main.c kvlds/main.c mux/main.c s3/main.c \
-			lbs-s3/main.c
+TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
+	perftests/kvldsperf perftests/kvldsclean perftests/http \
+	perftests/s3 perftests/s3_put
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs
-PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib libcperciva bench
+BINDIR_DEFAULT=	/usr/local/bin
+CFLAGS_DEFAULT=	-O2
+
+all:
+	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
+	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh "$$PATH"`;	\
+	export CFLAGS_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-cflags.sh "$$PATH"`;	\
+	for D in ${PROGS} ${BENCHES} ${TESTS}; do	\
+		( cd $${D} && ${MAKE} all ) || exit 2;	\
+	done
+
+install: all
+	export BINDIR=$${BINDIR:-${BINDIR_DEFAULT}};	\
+	for D in ${PROGS}; do				\
+		( cd $${D} && ${MAKE} install ) || exit 2;	\
+	done
+
+clean:
+	for D in ${PROGS}; do					\
+		( cd $${D} && ${MAKE} clean ) || exit 2;	\
+	done
 
 test:	all
 	${MAKE} -C tests test
 
-.for D in ${PROGS} ${BENCHES}
-${PKG}-${VERSION}/${D}/Makefile:
-	echo '.POSIX:' > $@
-	( cd ${D} && printf 'PROG=kivaloo-' && ${MAKE} -V PROG ) >> $@
-	( cd ${D} && printf 'SRCS=' && ${MAKE} -V SRCS ) >> $@
-	( cd ${D} && printf 'IDIRS=' && ${MAKE} -V IDIRS ) >> $@
-	( cd ${D} && printf 'LDADD_REQ=' && ${MAKE} -V LDADD_REQ ) >> $@
-	cat Makefile.prog >> $@
-	( cd ${D} && ${MAKE} -V SRCS |	\
-	    tr ' ' '\n' |		\
-	    sed -E 's/.c$$/.o/' |	\
-	    while read F; do		\
-		S=`${MAKE} source-$${F}`;	\
-		echo "$${F}: $${S}";	\
-		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L \$${IDIRS} -c $${S} -o $${F}"; \
-	    done ) >> $@
-.endfor
+# Developer targets: These only work with BSD make
+Makefiles:
+	${MAKE} -f Makefile.BSD Makefiles
 
-publish: clean
-	if [ -z "${VERSION}" ]; then			\
-		echo "VERSION must be specified!";	\
-		exit 1;					\
-	fi
-	if find . | grep \~; then					\
-		echo "Delete temporary files before publishing!";	\
-		exit 1;							\
-	fi
-	rm -f ${PKG}-${VERSION}.tgz
-	mkdir ${PKG}-${VERSION}
-	tar -cf- --exclude 'Makefile.*' --exclude Makefile --exclude .svn ${PUBLISH} | \
-	    tar -xf- -C ${PKG}-${VERSION}
-	cp Makefile.POSIX ${PKG}-${VERSION}/Makefile
-.for D in ${PROGS} ${BENCHES}
-	${MAKE} ${PKG}-${VERSION}/${D}/Makefile
-.endfor
-.for F in ${SUBST_VERSION_FILES}
-	# We need to write a temporary file because FreeBSD and GNU behaviour
-	# of sed -i is different.
-	sed -e 's/@VERSION@/${VERSION}/' -e 's/@DATE@/${RELEASEDATE}/' \
-	    < ${PKG}-${VERSION}/${F} > ${PKG}-${VERSION}/${F}.tmp
-	mv ${PKG}-${VERSION}/${F}.tmp ${PKG}-${VERSION}/${F}
-.endfor
-	tar -cvzf ${PKG}-${VERSION}.tgz ${PKG}-${VERSION}
-	rm -r ${PKG}-${VERSION}
-
-SUBDIR=	${PROGS} ${TESTS} ${BENCHES}
-.include <bsd.subdir.mk>
+publish:
+	${MAKE} -f Makefile.BSD publish

@@ -1,0 +1,102 @@
+# Program name
+PROG	=	s3
+
+# Libraries which are sometimes merged into libc
+LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
+
+# LBS code
+SRCS	=	main.c
+SRCS	+=	dns.c
+SRCS	+=	dispatch.c
+
+# Data structures
+.PATH.c	:	../libcperciva/datastruct
+SRCS	+=	elasticarray.c
+SRCS	+=	ptrheap.c
+SRCS	+=	timerqueue.c
+SRCS	+=	elasticqueue.c
+IDIRS	+=	-I ../libcperciva/datastruct
+
+# Utility functions
+.PATH.c	:	../libcperciva/util
+SRCS	+=	asprintf.c
+SRCS	+=	b64encode.c
+SRCS	+=	daemonize.c
+SRCS	+=	getopt.c
+SRCS	+=	hexify.c
+SRCS	+=	insecure_memzero.c
+SRCS	+=	monoclock.c
+SRCS	+=	noeintr.c
+SRCS	+=	sock.c
+SRCS	+=	sock_util.c
+SRCS	+=	warnp.c
+IDIRS	+=	-I ../libcperciva/util
+
+# Logging code
+.PATH.c	:	../lib/logging
+SRCS	+=	logging.c
+IDIRS	+=	-I ../lib/logging
+
+# Fundamental algorithms
+.PATH.c	:	../libcperciva/alg
+SRCS	+=	crc32c.c
+SRCS	+=	md5.c
+SRCS	+=	sha1.c
+IDIRS	+=	-I ../libcperciva/alg
+
+# Event loop
+.PATH.c	:	../libcperciva/events
+SRCS	+=	events_immediate.c
+SRCS	+=	events_network.c
+SRCS	+=	events_network_selectstats.c
+SRCS	+=	events_timer.c
+SRCS	+=	events.c
+IDIRS	+=	-I ../libcperciva/events
+
+# Event-driven networking
+.PATH.c	:	../libcperciva/network
+SRCS	+=	network_accept.c
+SRCS	+=	network_connect.c
+SRCS	+=	network_read.c
+SRCS	+=	network_write.c
+IDIRS	+=	-I ../libcperciva/network
+
+# Buffered networking
+.PATH.c	:	../lib/netbuf
+SRCS	+=	netbuf_read.c
+SRCS	+=	netbuf_write.c
+IDIRS	+=	-I ../lib/netbuf
+
+# HTTP client protocol
+.PATH.c	:	../lib/http
+SRCS	+=	http.c
+IDIRS	+=	-I ../lib/http
+
+# S3 client protocol and request queue
+.PATH.c	:	../lib/s3
+SRCS	+=	s3_request.c
+SRCS	+=	s3_request_queue.c
+SRCS	+=	s3_serverpool.c
+SRCS	+=	s3_verifyetag.c
+IDIRS	+=	-I ../lib/s3
+
+# Wire protocol
+.PATH.c	:	../lib/wire
+SRCS	+=	wire_packet.c
+SRCS	+=	wire_readpacket.c
+SRCS	+=	wire_writepacket.c
+IDIRS	+=	-I ../lib/wire
+
+# S3 request/response packets
+.PATH.c	:	../lib/proto_s3
+SRCS	+=	proto_s3_server.c
+IDIRS	+=	-I ../lib/proto_s3
+
+# Debugging options
+#CFLAGS	+=	-g
+#CFLAGS	+=	-DNDEBUG
+#CFLAGS	+=	-DDEBUG
+#CFLAGS	+=	-pg
+
+.include <bsd.prog.mk>

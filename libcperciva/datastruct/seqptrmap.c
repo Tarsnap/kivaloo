@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -56,8 +57,12 @@ seqptrmap_add(struct seqptrmap * M, void * ptr)
 		goto err0;
 	M->len += 1;
 
+	/* Check for overflow. */
+	assert(M->len <= (uint64_t)INT64_MAX);
+	assert(INT64_MAX - (int64_t)M->len >= M->offset);
+
 	/* Return associated integer. */
-	return (M->offset + M->len - 1);
+	return (M->offset + (int64_t)M->len - 1);
 
 err0:
 	/* Failure! */

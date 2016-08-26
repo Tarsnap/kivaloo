@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -56,8 +57,12 @@ seqptrmap_add(struct seqptrmap * M, void * ptr)
 		goto err0;
 	M->len += 1;
 
+	/* Check for overflow. */
+	assert(M->len <= (uint64_t)INT64_MAX);
+	assert(INT64_MAX - (int64_t)M->len >= M->offset);
+
 	/* Return associated integer. */
-	return (M->offset + M->len - 1);
+	return (M->offset + (int64_t)M->len - 1);
 
 err0:
 	/* Failure! */
@@ -74,17 +79,23 @@ err0:
 void *
 seqptrmap_get(struct seqptrmap * M, int64_t i)
 {
-	size_t pos = i - M->offset;
+
+	/* No valid pointer is less than the offset. */
+	if (i < M->offset)
+		return (NULL);
 
 	/*
-	 * If the provided integer is within the bounds of our elastic queue,
-	 * look up the pointer; otherwise, there is no associated pointer and
-	 * we return NULL.
+	 * If the provided integer is not within the bounds of our elastic
+	 * queue, there is no associated pointer and we return NULL.
 	 */
-	if (pos < M->len)
-		return (*(void **)elasticqueue_get(M->ptrs, pos));
-	else
+	if ((uint64_t)(i - M->offset) >= (uint64_t)(M->len))
 		return (NULL);
+
+	/*
+	 * Since the provided integer is within the bounds of our elastic
+	 * queue, look up the pointer.
+	 */
+	return (*(void **)elasticqueue_get(M->ptrs, (size_t)(i - M->offset)));
 }
 
 /**
@@ -114,17 +125,20 @@ seqptrmap_getmin(struct seqptrmap * M)
 void
 seqptrmap_delete(struct seqptrmap * M, int64_t i)
 {
-	size_t pos = i - M->offset;
+
+	/* No valid pointer is less than the offset. */
+	if (i < M->offset)
+		return;
 
 	/*
 	 * If the provided integer is not within the bounds of our elastic
 	 * queue, return without taking any action.
 	 */
-	if (pos >= M->len)
+	if ((uint64_t)(i - M->offset) >= (uint64_t)(M->len))
 		return;
 
 	/* Delete the specified pointer by setting it to NULL. */
-	*(void **)elasticqueue_get(M->ptrs, pos) = NULL;
+	*(void **)elasticqueue_get(M->ptrs, (size_t)(i - M->offset)) = NULL;
 
 	/* Delete leading NULLs from the queue. */
 	while ((elasticqueue_getlen(M->ptrs) > 0) &&

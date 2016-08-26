@@ -81,6 +81,10 @@ seqptrmap_get(struct seqptrmap * M, int64_t i)
 {
 	size_t pos = i - M->offset;
 
+	/* No valid pointer is less than the offset. */
+	if (i < M->offset)
+		return (NULL);
+
 	/*
 	 * If the provided integer is within the bounds of our elastic queue,
 	 * look up the pointer; otherwise, there is no associated pointer and
@@ -120,6 +124,10 @@ void
 seqptrmap_delete(struct seqptrmap * M, int64_t i)
 {
 	size_t pos = i - M->offset;
+
+	/* No valid pointer is less than the offset. */
+	if (i < M->offset)
+		return;
 
 	/*
 	 * If the provided integer is not within the bounds of our elastic

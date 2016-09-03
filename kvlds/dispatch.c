@@ -608,8 +608,9 @@ dispatch_accept(int s, struct btree * T,
 	D->mr_qlen = 0;
 	D->mr_timer = NULL;
 	D->mr_timer_expired = 0;
-	D->mr_timeout.tv_sec = w;
-	D->mr_timeout.tv_usec = (w - D->mr_timeout.tv_sec) * 1000000;
+	D->mr_timeout.tv_sec = (time_t)w;
+	D->mr_timeout.tv_usec = (suseconds_t)((w - D->mr_timeout.tv_sec)
+	    * 1000000);
 	D->mr_min_batch = g;
 
 	/* Start the periodic cleaning timer. */

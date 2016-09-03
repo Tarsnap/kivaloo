@@ -268,7 +268,7 @@ deserialize(struct node * N, const uint8_t * buf, size_t buflen)
 
 		/* Figure out how far the keys match. */
 		if (N->nkeys > 0) {
-			N->mlen_n = kvldskey_mlen(N->u.pairs[0].k,
+			N->mlen_n = (uint8_t)kvldskey_mlen(N->u.pairs[0].k,
 			    N->u.pairs[N->nkeys - 1].k);
 		} else {
 			N->mlen_n = 255;

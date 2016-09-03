@@ -344,9 +344,6 @@ callback_connected(void * cookie, int s)
 
 	/* Enter response-reading loop. */
 	return (callback_read_header(H, 0));
-
-	/* Success! */
-	return (0);
 }
 
 /* Check if we have a complete header; or wait for more to arrive. */

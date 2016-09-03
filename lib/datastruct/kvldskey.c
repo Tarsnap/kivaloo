@@ -15,12 +15,15 @@ kvldskey_create(const uint8_t * buf, size_t len)
 {
 	struct kvldskey * K;
 
+	/* Sanity check. */
+	assert(len <= UINT8_MAX);
+
 	/* Allocate structure. */
 	if ((K = malloc(sizeof(struct kvldskey) + len)) == NULL)
 		goto err0;
 
 	/* Copy data. */
-	K->len = len;
+	K->len = (uint8_t)len;
 	memcpy(K->buf, buf, len);
 
 	/* Success! */

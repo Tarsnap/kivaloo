@@ -71,7 +71,7 @@ btree_mutate_add(struct node * N, struct kvpair_const * pos,
 	if (N->nkeys) {
 		mlen = kvldskey_mlen(k, N->u.pairs[0].k);
 		if (mlen < N->mlen_n)
-			N->mlen_n = mlen;
+			N->mlen_n = (uint8_t)mlen;
 	} else {
 		N->mlen_n = 0;
 	}

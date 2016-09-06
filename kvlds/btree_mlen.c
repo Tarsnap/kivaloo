@@ -32,7 +32,7 @@ mlen_traverse(struct node * N, const struct kvldskey * start,
 	if ((start == NULL) || (end == NULL))
 		N->mlen_t = 0;
 	else
-		N->mlen_t = kvldskey_mlen(start, end);
+		N->mlen_t = (uint8_t)kvldskey_mlen(start, end);
 }
 
 /**

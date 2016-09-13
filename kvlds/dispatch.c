@@ -477,7 +477,7 @@ gotrequest(void * cookie, int status)
 		case PROTO_KVLDS_PARAMS:
 			/* Send the response immediately. */
 			if (proto_kvlds_response_params(D->writeq, RQ->R->ID,
-			D->kmax, D->vmax))
+			    D->kmax, D->vmax))
 				goto err2;
 
 			/* Free the linked list node. */
@@ -498,7 +498,7 @@ gotrequest(void * cookie, int status)
 			* long or the value we're setting is too long.
 			*/
 			if ((R->key->len > D->kmax) ||
-			(R->value->len > D->vmax))
+			    (R->value->len > D->vmax))
 				goto drop2;
 
 			/* FALLTHROUGH */
@@ -535,7 +535,7 @@ gotrequest(void * cookie, int status)
 		default:
 			/* Don't recognize this packet... */
 			warn0("Received unrecognized packet type: 0x%08" PRIx32,
-			R->type);
+			    R->type);
 			goto drop2;
 		}
 	} while (1);

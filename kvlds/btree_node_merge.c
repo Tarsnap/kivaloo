@@ -138,7 +138,7 @@ merge_parent(struct btree * T, struct node ** c_in,
 	for (i = 0; i <= nsep; i++) {
 		free(c_in[i]->u.keys);
 		free(c_in[i]->v.children);
-		c_in[i]->nkeys = -1;
+		c_in[i]->nkeys = (size_t)(-1);
 		btree_node_destroy(T, c_in[i]);
 	}
 

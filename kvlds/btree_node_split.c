@@ -201,7 +201,7 @@ destroy_parent_nokeys(struct btree * T, struct node * N)
 	free(N->v.children);
 
 	/* This node has no data to free. */
-	N->nkeys = -1;
+	N->nkeys = (size_t)(-1);
 
 	/* Free the node. */
 	btree_node_destroy(T, N);

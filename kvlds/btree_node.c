@@ -137,6 +137,9 @@ btree_node_mknode(struct btree * T, int type, int height, size_t nkeys,
 {
 	struct node * N;
 
+	/* Sanity check. */
+	assert((height <= INT8_MAX) && (height >= -1));
+
 	/* Allocate node. */
 	if ((N = node_alloc(-1, -1, -1)) == NULL)
 		goto err0;
@@ -148,7 +151,7 @@ btree_node_mknode(struct btree * T, int type, int height, size_t nkeys,
 	/* This is a DIRTY node of the indicated type and height. */
 	N->state = NODE_STATE_DIRTY;
 	N->type = type;
-	N->height = height;
+	N->height = (int8_t)height;
 
 	/* Store node data. */
 	N->nkeys = nkeys;

@@ -1,6 +1,7 @@
 PROG=	test_kvlds
 .PATH.c	:	../kvlds
 SRCS=	main.c
+MAN1=
 
 # Data structures (libcperciva)
 .PATH.c	:	../../libcperciva/datastruct

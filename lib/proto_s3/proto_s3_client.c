@@ -85,10 +85,10 @@ proto_s3_request_put(struct wire_requestqueue * Q, const char * bucket,
 	/* Construct request. */
 	be32enc(p, PROTO_S3_PUT);
 	p += 4;
-	*p++ = strlen(bucket);
+	*p++ = (uint8_t)strlen(bucket);
 	memcpy(p, bucket, strlen(bucket));
 	p += strlen(bucket);
-	*p++ = strlen(object);
+	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 	p += strlen(object);
 	be32enc(p, buflen);
@@ -191,10 +191,10 @@ proto_s3_request_get(struct wire_requestqueue * Q, const char * bucket,
 	/* Construct request. */
 	be32enc(p, PROTO_S3_GET);
 	p += 4;
-	*p++ = strlen(bucket);
+	*p++ = (uint8_t)strlen(bucket);
 	memcpy(p, bucket, strlen(bucket));
 	p += strlen(bucket);
-	*p++ = strlen(object);
+	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 	p += strlen(object);
 	be32enc(p, maxlen);
@@ -315,10 +315,10 @@ proto_s3_request_range(struct wire_requestqueue * Q, const char * bucket,
 	/* Construct request. */
 	be32enc(p, PROTO_S3_RANGE);
 	p += 4;
-	*p++ = strlen(bucket);
+	*p++ = (uint8_t)strlen(bucket);
 	memcpy(p, bucket, strlen(bucket));
 	p += strlen(bucket);
-	*p++ = strlen(object);
+	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 	p += strlen(object);
 	be32enc(p, offset);
@@ -436,10 +436,10 @@ proto_s3_request_head(struct wire_requestqueue * Q, const char * bucket,
 	/* Construct request. */
 	be32enc(p, PROTO_S3_HEAD);
 	p += 4;
-	*p++ = strlen(bucket);
+	*p++ = (uint8_t)strlen(bucket);
 	memcpy(p, bucket, strlen(bucket));
 	p += strlen(bucket);
-	*p++ = strlen(object);
+	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 
 	/* Finish writing request. */
@@ -531,10 +531,10 @@ proto_s3_request_delete(struct wire_requestqueue * Q, const char * bucket,
 	/* Construct request. */
 	be32enc(p, PROTO_S3_DELETE);
 	p += 4;
-	*p++ = strlen(bucket);
+	*p++ = (uint8_t)strlen(bucket);
 	memcpy(p, bucket, strlen(bucket));
 	p += strlen(bucket);
-	*p++ = strlen(object);
+	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 
 	/* Finish writing request. */

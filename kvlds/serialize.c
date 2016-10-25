@@ -79,6 +79,9 @@ serialize(struct btree * T, struct node * N, size_t buflen)
 	assert(N->state == NODE_STATE_DIRTY);
 	assert(N->pagebuf == NULL);
 
+	/* Sanity check: We can only store 2 bytes of nkeys. */
+	assert(N->nkeys <= UINT16_MAX);
+
 	/* Get the page length.  This also sets N->pagelen. */
 	pagelen = serialize_size(N);
 
@@ -95,7 +98,7 @@ serialize(struct btree * T, struct node * N, size_t buflen)
 	p += 6;
 
 	/* Write out the number of keys. */
-	be16enc(p, N->nkeys);
+	be16enc(p, (uint16_t)N->nkeys);
 	p += 2;
 
 	/* Write height and rootedness. */

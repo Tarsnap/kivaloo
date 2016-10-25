@@ -58,7 +58,9 @@ seqptrmap_add(struct seqptrmap * M, void * ptr)
 	M->len += 1;
 
 	/* Check for overflow. */
+#if SIZE_MAX > INT64_MAX
 	assert(M->len <= (uint64_t)INT64_MAX);
+#endif
 	assert(INT64_MAX - (int64_t)M->len >= M->offset);
 
 	/* Return associated integer. */

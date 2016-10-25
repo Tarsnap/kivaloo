@@ -1,5 +1,6 @@
 PROG=	test_lbs
 SRCS=	main.c
+MAN1=
 
 # Data structures
 .PATH.c	:	../../libcperciva/datastruct

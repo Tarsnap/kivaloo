@@ -6,7 +6,6 @@ cflags-${X:.c=.o}:
 .endfor
 
 # Defaults for all kivaloo code
-NO_MAN	?=	yes
 WARNS	?=	3
 
 # Use POSIX standard

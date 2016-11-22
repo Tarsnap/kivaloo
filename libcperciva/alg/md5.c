@@ -277,7 +277,7 @@ MD5_Final(uint8_t digest[16], MD5_CTX * ctx)
 
 /**
  * MD5_Buf(in, len, digest):
- * Compute the MD5 hash of ${len} bytes from $in} and write it to ${digest}.
+ * Compute the MD5 hash of ${len} bytes from ${in} and write it to ${digest}.
  */
 void
 MD5_Buf(const void * in, size_t len, uint8_t digest[16])

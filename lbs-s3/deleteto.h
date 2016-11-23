@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-/* Opaque type.*/
+/* Opaque type. */
 struct wire_requestqueue;
 
 /**

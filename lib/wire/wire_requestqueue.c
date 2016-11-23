@@ -156,7 +156,7 @@ failqueue(void * cookie)
 /**
  * wire_requestqueue_init(s):
  * Create and return a request queue attached to socket ${s}.  The caller is
- * responsibile for ensuring that no attempts are made read/write from/to
+ * responsible for ensuring that no attempts are made read/write from/to
  * said socket except via the request queue until wire_requestqueue_destroy
  * is called to destroy the queue.
  */

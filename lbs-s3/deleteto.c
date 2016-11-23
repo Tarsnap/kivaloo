@@ -32,7 +32,7 @@ callback_deletedmarker_head(void * cookie, int status, size_t len)
 {
 	struct deleteto * D = cookie;
 
-	/* If we've got a 404, DeletedMarker is initialiezd to 1. */
+	/* If we've got a 404, DeletedMarker is initialized to 1. */
 	if (status == 404) {
 		D->M = 1;
 	} else if (status == 200) {

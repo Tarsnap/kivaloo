@@ -174,7 +174,7 @@ poke(struct deleteto * D)
 	 * haven't yet stored this value of M.
 	 *
 	 * If we crash and restart, we may end up re-issuing as many as ~256
-	 * deletes;but  this is better than more-frequent updating of the
+	 * deletes; but this is better than more-frequent updating of the
 	 * deletion marker since (a) DELETEs are free but PUTs aren't, and
 	 * (b) we want to optimize for the common case, which is a long-lived
 	 * lbs-s3 process.

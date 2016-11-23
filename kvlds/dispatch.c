@@ -494,9 +494,9 @@ gotrequest(void * cookie, int status)
 		case PROTO_KVLDS_ADD:
 		case PROTO_KVLDS_MODIFY:
 			/*
-			* We can't add or modify a key-value pair if the key is too
-			* long or the value we're setting is too long.
-			*/
+			 * We can't add or modify a key-value pair if the key
+			 * is too long or the value we're setting is too long.
+			 */
 			if ((R->key->len > D->kmax) ||
 			    (R->value->len > D->vmax))
 				goto drop2;

@@ -344,7 +344,7 @@ main(int argc, char * argv[])
 	/* Free the address structures. */
 	sock_addr_freelist(sas);
 
-	/* Free string alocated by asprintf. */
+	/* Free string allocated by asprintf. */
 	free(s3_host);
 
 	/* Free key strings. */

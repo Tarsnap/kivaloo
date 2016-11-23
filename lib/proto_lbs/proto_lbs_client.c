@@ -429,7 +429,7 @@ failed:
 
 /**
  * proto_lbs_request_free(Q, blkno, callback, cookie):
- * Send a FREE request to free blocks numbred less than ${blkno} to the
+ * Send a FREE request to free blocks numbered less than ${blkno} to the
  * request queue ${Q}.  Invoke
  *     ${callback}(${cookie}, failed)
  * upon request completion, where failed is 0 on success and 1 on failure.

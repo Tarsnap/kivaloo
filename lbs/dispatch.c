@@ -250,7 +250,7 @@ dispatch_init(struct storage_state * S, size_t blocklen, size_t nreaders)
 		}
 	}
 
-	/* Succcess! */
+	/* Success! */
 	return (D);
 
 err5:

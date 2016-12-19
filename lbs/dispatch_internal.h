@@ -32,7 +32,7 @@ struct dispatch_state {
 	struct storage_state * sstate;	/* Back-end storage state. */
 
 	/* Work done dispatch-poking. */
-	int spair[2];			/* Read from [0], write to [1].*/
+	int spair[2];			/* Read from [0], write to [1]. */
 	size_t wakeupID;		/* Thread ID being read. */
 	void * wakeup_cookie;		/* Thread ID read cookie. */
 

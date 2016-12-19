@@ -47,7 +47,7 @@ void SHA1_Final(uint8_t[20], SHA1_CTX *);
 
 /**
  * SHA1_Buf(in, len, digest):
- * Compute the SHA1 hash of ${len} bytes from $in} and write it to ${digest}.
+ * Compute the SHA1 hash of ${len} bytes from ${in} and write it to ${digest}.
  */
 void SHA1_Buf(const void *, size_t, uint8_t[20]);
 

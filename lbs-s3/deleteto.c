@@ -32,7 +32,7 @@ callback_deletedmarker_head(void * cookie, int status, size_t len)
 {
 	struct deleteto * D = cookie;
 
-	/* If we've got a 404, DeletedMarker is initialiezd to 1. */
+	/* If we've got a 404, DeletedMarker is initialized to 1. */
 	if (status == 404) {
 		D->M = 1;
 	} else if (status == 200) {
@@ -174,7 +174,7 @@ poke(struct deleteto * D)
 	 * haven't yet stored this value of M.
 	 *
 	 * If we crash and restart, we may end up re-issuing as many as ~256
-	 * deletes;but  this is better than more-frequent updating of the
+	 * deletes; but this is better than more-frequent updating of the
 	 * deletion marker since (a) DELETEs are free but PUTs aren't, and
 	 * (b) we want to optimize for the common case, which is a long-lived
 	 * lbs-s3 process.

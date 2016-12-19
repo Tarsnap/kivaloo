@@ -291,7 +291,7 @@ callback_gotrequests(void * cookie, int status)
 	if (readreq(S))
 		goto err0;
 
-	/* Sucess! */
+	/* Success! */
 	return (0);
 
 fail:

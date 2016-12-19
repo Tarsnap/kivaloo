@@ -104,7 +104,7 @@ callback_params(void * cookie, uint8_t * buf, size_t buflen)
 		blklen = be32dec(&buf[0]);
 		blkno = be64dec(&buf[4]);
 
-		/* We succcessfully parsed this response. */
+		/* We successfully parsed this response. */
 		failed = 0;
 	}
 
@@ -179,7 +179,7 @@ callback_params2(void * cookie, uint8_t * buf, size_t buflen)
 		blkno = be64dec(&buf[4]);
 		lastblk = be64dec(&buf[12]);
 
-		/* We succcessfully parsed this response. */
+		/* We successfully parsed this response. */
 		failed = 0;
 	}
 
@@ -429,7 +429,7 @@ failed:
 
 /**
  * proto_lbs_request_free(Q, blkno, callback, cookie):
- * Send a FREE request to free blocks numbred less than ${blkno} to the
+ * Send a FREE request to free blocks numbered less than ${blkno} to the
  * request queue ${Q}.  Invoke
  *     ${callback}(${cookie}, failed)
  * upon request completion, where failed is 0 on success and 1 on failure.

@@ -19,7 +19,7 @@ pool_init(size_t nrec, size_t offset)
 	if ((P = malloc(sizeof(struct pool))) == NULL)
 		goto err0;
 
-	/* Iniitalize. */
+	/* Initialize. */
 	P->size = nrec;
 	P->used = 0;
 	P->evict_head = P->evict_tail = NULL;

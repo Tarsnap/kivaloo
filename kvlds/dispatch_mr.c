@@ -87,10 +87,10 @@ finddirty(struct nodepair * V, size_t N, struct node * shadow)
 
 /**
  * dispatch_mr_launch(T, reqs, nreqs, WQ, callback_done, cookie):
- * Perform the ${nreqs} modifying requests ${reqs}[] on the B+Tree ${T};
- * write response packets to the write queue ${WQ}; and free the requests and
- * request array.  Invoke the callback ${callback_done}(${cookie}) after the
- * requests have been serviced.
+ * Perform the ${nreqs} modifying requests ${reqs[0]} ... ${reqs[nreqs - 1]}
+ * on the B+Tree ${T}; write response packets to the write queue ${WQ}; and
+ * free the requests and request array.  Invoke the callback
+ * ${callback_done}(${cookie}) after the requests have been serviced.
  */
 int
 dispatch_mr_launch(struct btree * T, struct proto_kvlds_request ** reqs,

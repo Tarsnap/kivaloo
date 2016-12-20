@@ -448,8 +448,8 @@ err1:
 /**
  * dispatch_init(socks, nsocks, Q, maxconn):
  * Initialize a dispatcher to accept connections from the listening sockets
- * ${socks}[0 .. ${nsocks} - 1] (but no more than ${maxconn} at once) and
- * shuttle requests/responses to/from the request queue ${Q}.
+ * ${socks[0]} ... ${socks[nsocks - 1]} (but no more than ${maxconn} at
+ * once) and shuttle requests/responses to/from the request queue ${Q}.
  */
 struct dispatch_state *
 dispatch_init(const int * socks, size_t nsocks,

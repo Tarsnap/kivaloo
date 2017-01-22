@@ -22,104 +22,104 @@ ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/humansize.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h btree.h dispatch.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c main.c -o main.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
 dispatch.o: dispatch.c ../libcperciva/events/events.h ../libcperciva/util/imalloc.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_kvlds/proto_kvlds.h ../lib/wire/wire.h serialize.h ../libcperciva/util/warnp.h btree.h btree_cleaning.h node.h dispatch.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
 dispatch_mr.o: dispatch_mr.c ../libcperciva/events/events.h ../libcperciva/util/imalloc.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../lib/proto_kvlds/proto_kvlds.h ../lib/wire/wire.h btree.h btree_cleaning.h btree_find.h btree_mutate.h btree_node.h ../lib/datastruct/pool.h node.h dispatch.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c dispatch_mr.c -o dispatch_mr.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch_mr.c -o dispatch_mr.o
 dispatch_nmr.o: dispatch_nmr.c ../libcperciva/events/events.h ../libcperciva/util/imalloc.h ../lib/datastruct/kvpair.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../libcperciva/datastruct/ptrheap.h ../lib/netbuf/netbuf.h ../lib/proto_kvlds/proto_kvlds.h ../lib/wire/wire.h btree.h btree_find.h btree_node.h ../lib/datastruct/pool.h node.h dispatch.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c dispatch_nmr.c -o dispatch_nmr.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch_nmr.c -o dispatch_nmr.o
 btree.o: btree.c ../libcperciva/events/events.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../lib/datastruct/pool.h ../libcperciva/util/warnp.h btree_cleaning.h btree_node.h btree.h node.h serialize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree.c -o btree.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree.c -o btree.o
 btree_balance.o: btree_balance.c ../libcperciva/events/events.h ../libcperciva/util/imalloc.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h btree_node.h ../lib/datastruct/pool.h btree.h node.h serialize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_balance.c -o btree_balance.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_balance.c -o btree_balance.o
 btree_cleaning.o: btree_cleaning.c ../libcperciva/events/events.h ../libcperciva/util/warnp.h btree.h btree_node.h ../lib/datastruct/pool.h node.h btree_cleaning.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_cleaning.c -o btree_cleaning.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_cleaning.c -o btree_cleaning.o
 btree_mlen.o: btree_mlen.c ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h node.h btree.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_mlen.c -o btree_mlen.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_mlen.c -o btree_mlen.o
 btree_sync.o: btree_sync.c ../libcperciva/events/events.h ../libcperciva/util/imalloc.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../libcperciva/util/warnp.h btree_node.h ../lib/datastruct/pool.h btree.h node.h serialize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_sync.c -o btree_sync.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_sync.c -o btree_sync.o
 btree_find.o: btree_find.c ../libcperciva/events/events.h ../lib/datastruct/kvpair.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../libcperciva/datastruct/mpool.h btree.h btree_node.h ../lib/datastruct/pool.h node.h btree_find.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_find.c -o btree_find.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_find.c -o btree_find.o
 btree_mutate.o: btree_mutate.c ../lib/datastruct/kvhash.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h ../libcperciva/util/imalloc.h btree_find.h node.h btree_mutate.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_mutate.c -o btree_mutate.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_mutate.c -o btree_mutate.o
 btree_node.o: btree_node.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/events/events.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h ../libcperciva/util/imalloc.h ../lib/datastruct/pool.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../libcperciva/util/warnp.h btree.h btree_cleaning.h node.h serialize.h btree_node.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_node.c -o btree_node.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_node.c -o btree_node.o
 btree_node_split.o: btree_node_split.c ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h ../libcperciva/util/imalloc.h btree.h node.h serialize.h btree_node.h ../lib/datastruct/pool.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_node_split.c -o btree_node_split.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_node_split.c -o btree_node_split.o
 btree_node_merge.o: btree_node_merge.c ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h btree.h ../libcperciva/util/imalloc.h node.h btree_node.h ../lib/datastruct/pool.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c btree_node_merge.c -o btree_node_merge.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c btree_node_merge.c -o btree_node_merge.o
 serialize.o: serialize.c btree.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h ../libcperciva/util/imalloc.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h node.h serialize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c serialize.c -o serialize.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c serialize.c -o serialize.o
 node.o: node.c node.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c node.c -o node.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c node.c -o node.o
 elasticarray.o: ../libcperciva/datastruct/elasticarray.c ../libcperciva/datastruct/elasticarray.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
 ptrheap.o: ../libcperciva/datastruct/ptrheap.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/datastruct/ptrheap.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/ptrheap.c -o ptrheap.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/ptrheap.c -o ptrheap.o
 timerqueue.o: ../libcperciva/datastruct/timerqueue.c ../libcperciva/datastruct/ptrheap.h ../libcperciva/datastruct/timerqueue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/timerqueue.c -o timerqueue.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/timerqueue.c -o timerqueue.o
 elasticqueue.o: ../libcperciva/datastruct/elasticqueue.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/datastruct/elasticqueue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticqueue.c -o elasticqueue.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticqueue.c -o elasticqueue.o
 seqptrmap.o: ../libcperciva/datastruct/seqptrmap.c ../libcperciva/datastruct/elasticqueue.h ../libcperciva/datastruct/seqptrmap.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/seqptrmap.c -o seqptrmap.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/seqptrmap.c -o seqptrmap.o
 kvldskey.o: ../lib/datastruct/kvldskey.c ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/datastruct/kvldskey.c -o kvldskey.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/datastruct/kvldskey.c -o kvldskey.o
 kvhash.o: ../lib/datastruct/kvhash.c ../libcperciva/alg/crc32c.h ../libcperciva/util/imalloc.h ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h ../libcperciva/util/sysendian.h ../lib/datastruct/kvhash.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/datastruct/kvhash.c -o kvhash.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/datastruct/kvhash.c -o kvhash.o
 kvpair.o: ../lib/datastruct/kvpair.c ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../lib/datastruct/kvpair.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/datastruct/kvpair.c -o kvpair.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/datastruct/kvpair.c -o kvpair.o
 pool.o: ../lib/datastruct/pool.c ../lib/datastruct/pool.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/datastruct/pool.c -o pool.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/datastruct/pool.c -o pool.o
 asprintf.o: ../libcperciva/util/asprintf.c ../libcperciva/util/asprintf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/asprintf.c -o asprintf.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/asprintf.c -o asprintf.o
 daemonize.o: ../libcperciva/util/daemonize.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h ../libcperciva/util/daemonize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/daemonize.c -o daemonize.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/daemonize.c -o daemonize.o
 getopt.o: ../libcperciva/util/getopt.c ../libcperciva/util/getopt.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/getopt.c -o getopt.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/getopt.c -o getopt.o
 humansize.o: ../libcperciva/util/humansize.c ../libcperciva/util/asprintf.h ../libcperciva/util/warnp.h ../libcperciva/util/humansize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/humansize.c -o humansize.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/humansize.c -o humansize.o
 insecure_memzero.o: ../libcperciva/util/insecure_memzero.c ../libcperciva/util/insecure_memzero.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
 monoclock.o: ../libcperciva/util/monoclock.c ../libcperciva/util/warnp.h ../libcperciva/util/monoclock.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/monoclock.c -o monoclock.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/monoclock.c -o monoclock.o
 noeintr.o: ../libcperciva/util/noeintr.c ../libcperciva/util/noeintr.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/noeintr.c -o noeintr.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/noeintr.c -o noeintr.o
 sock.o: ../libcperciva/util/sock.c ../libcperciva/util/imalloc.h ../libcperciva/util/warnp.h ../libcperciva/util/sock.h ../libcperciva/util/sock_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/sock.c -o sock.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/sock.c -o sock.o
 warnp.o: ../libcperciva/util/warnp.c ../libcperciva/util/warnp.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/warnp.c -o warnp.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/warnp.c -o warnp.o
 crc32c.o: ../libcperciva/alg/crc32c.c ../libcperciva/alg/crc32c.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
 events_immediate.o: ../libcperciva/events/events_immediate.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
 events_network.o: ../libcperciva/events/events_network.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/warnp.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_network.c -o events_network.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_network.c -o events_network.o
 events_network_selectstats.o: ../libcperciva/events/events_network_selectstats.c ../libcperciva/util/monoclock.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o
 events_timer.o: ../libcperciva/events/events_timer.c ../libcperciva/util/monoclock.h ../libcperciva/datastruct/timerqueue.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_timer.c -o events_timer.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_timer.c -o events_timer.o
 events.o: ../libcperciva/events/events.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events.c -o events.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events.c -o events.o
 network_accept.o: ../libcperciva/network/network_accept.c ../libcperciva/events/events.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/network/network_accept.c -o network_accept.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_accept.c -o network_accept.o
 network_read.o: ../libcperciva/network/network_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/network/network_read.c -o network_read.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_read.c -o network_read.o
 network_write.o: ../libcperciva/network/network_write.c ../libcperciva/events/events.h ../libcperciva/util/warnp.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/network/network_write.c -o network_write.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_write.c -o network_write.o
 netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
 wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
 wire_requestqueue.o: ../lib/wire/wire_requestqueue.c ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/datastruct/seqptrmap.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
 proto_lbs_client.o: ../lib/proto_lbs/proto_lbs_client.c ../libcperciva/util/imalloc.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../lib/proto_lbs/proto_lbs.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/proto_lbs/proto_lbs_client.c -o proto_lbs_client.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_lbs/proto_lbs_client.c -o proto_lbs_client.o
 proto_kvlds_server.o: ../lib/proto_kvlds/proto_kvlds_server.c ../lib/datastruct/kvldskey.h ../libcperciva/util/ctassert.h ../libcperciva/datastruct/mpool.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../lib/proto_kvlds/proto_kvlds.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/proto_kvlds/proto_kvlds_server.c -o proto_kvlds_server.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_kvlds/proto_kvlds_server.c -o proto_kvlds_server.o

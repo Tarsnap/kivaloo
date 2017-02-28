@@ -30,7 +30,7 @@ ${D}/Makefile::
 		IDIRS=`${MAKE} -V IDIRS`;	\
 		echo `${CPP} $${S} -I.. $${IDIRS} -MM -MT $${F}` \
 			| sed -e 's| \\ | |g'; \
-		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L $${CF} -I.. \$${IDIRS} -c $${S} -o $${F}"; \
+		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 $${CF} -I.. \$${IDIRS} -c $${S} -o $${F}"; \
 	    done ) >> $@
 .endfor
 

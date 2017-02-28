@@ -22,78 +22,78 @@ ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h deleteto.h dispatch.h s3state.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c main.c -o main.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
 dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../libcperciva/util/warnp.h s3state.h dispatch.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
 s3state.o: s3state.c ../libcperciva/events/events.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/warnp.h deleteto.h findlast.h objmap.h s3state.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c s3state.c -o s3state.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c s3state.c -o s3state.o
 deleteto.o: deleteto.c ../libcperciva/events/events.h objmap.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h deleteto.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c deleteto.c -o deleteto.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c deleteto.c -o deleteto.o
 findlast.o: findlast.c ../libcperciva/events/events.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h objmap.h findlast.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c findlast.c -o findlast.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c findlast.c -o findlast.o
 objmap.o: objmap.c ../libcperciva/util/hexify.h ../libcperciva/alg/md5.h ../libcperciva/util/sysendian.h objmap.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c objmap.c -o objmap.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c objmap.c -o objmap.o
 elasticarray.o: ../libcperciva/datastruct/elasticarray.c ../libcperciva/datastruct/elasticarray.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
 ptrheap.o: ../libcperciva/datastruct/ptrheap.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/datastruct/ptrheap.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/ptrheap.c -o ptrheap.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/ptrheap.c -o ptrheap.o
 timerqueue.o: ../libcperciva/datastruct/timerqueue.c ../libcperciva/datastruct/ptrheap.h ../libcperciva/datastruct/timerqueue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/timerqueue.c -o timerqueue.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/timerqueue.c -o timerqueue.o
 elasticqueue.o: ../libcperciva/datastruct/elasticqueue.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/datastruct/elasticqueue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticqueue.c -o elasticqueue.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticqueue.c -o elasticqueue.o
 seqptrmap.o: ../libcperciva/datastruct/seqptrmap.c ../libcperciva/datastruct/elasticqueue.h ../libcperciva/datastruct/seqptrmap.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/datastruct/seqptrmap.c -o seqptrmap.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/seqptrmap.c -o seqptrmap.o
 asprintf.o: ../libcperciva/util/asprintf.c ../libcperciva/util/asprintf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/asprintf.c -o asprintf.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/asprintf.c -o asprintf.o
 daemonize.o: ../libcperciva/util/daemonize.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h ../libcperciva/util/daemonize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/daemonize.c -o daemonize.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/daemonize.c -o daemonize.o
 getopt.o: ../libcperciva/util/getopt.c ../libcperciva/util/getopt.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/getopt.c -o getopt.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/getopt.c -o getopt.o
 hexify.o: ../libcperciva/util/hexify.c ../libcperciva/util/hexify.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/hexify.c -o hexify.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/hexify.c -o hexify.o
 insecure_memzero.o: ../libcperciva/util/insecure_memzero.c ../libcperciva/util/insecure_memzero.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
 monoclock.o: ../libcperciva/util/monoclock.c ../libcperciva/util/warnp.h ../libcperciva/util/monoclock.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/monoclock.c -o monoclock.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/monoclock.c -o monoclock.o
 noeintr.o: ../libcperciva/util/noeintr.c ../libcperciva/util/noeintr.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/noeintr.c -o noeintr.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/noeintr.c -o noeintr.o
 sock.o: ../libcperciva/util/sock.c ../libcperciva/util/imalloc.h ../libcperciva/util/warnp.h ../libcperciva/util/sock.h ../libcperciva/util/sock_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/sock.c -o sock.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/sock.c -o sock.o
 warnp.o: ../libcperciva/util/warnp.c ../libcperciva/util/warnp.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/util/warnp.c -o warnp.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/warnp.c -o warnp.o
 crc32c.o: ../libcperciva/alg/crc32c.c ../libcperciva/alg/crc32c.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
 md5.o: ../libcperciva/alg/md5.c ../libcperciva/util/insecure_memzero.h ../libcperciva/util/sysendian.h ../libcperciva/alg/md5.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/alg/md5.c -o md5.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/alg/md5.c -o md5.o
 events_immediate.o: ../libcperciva/events/events_immediate.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
 events_network.o: ../libcperciva/events/events_network.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/warnp.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_network.c -o events_network.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_network.c -o events_network.o
 events_network_selectstats.o: ../libcperciva/events/events_network_selectstats.c ../libcperciva/util/monoclock.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o
 events_timer.o: ../libcperciva/events/events_timer.c ../libcperciva/util/monoclock.h ../libcperciva/datastruct/timerqueue.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events_timer.c -o events_timer.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_timer.c -o events_timer.o
 events.o: ../libcperciva/events/events.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/events/events.c -o events.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events.c -o events.o
 network_accept.o: ../libcperciva/network/network_accept.c ../libcperciva/events/events.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/network/network_accept.c -o network_accept.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_accept.c -o network_accept.o
 network_read.o: ../libcperciva/network/network_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/network/network_read.c -o network_read.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_read.c -o network_read.o
 network_write.o: ../libcperciva/network/network_write.c ../libcperciva/events/events.h ../libcperciva/util/warnp.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../libcperciva/network/network_write.c -o network_write.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_write.c -o network_write.o
 netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
 wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
 wire_requestqueue.o: ../lib/wire/wire_requestqueue.c ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/datastruct/seqptrmap.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
 proto_s3_client.o: ../lib/proto_s3/proto_s3_client.c ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../lib/proto_s3/proto_s3.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/proto_s3/proto_s3_client.c -o proto_s3_client.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_s3/proto_s3_client.c -o proto_s3_client.o
 proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L  -I.. ${IDIRS} -c ../lib/proto_lbs/proto_lbs_server.c -o proto_lbs_server.o
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_lbs/proto_lbs_server.c -o proto_lbs_server.o

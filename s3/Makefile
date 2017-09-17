@@ -79,9 +79,9 @@ network_accept.o: ../libcperciva/network/network_accept.c ../libcperciva/events/
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_accept.c -o network_accept.o
 network_connect.o: ../libcperciva/network/network_connect.c ../libcperciva/events/events.h ../libcperciva/util/sock.h ../libcperciva/network/network.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_connect.c -o network_connect.o
-network_read.o: ../libcperciva/network/network_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h
+network_read.o: ../libcperciva/network/network_read.c ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../libcperciva/network/network.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_read.c -o network_read.o
-network_write.o: ../libcperciva/network/network_write.c ../libcperciva/events/events.h ../libcperciva/util/warnp.h ../libcperciva/network/network.h
+network_write.o: ../libcperciva/network/network_write.c ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../libcperciva/util/warnp.h ../libcperciva/network/network.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_write.c -o network_write.o
 netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h ../lib/netbuf/netbuf.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o

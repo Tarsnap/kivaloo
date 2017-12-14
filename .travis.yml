@@ -1,7 +1,11 @@
 language: C
-script: bmake test
-sudo: required
+sudo: false
 dist: trusty
+addons:
+  apt:
+    packages:
+      - bmake
+script: bmake test
 env:
   global:
     - secure: "sD2enQU/RbNq100yOCUe13Kqdqcls0iVNs55BSRIjtft7OYTxJkECimK4mJWm+fGeh7RvYAEGI94YoZrGN6+SpGOSJegbcCzSINd9zSfZniiNdsKYZJcPq4tAdUzg+spniX44V/cXJ3bBFbxSYofyCQPbKKBLQGOejFfchXyHPYyVM8cWlUzYIKp41R6b8tWhnaRrGEBoZU/sejSMsau3W622IGz+7MAMvOZhCQvuuxq2XjlON11g7K1HBAsGlwRjm14T7j3mYVH393WgiNlE5U20k6alzg/6qSX6Z4Y4nW0CTSbzJOQdL/xPAn8YZrr+RSiQDUjhDdW2bO8kVm3pXyO61Yy8vZuet2bhCPphOTrxcWBOugys9NpESnnvaFf9vGKg9YWybQLpsPNx+UxG97ZYDzzBNehr6YAKgh6hpcb4hLa+lA2Y32WkizM61W12hj9FDgkqcd/DsVcW8X+e8hpqaPDfA2xzjTZWzWm3bPk8NUvpr+dIqd8DJt1bgH5Lzu2clmzryLdL4jTuXaOzH8Qlyf53dZ/l3Tgsq/MJhkkqcDTdZG0LuaKjTtVDxaX1FOdpPD5BRs/6+n2iA35Rx1/fTC+dhoFVW52YE2P6PJnKW+YmRRW1yIwyapXrchb3358zem5IA34dXoDfIyZmrU10OzhpFWYjUUlL0fuKFA="
@@ -10,7 +14,5 @@ env:
     - COVERITY_SCAN_NOTIFICATION_EMAIL="cperciva@tarsnap.com"
     - COVERITY_SCAN_BUILD_COMMAND="bmake all clean"
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq bmake
   - curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
   - 'if [[ "$CC" == "gcc" ]]; then CC="gcc -std=c99"; $CC --version; fi'

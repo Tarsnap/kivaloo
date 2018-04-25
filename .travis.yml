@@ -5,14 +5,27 @@ addons:
   apt:
     packages:
       - bmake
-script: bmake test
 env:
   global:
-    - secure: "sD2enQU/RbNq100yOCUe13Kqdqcls0iVNs55BSRIjtft7OYTxJkECimK4mJWm+fGeh7RvYAEGI94YoZrGN6+SpGOSJegbcCzSINd9zSfZniiNdsKYZJcPq4tAdUzg+spniX44V/cXJ3bBFbxSYofyCQPbKKBLQGOejFfchXyHPYyVM8cWlUzYIKp41R6b8tWhnaRrGEBoZU/sejSMsau3W622IGz+7MAMvOZhCQvuuxq2XjlON11g7K1HBAsGlwRjm14T7j3mYVH393WgiNlE5U20k6alzg/6qSX6Z4Y4nW0CTSbzJOQdL/xPAn8YZrr+RSiQDUjhDdW2bO8kVm3pXyO61Yy8vZuet2bhCPphOTrxcWBOugys9NpESnnvaFf9vGKg9YWybQLpsPNx+UxG97ZYDzzBNehr6YAKgh6hpcb4hLa+lA2Y32WkizM61W12hj9FDgkqcd/DsVcW8X+e8hpqaPDfA2xzjTZWzWm3bPk8NUvpr+dIqd8DJt1bgH5Lzu2clmzryLdL4jTuXaOzH8Qlyf53dZ/l3Tgsq/MJhkkqcDTdZG0LuaKjTtVDxaX1FOdpPD5BRs/6+n2iA35Rx1/fTC+dhoFVW52YE2P6PJnKW+YmRRW1yIwyapXrchb3358zem5IA34dXoDfIyZmrU10OzhpFWYjUUlL0fuKFA="
+    # Some projects need -std=c99 to specify library support for ./configure
+    - CFLAGS="-std=c99 -O2"
+    - secure: "YrwMHl8gGzjZvfI+poeuDA/Ud1i3IEgSXzGg0aqJPF2zzf06//wMDUUXM9v/n2hEwUhyLPMfzJlbwSfbbDJHy6JUTuVFhhEUoPTA2CrEk1P6eAgkvzFOnfIa/oJNNpq7to5nXYmPeDXVqoVvZZTeMsn3IfCnB46M6PDKXNHJz1BlSWxq7kquhkagGJmHJZu1CvXn/AyYLhSSvLw++cmHa4XRLyiYML5XCPvwbQMyElGy0yMT6osxwU1Ry2p/qSeiJkoqITiXRQxpq4VCPK8buYhKBhvPFTZ8hseGfA4qjOl4JEb/RJg3YP0mnWP85kIcBmpyU4r88el0sMWvo1e11YEf2G+sTNxF/havaRtr2ZYAC6f/SiLb8A5sSDGVHzeBEkiwHLP6TBTu85o9llWcl2yvEGXqOhbfVPLT2ay3Fh3fU1PEJBXXCGxdDvAR6/1t9Qoz4mYavmL2OIhcTQ5YbZE84EHTsXfvLP/iU1flh3IvvXdyYAJsc+nTKVpBbjmYWeI7SB/6ywzfA/g07Jx/Oz4r/CU0YGiQWv6cAmrrIu8SOf9O6qB1zCelMczeXGFlC/dvwvrBI4/mUJuVA39laqNMtV9+/6X1xGSyfN7kshTPxb+hCfTgDVyVLfijEJA3NSUl6tc5J55SPrs+W2RPTXEBZSsMd/d/OdbtLSsHExo="
     - COVERITY_SCAN_PROJECT_NAME="Tarsnap/kivaloo"
     - COVERITY_SCAN_BRANCH_PATTERN="coverity-scan"
     - COVERITY_SCAN_NOTIFICATION_EMAIL="cperciva@tarsnap.com"
     - COVERITY_SCAN_BUILD_COMMAND="bmake all clean"
 before_install:
-  - curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
-  - 'if [[ "$CC" == "gcc" ]]; then CC="gcc -std=c99"; $CC --version; fi'
+  # Handle Coverity scan
+  - >
+    if [[ "${TRAVIS_BRANCH}" == "coverity-scan" ]]; then
+      if [[ "${TRAVIS_JOB_NUMBER##*.}" == "1" ]]; then
+        curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
+      else
+        echo "Not main job; do nothing."
+      fi
+      echo "Done Coverity scan."
+      sleep 1
+      exit 0
+    fi
+script:
+  - bmake test

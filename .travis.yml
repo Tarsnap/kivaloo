@@ -8,6 +8,8 @@ addons:
 script: bmake test
 env:
   global:
+    # Some projects need -std=c99 to specify library support for ./configure
+    - CFLAGS="-std=c99 -O2"
     - secure: "YrwMHl8gGzjZvfI+poeuDA/Ud1i3IEgSXzGg0aqJPF2zzf06//wMDUUXM9v/n2hEwUhyLPMfzJlbwSfbbDJHy6JUTuVFhhEUoPTA2CrEk1P6eAgkvzFOnfIa/oJNNpq7to5nXYmPeDXVqoVvZZTeMsn3IfCnB46M6PDKXNHJz1BlSWxq7kquhkagGJmHJZu1CvXn/AyYLhSSvLw++cmHa4XRLyiYML5XCPvwbQMyElGy0yMT6osxwU1Ry2p/qSeiJkoqITiXRQxpq4VCPK8buYhKBhvPFTZ8hseGfA4qjOl4JEb/RJg3YP0mnWP85kIcBmpyU4r88el0sMWvo1e11YEf2G+sTNxF/havaRtr2ZYAC6f/SiLb8A5sSDGVHzeBEkiwHLP6TBTu85o9llWcl2yvEGXqOhbfVPLT2ay3Fh3fU1PEJBXXCGxdDvAR6/1t9Qoz4mYavmL2OIhcTQ5YbZE84EHTsXfvLP/iU1flh3IvvXdyYAJsc+nTKVpBbjmYWeI7SB/6ywzfA/g07Jx/Oz4r/CU0YGiQWv6cAmrrIu8SOf9O6qB1zCelMczeXGFlC/dvwvrBI4/mUJuVA39laqNMtV9+/6X1xGSyfN7kshTPxb+hCfTgDVyVLfijEJA3NSUl6tc5J55SPrs+W2RPTXEBZSsMd/d/OdbtLSsHExo="
     - COVERITY_SCAN_PROJECT_NAME="Tarsnap/kivaloo"
     - COVERITY_SCAN_BRANCH_PATTERN="coverity-scan"
@@ -15,4 +17,3 @@ env:
     - COVERITY_SCAN_BUILD_COMMAND="bmake all clean"
 before_install:
   - curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
-  - 'if [[ "$CC" == "gcc" ]]; then CC="gcc -std=c99"; $CC --version; fi'

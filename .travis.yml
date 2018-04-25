@@ -5,7 +5,6 @@ addons:
   apt:
     packages:
       - bmake
-script: bmake test
 env:
   global:
     # Some projects need -std=c99 to specify library support for ./configure
@@ -16,4 +15,17 @@ env:
     - COVERITY_SCAN_NOTIFICATION_EMAIL="cperciva@tarsnap.com"
     - COVERITY_SCAN_BUILD_COMMAND="bmake all clean"
 before_install:
-  - curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
+  # Handle Coverity scan
+  - >
+    if [[ "${TRAVIS_BRANCH}" == "coverity-scan" ]]; then
+      if [[ "${TRAVIS_JOB_NUMBER##*.}" == "1" ]]; then
+        curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true
+      else
+        echo "Not main job; do nothing."
+      fi
+      echo "Done Coverity scan."
+      sleep 1
+      exit 0
+    fi
+script:
+  - bmake test

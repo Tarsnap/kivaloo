@@ -74,6 +74,8 @@ Makefiles:
 	${MAKEBSD} ${D}/Makefile
 .endfor
 
+# This uses temporary files for sed because the FreeBSD and GNU
+# behaviour of sed -i is different.
 publish: clean Makefiles
 	if [ -z "${VERSION}" ]; then			\
 		echo "VERSION must be specified!";	\
@@ -92,8 +94,6 @@ publish: clean Makefiles
 	${MAKEBSD} ${PKG}-${VERSION}/${D}/Makefile
 .endfor
 .for F in ${SUBST_VERSION_FILES}
-	# We need to write a temporary file because FreeBSD and GNU behaviour
-	# of sed -i is different.
 	sed -e 's/@VERSION@/${VERSION}/' -e 's/@DATE@/${RELEASEDATE}/' \
 	    < ${PKG}-${VERSION}/${F} > ${PKG}-${VERSION}/${F}.tmp
 	mv ${PKG}-${VERSION}/${F}.tmp ${PKG}-${VERSION}/${F}

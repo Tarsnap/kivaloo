@@ -10,6 +10,7 @@ BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/mkpairs
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2
+TEST_CMD=	${MAKE} -C tests test
 
 all:
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
@@ -32,7 +33,7 @@ clean:
 
 .PHONY:	test test-clean
 test:	all
-	${MAKE} -C tests test
+	${TEST_CMD}
 
 test-clean:
 	rm -rf tests-output/ tests-valgrind/

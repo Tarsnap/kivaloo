@@ -12,6 +12,8 @@ BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2
 TEST_CMD=	${MAKE} -C tests test
 
+### Shared code between Tarsnap projects.
+
 all:
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
 	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh "$$PATH"`;	\

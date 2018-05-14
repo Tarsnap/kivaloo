@@ -12,6 +12,7 @@ PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib
 
 # These definitions improve the readability of the below material.
 MAKEBSD:=	${MAKE} -f Makefile.BSD
+RELEASEDATE!=	date "+%B %d, %Y"
 
 .for D in ${PROGS} ${BENCHES} ${TESTS}
 ${D}/Makefile::

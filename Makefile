@@ -14,13 +14,24 @@ TEST_CMD=	${MAKE} -C tests test
 
 ### Shared code between Tarsnap projects.
 
-all:
+all:	cpusupport-config.h
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
 	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh "$$PATH"`;	\
 	export CFLAGS_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-cflags.sh "$$PATH"`;	\
+	. ./cpusupport-config.h;			\
 	for D in ${PROGS} ${BENCHES} ${TESTS}; do	\
 		( cd $${D} && ${MAKE} all ) || exit 2;	\
 	done
+
+cpusupport-config.h:
+	if [ -e ${LIBCPERCIVA_DIR}/cpusupport/Build/cpusupport.sh ];	\
+	then								\
+		( export CC="${CC}"; command -p sh 			\
+		    ${LIBCPERCIVA_DIR}/cpusupport/Build/cpusupport.sh	\
+		    "$$PATH" ) > cpusupport-config.h;			\
+	else								\
+		: > cpusupport-config.h;				\
+	fi
 
 install: all
 	export BINDIR=$${BINDIR:-${BINDIR_DEFAULT}};	\

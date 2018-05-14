@@ -16,8 +16,8 @@ TEST_CMD=	${MAKE} -C tests test
 
 all:	cpusupport-config.h
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
-	export LDADD_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-l.sh "$$PATH"`;	\
-	export CFLAGS_POSIX=`export CC=${CC}; cd libcperciva/POSIX && command -p sh posix-cflags.sh "$$PATH"`;	\
+	export "LDADD_POSIX=`export CC=\"${CC}\"; cd ${LIBCPERCIVA_DIR}/POSIX && command -p sh posix-l.sh \"$$PATH\"`";	\
+	export "CFLAGS_POSIX=`export CC=\"${CC}\"; cd ${LIBCPERCIVA_DIR}/POSIX && command -p sh posix-cflags.sh \"$$PATH\"`";	\
 	. ./cpusupport-config.h;			\
 	for D in ${PROGS} ${BENCHES} ${TESTS}; do	\
 		( cd $${D} && ${MAKE} all ) || exit 2;	\

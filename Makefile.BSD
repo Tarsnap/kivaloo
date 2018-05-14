@@ -13,6 +13,7 @@ PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib
 # These definitions improve the readability of the below material.
 MAKEBSD:=	${MAKE} -f Makefile.BSD
 RELEASEDATE!=	date "+%B %d, %Y"
+CFLAGS_HARDCODED=	-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 
 .for D in ${PROGS} ${BENCHES} ${TESTS}
 ${D}/Makefile::
@@ -33,7 +34,7 @@ ${D}/Makefile::
 		IDIRS=`${MAKEBSD} -V IDIRS`;	\
 		echo `${CPP} $${S} -I.. $${IDIRS} -MM -MT $${F}` \
 			| sed -e 's| \\ | |g'; \
-		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 $${CF} -I.. \$${IDIRS} -c $${S} -o $${F}"; \
+		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} ${CFLAGS_HARDCODED} $${CF} -I.. \$${IDIRS} -c $${S} -o $${F}"; \
 	    done ) >> $@
 .endfor
 

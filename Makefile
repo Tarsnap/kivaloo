@@ -30,8 +30,12 @@ clean:
 		( cd $${D} && ${MAKE} clean ) || exit 2;	\
 	done
 
+.PHONY:	test test-clean
 test:	all
 	${MAKE} -C tests test
+
+test-clean:
+	rm -rf tests-output/ tests-valgrind/
 
 # Developer targets: These only work with BSD make
 Makefiles:

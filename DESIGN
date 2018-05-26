@@ -40,7 +40,7 @@ Kivaloo achieves these goals via the following design decisions:
     can be reloaded from disk as needed. (5)
 (f) Cleaning is performed continuously in the background, at a rate based on
     the number of dirty pages and the cost of I/O. (6)
-(g) Components interact via sockets using well-defined interfaces.
+(g) Components interact via sockets using well-defined interfaces. (7)
 
 Kivaloo is *not* designed for the following, and design/implementation
 choices are made which make kivaloo unable to satisfy these non-goals:

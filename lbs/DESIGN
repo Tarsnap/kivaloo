@@ -39,6 +39,34 @@ waking up a thread when it has work to do; and pthread_rwlock_(rd|wr|un)lock
 for controlling access to back-end storage state (i.e., information about
 which blocks are stored in which files).
 
+Additional design notes
+-----------------------
+
+APPEND
+- If an APPEND is sent with an incorrect "start block #", lbs will quit with an
+  error.
+
+  Since the lbs code keeps track of the latest block number, it may seem
+  unnecessary to pass this value as part of the request.  This was added
+  deliberately as a way to verify that kvlds and lbs were in agreement.
+
+- The block numbers increase, are never re-used, and lbs quits with an error if
+  it reaches block number (UINT64_MAX-1).
+
+  This is deliberate, as nobody will encounter this value with real usage.
+  For example, if you send a billion APPENDs every second, it will take more
+  than 500 years before the lbs block numbers overflow.
+
+FREE
+- These requests are completely advisory.  If lbs is busy processing a previous
+  FREE request, it may ignore the latest FREE request(s) entirely.
+
+  In some cases, it may be desirable for the client code to send a FREE
+  request at regular time intervals, in case the previous request was
+  ignored.
+
+- If a FREE request refers to an unused block number, nothing happens.
+
 Code structure
 --------------
 

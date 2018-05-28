@@ -24,7 +24,10 @@ able to match up responses with requests.
 
 The CRC function is the 32-bit CRC computed using the Castagnoli polynomial
 0x11EDC6F41 such that 1[data][CRC], with the bit order of [CRC] and [data]
-reversed, is a multiple of the polynomial.  The leading 1 bit ensures that
+reversed, is a multiple of the polynomial.  Note that most 32-bit CRC code
+represents the CRC as a 32-bit integer; when using such routines one must
+ensure that the value is serialized with the right endianness (most often
+little, but this will depend on the library).  The leading 1 bit ensures that
 0{32} is not the CRC of 0*, and the xoring of header and record CRCs makes it
 possible to detect certain other error types (e.g., if a packet has the
 header from one packet and the record from a different packet).

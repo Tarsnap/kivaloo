@@ -1,4 +1,6 @@
 *.o
+cpusupport-config.h
+posix-flags.sh
 # compiled files
 bench/bulk_extract/bulk_extract
 bench/bulk_insert/bulk_insert

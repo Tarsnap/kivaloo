@@ -30,7 +30,7 @@ stores:
   starts, operation B will see the results of operation A.
 * Unlike most data stores based on log-structured storage, the kvlds utility
   performs background cleaning based on the I/O rate and the amount of disk
-  space used; thus there is no need to for separate periodic "compaction" to be
+  space used; thus there is no need for separate periodic "compaction" to be
   performed.
 * Due to the use of a B+Tree to store key-value pairs, kivaloo supports "RANGE"
   requests.

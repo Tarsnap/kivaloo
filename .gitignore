@@ -13,6 +13,7 @@ kvlds/kvlds
 lbs-s3/lbs-s3
 lbs/lbs
 mux/mux
+perftests/dynamodb_sign/dynamodb_sign
 perftests/http/test_http
 perftests/kvldsclean/test_kvldsclean
 perftests/kvldsperf/test_kvldsperf

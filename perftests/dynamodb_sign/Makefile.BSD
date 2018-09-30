@@ -1,0 +1,37 @@
+PROG=	dynamodb_sign
+SRCS=	main.c
+MK_MAN=	no
+
+# Libraries which are sometimes merged into libc
+LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
+
+# Utility functions
+.PATH.c	:	../../libcperciva/util
+SRCS	+=	asprintf.c
+SRCS	+=	hexify.c
+SRCS	+=	insecure_memzero.c
+SRCS	+=	warnp.c
+IDIRS	+=	-I ../../libcperciva/util
+
+# Fundamental algorithms
+.PATH.c	:	../../libcperciva/alg
+SRCS	+=	sha256.c
+IDIRS	+=	-I ../../libcperciva/alg
+
+# AWS request signing
+.PATH.c	:	../../libcperciva/aws
+SRCS	+=	aws_readkeys.c
+SRCS	+=	aws_sign.c
+IDIRS	+=	-I ../../libcperciva/aws
+
+test: all
+	@./test_sign.sh
+
+# Debugging options
+#CFLAGS	+=	-g
+#CFLAGS	+=	-DNDEBUG
+#CFLAGS	+=	-DDEBUG
+#CFLAGS	+=	-pg
+
+.include <bsd.prog.mk>

@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "asprintf.h"
+#include "aws_readkeys.h"
 #include "daemonize.h"
 #include "events.h"
 #include "getopt.h"
@@ -25,93 +26,6 @@ usage(void)
 	    "[-p <pidfile>]\n");
 	fprintf(stderr, "       kivaloo-s3 --version\n");
 	exit(1);
-}
-
-static int
-readkeys(const char * fname, char ** key_id, char ** key_secret)
-{
-	FILE * f;
-	char buf[1024];
-	char * p;
-
-	/* No keys yet. */
-	*key_id = *key_secret = NULL;
-
-	/* Open the key file. */
-	if ((f = fopen(fname, "r")) == NULL) {
-		warnp("fopen(%s)", fname);
-		goto err0;
-	}
-
-	/* Read lines of up to 1024 characters. */
-	while (fgets(buf, sizeof(buf), f) != NULL) {
-		/* Find the first EOL character and truncate. */
-		p = buf + strcspn(buf, "\r\n");
-		if (*p == '\0') {
-			warn0("Missing EOL in %s", fname);
-			break;
-		} else
-			*p = '\0';
-
-		/* Look for the first = character. */
-		p = strchr(buf, '=');
-
-		/* Missing separator? */
-		if (p == NULL)
-			goto err2;
-
-		/* Replace separator with NUL and point p at the value. */
-		*p++ = '\0';
-
-		/* We should have ACCESS_KEY_ID or ACCESS_KEY_SECRET. */
-		if (strcmp(buf, "ACCESS_KEY_ID") == 0) {
-			/* Copy key ID string. */
-			if (*key_id != NULL) {
-				warn0("ACCESS_KEY_ID specified twice");
-				goto err1;
-			}
-			if ((*key_id = strdup(p)) == NULL)
-				goto err1;
-		} else if (strcmp(buf, "ACCESS_KEY_SECRET") == 0) {
-			/* Copy key secret string. */
-			if (*key_secret != NULL) {
-				warn0("ACCESS_KEY_SECRET specified twice");
-				goto err1;
-			}
-			if ((*key_secret = strdup(p)) == NULL)
-				goto err1;
-		} else
-			goto err2;
-	}
-
-	/* Check for error. */
-	if (ferror(f)) {
-		warnp("Error reading %s", fname);
-		goto err1;
-	}
-
-	/* Close the file. */
-	if (fclose(f)) {
-		warnp("fclose");
-		goto err0;
-	}
-
-	/* Check that we got the necessary keys. */
-	if ((*key_id == NULL) || (*key_secret == NULL)) {
-		warn0("Need ACCESS_KEY_ID and ACCESS_KEY_SECRET");
-		goto err0;
-	}
-
-	/* Success! */
-	return (0);
-
-err2:
-	warn0("Lines in %s must be ACCESS_KEY_(ID|SECRET)=...", fname);
-err1:
-	fclose(f);
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /* Macro to simplify error-handling in command-line parse loop. */
@@ -223,20 +137,20 @@ main(int argc, char * argv[])
 	}
 
 	/* Read the key file. */
-	if (readkeys(opt_k, &s3_key_id, &s3_key_secret)) {
+	if (aws_readkeys(opt_k, &s3_key_id, &s3_key_secret)) {
 		warnp("Error reading S3 keys from %s", opt_k);
 		exit(1);
 	}
 
 	/* Create an S3 request queue. */
-	if ((Q =
-	    s3_request_queue_init(s3_key_id, s3_key_secret, opt_n)) == NULL) {
+	if ((Q = s3_request_queue_init(s3_key_id, s3_key_secret, opt_r,
+	    opt_n)) == NULL) {
 		warnp("Error creating S3 request queue");
 		exit(1);
 	}
 
 	/* Construct the S3 endpoint host name. */
-	if (asprintf(&s3_host, "%s.amazonaws.com:80", opt_r) == -1) {
+	if (asprintf(&s3_host, "s3.%s.amazonaws.com:80", opt_r) == -1) {
 		warnp("asprintf");
 		exit(1);
 	}

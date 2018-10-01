@@ -17,12 +17,14 @@ struct s3_request {
 };
 
 /**
- * s3_request(addrs, key_id, key_secret, request, maxrlen, callback, cookie):
+ * s3_request(addrs, key_id, key_secret, region, request, maxrlen,
+ *     callback, cookie):
  * Using the AWS Key ID ${key_id} and Secret Access Key ${key_secret}, send
- * the S3 request ${request}.  Behave identically to http_request otherwise.
+ * the S3 request ${request} to the specified S3 region.  Behave identically
+ * to http_request otherwise.
  */
 void * s3_request(struct sock_addr * const *, const char *, const char *,
-    struct s3_request *, size_t,
+    const char *, struct s3_request *, size_t,
     int (*)(void *, struct http_response *), void *);
 
 #endif /* !_S3_REQUEST_H_ */

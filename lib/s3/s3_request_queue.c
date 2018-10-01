@@ -39,6 +39,7 @@ struct request {
 struct s3_request_queue {
 	char * key_id;
 	char * key_secret;
+	char * region;
 	struct s3_serverpool * SP;
 	struct logging_file * logfile;
 	size_t reqsip_max;
@@ -193,7 +194,7 @@ poke(struct s3_request_queue * Q)
 
 	/* Launch the S3 request. */
 	if ((R->http_cookie = s3_request(R->addrs, Q->key_id, Q->key_secret,
-	    R->request, R->maxrlen, callback_reqdone, R)) == NULL)
+	    Q->region, R->request, R->maxrlen, callback_reqdone, R)) == NULL)
 		goto err0;
 
 	/* The number of in-progress requests has just increased. */
@@ -227,13 +228,14 @@ err0:
 }
 
 /**
- * s3_request_queue_init(key_id, key_secret, conns):
+ * s3_request_queue_init(key_id, key_secret, region, conns):
  * Create an S3 request queue using the AWS Key ID ${key_id} and the Secret
- * Access Key ${key_secret} to perform up to ${conns} simultaneous requests.
+ * Access Key ${key_secret} to perform up to ${conns} simultaneous requests
+ * to the S3 region ${region}.
  */
 struct s3_request_queue *
 s3_request_queue_init(const char * key_id, const char * key_secret,
-    size_t conns)
+    const char * region, size_t conns)
 {
 	struct s3_request_queue * Q;
 
@@ -251,6 +253,10 @@ s3_request_queue_init(const char * key_id, const char * key_secret,
 	if ((Q->key_secret = strdup(key_secret)) == NULL)
 		goto err3;
 
+	/* Copy region. */
+	if ((Q->region = strdup(region)) == NULL)
+		goto err4;
+
 	/* No log file yet. */
 	Q->logfile = NULL;
 
@@ -265,6 +271,8 @@ s3_request_queue_init(const char * key_id, const char * key_secret,
 	/* Success! */
 	return (Q);
 
+err4:
+	free(Q->key_secret);
 err3:
 	free(Q->key_id);
 err2:
@@ -402,6 +410,9 @@ s3_request_queue_free(struct s3_request_queue * Q)
 
 	/* Flush the queue. */
 	s3_request_queue_flush(Q);
+
+	/* Free string allocated by strdup. */
+	free(Q->region);
 
 	/* Free the S3 keys. */
 	memset(Q->key_secret, 0, strlen(Q->key_secret));

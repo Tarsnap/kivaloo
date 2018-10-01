@@ -14,3 +14,6 @@ CFLAGS	+=	-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 # Make logic (bits which are separated out in individual Makefiles).
 CFLAGS	+=	${IDIRS}
 LDADD	+=	${LDADD_REQ}
+
+# No man pages here
+MAN	=

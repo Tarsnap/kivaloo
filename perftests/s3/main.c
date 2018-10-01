@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "aws_readkeys.h"
 #include "events.h"
 #include "http.h"
 #include "s3_request.h"
@@ -42,6 +43,8 @@ donereq(void * cookie, struct http_response * R)
 int
 main(int argc, char * argv[])
 {
+	char * key_id;
+	char * key_secret;
 	struct s3_request R;
 	struct sock_addr ** sas;
 	int done;
@@ -49,13 +52,19 @@ main(int argc, char * argv[])
 	WARNP_INIT;
 
 	/* Sanity-check. */
-	if (argc != 3) {
-		warn0("Need two arguments (key_id, key_secret)");
+	if (argc != 2) {
+		fprintf(stderr, "usage: test_s3 %s\n", "<keyfile>");
+		exit(1);
+	}
+
+	/* Read AWS keys. */
+	if (aws_readkeys(argv[1], &key_id, &key_secret)) {
+		warnp("Failure reading AWS keys");
 		exit(1);
 	}
 
 	/* Resolve target addresses. */
-	if ((sas = sock_resolve("s3-us-west-2.amazonaws.com:80")) == NULL) {
+	if ((sas = sock_resolve("s3.us-west-2.amazonaws.com:80")) == NULL) {
 		warnp("Cannot resolve S3 DNS");
 		exit(1);
 	}
@@ -71,7 +80,8 @@ main(int argc, char * argv[])
 
 	/* Send PUT request. */
 	done = 0;
-	(void)s3_request(sas, argv[1], argv[2], &R, 0, donereq, &done);
+	(void)s3_request(sas, key_id, key_secret, "us-west-2",
+	    &R, 0, donereq, &done);
 
 	/* Wait for request to complete. */
 	if (events_spin(&done)) {
@@ -90,7 +100,8 @@ main(int argc, char * argv[])
 
 	/* Send PUT request. */
 	done = 0;
-	(void)s3_request(sas, argv[1], argv[2], &R, 6, donereq, &done);
+	(void)s3_request(sas, key_id, key_secret, "us-west-2",
+	    &R, 6, donereq, &done);
 
 	/* Wait for request to complete. */
 	if (events_spin(&done)) {

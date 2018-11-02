@@ -31,7 +31,7 @@ usage(void)
 
 /* Simplify error-handling in command-line parse loop. */
 #define OPT_EPARSE(opt, arg) do {					\
-	warnp("Error parsing argument: -%c %s", opt, arg);		\
+	warnp("Error parsing argument: %s %s", opt, arg);		\
 	exit(1);							\
 } while (0)
 

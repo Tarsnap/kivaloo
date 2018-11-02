@@ -32,11 +32,11 @@ usage(void)
 
 /* Two macros to simplify error-handling in command-line parse loop. */
 #define OPT_EINVAL(opt, arg) do {					\
-	warn0("Cannot parse option: -%c %s", opt, arg);			\
+	warn0("Cannot parse option: %s %s", opt, arg);			\
 	exit(1);							\
 } while (0)
 #define OPT_EPARSE(opt, arg) do {					\
-	warnp("Error parsing argument: -%c %s", opt, arg);		\
+	warnp("Error parsing argument: %s %s", opt, arg);		\
 	exit(1);							\
 } while (0)
 

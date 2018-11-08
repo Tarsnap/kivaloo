@@ -2,12 +2,12 @@
 
 PKG=	kivaloo
 PROGS=	lbs kvlds mux s3 lbs-s3
-TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
-	perftests/kvldsperf perftests/kvldsclean perftests/http \
-	perftests/s3 perftests/s3_put
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs
+TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
+	perftests/kvldsperf perftests/kvldsclean perftests/http \
+	perftests/s3 perftests/s3_put
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2
 TEST_CMD=	${MAKE} -C tests test

@@ -90,7 +90,7 @@ publish: clean Makefiles
 	tar -cf- --exclude 'Makefile.*' --exclude Makefile ${PUBLISH} | \
 	    tar -xf- -C ${PKG}-${VERSION}
 	cp Makefile.POSIX ${PKG}-${VERSION}/Makefile
-.for D in ${PROGS} ${BENCHES}
+.for D in ${PROGS} ${BENCHES} ${TESTS}
 	${MAKEBSD} ${PKG}-${VERSION}/${D}/Makefile
 .endfor
 .for F in ${SUBST_VERSION_FILES}

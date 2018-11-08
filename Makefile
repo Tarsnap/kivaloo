@@ -54,7 +54,7 @@ install:	all
 
 clean:
 	rm -f cpusupport-config.h posix-flags.sh
-	for D in ${PROGS}; do					\
+	for D in ${PROGS} ${BENCHES} ${TESTS}; do		\
 		( cd $${D} && ${MAKE} clean ) || exit 2;	\
 	done
 

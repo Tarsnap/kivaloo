@@ -255,7 +255,7 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 
 		/* Page in the node data. */
 		GC.done = 0;
-		if (btree_node_fetch(T, T->root_dirty,
+		if (btree_node_fetch_try(T, T->root_dirty,
 		    callback_getroot, &GC)) {
 			warnp("Failed to GET root page");
 			goto err3;
@@ -273,7 +273,7 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		}
 
 		/* Is this a root node? */
-		if (T->root_dirty->root)
+		if (node_present(T->root_dirty) && T->root_dirty->root)
 			break;
 
 		/* Not a root node; free this and try the next one. */

@@ -61,6 +61,13 @@ btree_node_unlock(struct btree * T, struct node * N)
  */
 int btree_node_fetch(struct btree *, struct node *, int (*)(void *), void *);
 
+/**
+ * btree_node_fetch_try(T, N, callback, cookie):
+ * As btree_node_fetch, but if the page does not exist the callback will be
+ * performed with the node not present.
+ */
+int btree_node_fetch_try(struct btree *, struct node *, int (*)(void *), void *);
+
 #ifdef SANITY_CHECKS
 /**
  * btree_node_fetch_lockcount(N):

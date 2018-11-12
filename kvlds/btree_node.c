@@ -32,6 +32,7 @@ struct reading {
 	READERLIST list;	/* List of struct reader callbacks. */
 	struct btree * T;	/* B+tree to which this page belongs. */
 	size_t pagelen;		/* Size of page. */
+	int canfail;		/* Non-zero if failure is an option. */
 };
 
 /* Descend-into-node state. */
@@ -182,14 +183,15 @@ err0:
 }
 
 /**
- * btree_node_fetch(T, N, callback, cookie):
+ * btree_node_fetch_canfail(T, N, callback, cookie, canfail):
  * Fetch the node ${N} which is currently of type either NODE_TYPE_NP or
  * NODE_TYPE_READ in the B+Tree ${T}.  Invoke ${callback}(${cookie}) when
- * complete, with the node locked.
+ * complete, with the node locked.  If ${canfail} is non-zero, treat a
+ * "this page does not exist" response as a non-error.
  */
-int
-btree_node_fetch(struct btree * T, struct node * N,
-    int (* callback)(void *), void * cookie)
+static int
+btree_node_fetch_canfail(struct btree * T, struct node * N,
+    int (* callback)(void *), void * cookie, int canfail)
 {
 	struct reader r;
 
@@ -209,6 +211,7 @@ btree_node_fetch(struct btree * T, struct node * N,
 			goto err1;
 		N->u.reading->pagelen = T->pagelen;
 		N->u.reading->T = T;
+		N->u.reading->canfail = canfail;
 
 		/* Create a list of reader callbacks. */
 		if ((N->u.reading->list = readerlist_init(0)) == NULL)
@@ -222,6 +225,10 @@ btree_node_fetch(struct btree * T, struct node * N,
 		/* This page is now being read. */
 		N->type = NODE_TYPE_READ;
 	}
+
+	/* If we can't fail, mark the read as such. */
+	if (!canfail)
+		N->u.reading->canfail = 0;
 
 	/* Add our callback to the list. */
 	r.callback = callback;
@@ -245,6 +252,33 @@ err1:
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * btree_node_fetch(T, N, callback, cookie):
+ * Fetch the node ${N} which is currently of type either NODE_TYPE_NP or
+ * NODE_TYPE_READ in the B+Tree ${T}.  Invoke ${callback}(${cookie}) when
+ * complete, with the node locked.
+ */
+int
+btree_node_fetch(struct btree * T, struct node * N,
+    int (* callback)(void *), void * cookie)
+{
+
+	return (btree_node_fetch_canfail(T, N, callback, cookie, 0));
+}
+
+/**
+ * btree_node_fetch_try(T, N, callback, cookie):
+ * As btree_node_fetch, but if the page does not exist the callback will be
+ * performed with the node not present.
+ */
+int
+btree_node_fetch_try(struct btree * T, struct node * N,
+    int (* callback)(void *), void * cookie)
+{
+
+	return (btree_node_fetch_canfail(T, N, callback, cookie, 1));
 }
 
 #ifdef SANITY_CHECKS
@@ -278,28 +312,45 @@ callback_fetch(void * cookie, int failed, int status, const uint8_t * buf)
 		goto err2;
 	}
 
-	/* Throw a fit if the block does not exist. */
-	if (status) {
-		warn0("LBS GET request returned non-zero status");
+	/* Throw a fit if the block does not exist and we can't fail. */
+	if ((status != 0) && (R->canfail == 0)) {
+		warn0("Failed to read a mandatory page");
 		goto err2;
 	}
 
-	/* Parse the page. */
-	if (deserialize(N, buf, R->pagelen)) {
-		warn0("Cannot deserialize page");
-		goto err2;
-	}
-
-	/* If this was a root, parse global tree data. */
-	if (N->root) {
-		if (deserialize_root(R->T, buf)) {
-			warn0("Error parsing root data");
+	/* If the block exists, parse it. */
+	if (status == 0) {
+		/* Parse the page. */
+		if (deserialize(N, buf, R->pagelen)) {
+			warn0("Cannot deserialize page");
 			goto err2;
 		}
-	}
 
-	/* Release our lock on the page. */
-	btree_node_unlock(R->T, N);
+		/* If this was a root, parse global tree data. */
+		if (N->root) {
+			if (deserialize_root(R->T, buf)) {
+				warn0("Error parsing root data");
+				goto err2;
+			}
+		}
+
+		/* Release our lock on the page. */
+		btree_node_unlock(R->T, N);
+	} else {
+		/* Otherwise, mark it back as non-present. */
+		N->type = NODE_TYPE_NP;
+
+		/* Unlock the node's parents. */
+		btree_node_unlock(R->T, N->p_shadow);
+		btree_node_unlock(R->T, N->p_dirty);
+
+		/* Release our lock on the page. */
+		btree_node_unlock(R->T, N);
+
+		/* Remove from the node pool. */
+		pool_rec_free(R->T->P, N);
+		N->pool_cookie = NULL;
+	}
 
 	/* Schedule callbacks. */
 	for (i = 0; i < readerlist_getsize(R->list); i++) {

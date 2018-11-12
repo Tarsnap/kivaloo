@@ -1,0 +1,38 @@
+dynamodb-kv design
+==================
+
+The kivaloo dynamodb-kv daemon is invoked as
+
+# dynamodb-kv -s <dynamodb-kv socket> -r <DynamoDB region>
+      -t <DynamoDB table> -k <keyfile> [-1] [-l <logfile>] [-p <pidfile>]
+      [--rate <writes>:<reads>]
+
+It creates a socket <dynamodb-kv socket> on which it listens for incoming
+connections and accepts one at a time.  It reads keys from the file <keyfile>,
+which must have lines ACCESS_KEY_ID=<keyid> and ACCESS_KEY_SECRET=<secret>,
+and uses these to make requests to the specified DynamoDB table / region.
+
+The other options are:
+  -1
+	Exit after handling one connection.
+  -l <logfile>
+	Log DynamoDB requests to <logfile>.
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <dynamodb-kv socket>.pid.  (Note that if <dynamodb-kv socket> is
+	not an absolute path, the default pid file location is in the current
+	directory.)
+  --rate <writes>:<reads>
+	When throttling requests, issue the specified number of writes and
+	reads per second.  Note that these values are NOT DynamoDB capacity
+	units.  Default: --rate 5:5.
+
+Code structure
+--------------
+
+main.c		-- Processes command line, starts DNS lookups, creates
+		   request queues for reads and writes, creates a listening
+		   socket, daemonizes, accepts one connection at once, and
+		   runs the event loop.
+dispatch.c	-- Reads requests from a connection and drops the connection
+		   if one cannot be read.

@@ -142,6 +142,26 @@ kill `cat $SOCKL.pid`
 rm $SOCKL.pid $SOCKL
 rm -r $STOR
 
+# Start LBS with non-power-of-2 byte pages
+for X in 1000 1023 1025 1100; do
+	mkdir $STOR
+	[ `uname` = "FreeBSD" ] && chflags nodump $STOR
+	$LBS -s $SOCKL -d $STOR -b ${X} -l 1000000
+	$KVLDS -s $SOCKK -l $SOCKL -v 104 -C 1024
+	printf "Testing KVLDS with ${X}-byte pages... "
+	if $TESTKVLDS $SOCKK; then
+		echo " PASSED!"
+	else
+		echo " FAILED!"
+		exit 1
+	fi
+	kill `cat $SOCKK.pid`
+	rm $SOCKK.pid $SOCKK
+	kill `cat $SOCKL.pid`
+	rm $SOCKL.pid $SOCKL
+	rm -r $STOR
+done
+
 # If we're not running on FreeBSD, we can't use utrace and jemalloc to
 # check for memory leaks
 if ! [ `uname` = "FreeBSD" ]; then

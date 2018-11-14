@@ -120,6 +120,8 @@ gotrequest(void * cookie, int status)
 		case PROTO_LBS_FREE:
 			if (s3state_gc(D->S, R->r.free.blkno))
 				goto err1;
+			if (proto_lbs_response_free(D->writeq, R->ID))
+				goto err1;
 			free(R);
 			break;
 		default:

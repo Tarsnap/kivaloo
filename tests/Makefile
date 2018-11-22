@@ -1,4 +1,4 @@
-SUBDIR=	lbs kvlds mux s3 kvlds-s3
+SUBDIR=	lbs kvlds mux s3 kvlds-s3 kvlds-ddbkv
 
 test:
 .for D in ${SUBDIR}

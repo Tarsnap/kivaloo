@@ -21,15 +21,15 @@ clean:
 ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
-main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h deleteto.h dispatch.h s3state.h
+main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h dispatch.h s3state.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
-dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../libcperciva/util/warnp.h s3state.h dispatch.h
+dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h s3state.h dispatch.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
-s3state.o: s3state.c ../libcperciva/events/events.h ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/warnp.h deleteto.h findlast.h objmap.h s3state.h
+s3state.o: s3state.c ../libcperciva/events/events.h ../lib/proto_lbs/proto_lbs.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h findlast.h objmap.h s3state.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c s3state.c -o s3state.o
-deleteto.o: deleteto.c ../libcperciva/events/events.h objmap.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h deleteto.h
+deleteto.o: deleteto.c ../libcperciva/events/events.h objmap.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c deleteto.c -o deleteto.o
-findlast.o: findlast.c ../libcperciva/events/events.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h objmap.h findlast.h
+findlast.o: findlast.c ../libcperciva/events/events.h ../lib/proto_s3/proto_s3.h ../libcperciva/util/warnp.h ../lib/wire/wire.h objmap.h findlast.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c findlast.c -o findlast.o
 objmap.o: objmap.c ../libcperciva/util/hexify.h ../libcperciva/alg/md5.h ../libcperciva/util/sysendian.h objmap.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c objmap.c -o objmap.o
@@ -85,7 +85,7 @@ netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../lib
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
-wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h
+wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
@@ -93,7 +93,7 @@ wire_requestqueue.o: ../lib/wire/wire_requestqueue.c ../libcperciva/events/event
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
-proto_s3_client.o: ../lib/proto_s3/proto_s3_client.c ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../lib/proto_s3/proto_s3.h
+proto_s3_client.o: ../lib/proto_s3/proto_s3_client.c ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/proto_s3/proto_s3.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_s3/proto_s3_client.c -o proto_s3_client.o
-proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
+proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_lbs/proto_lbs_server.c -o proto_lbs_server.o

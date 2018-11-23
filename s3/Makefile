@@ -25,7 +25,7 @@ main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ..
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
 dns.o: dns.c ../libcperciva/network/network.h ../libcperciva/util/noeintr.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../libcperciva/util/warnp.h dns.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dns.c -o dns.o
-dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../lib/http/http.h ../libcperciva/network/network.h ../lib/proto_s3/proto_s3.h ../lib/s3/s3_request.h ../lib/s3/s3_request_queue.h ../lib/s3/s3_verifyetag.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h dispatch.h
+dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../lib/http/http.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_s3/proto_s3.h ../lib/s3/s3_request.h ../lib/s3/s3_request_queue.h ../lib/s3/s3_verifyetag.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
 elasticarray.o: ../libcperciva/datastruct/elasticarray.c ../libcperciva/datastruct/elasticarray.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
@@ -97,11 +97,11 @@ s3_serverpool.o: ../lib/s3/s3_serverpool.c ../libcperciva/datastruct/elasticarra
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/s3/s3_serverpool.c -o s3_serverpool.o
 s3_verifyetag.o: ../lib/s3/s3_verifyetag.c ../libcperciva/util/hexify.h ../lib/http/http.h ../libcperciva/alg/md5.h ../lib/s3/s3_verifyetag.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/s3/s3_verifyetag.c -o s3_verifyetag.o
-wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h
+wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
-proto_s3_server.o: ../lib/proto_s3/proto_s3_server.c ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/proto_s3/proto_s3.h
+proto_s3_server.o: ../lib/proto_s3/proto_s3_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_s3/proto_s3.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_s3/proto_s3_server.c -o proto_s3_server.o

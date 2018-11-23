@@ -21,7 +21,7 @@ clean:
 ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
-main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/datastruct/elasticarray.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h dispatch.h
+main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/datastruct/elasticarray.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
 dispatch.o: dispatch.c ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/wire/wire.h ../libcperciva/util/warnp.h dispatch.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
@@ -73,7 +73,7 @@ netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../lib
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
-wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h
+wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o

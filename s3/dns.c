@@ -231,7 +231,7 @@ dns_reader_start(struct s3_request_queue * Q, const char * target)
 err3:
 	free(DR);
 err2:
-	kill(SIGTERM, pid);
+	kill(pid, SIGTERM);
 err1:
 	close(fd[1]);
 	close(fd[0]);
@@ -249,7 +249,7 @@ dns_reader_stop(struct dns_reader * DR)
 {
 
 	/* Signal the child process to die. */
-	kill(SIGTERM, DR->pid);
+	kill(DR->pid, SIGTERM);
 
 	/* Stop reading addresses. */
 	network_read_cancel(DR->read_cookie);

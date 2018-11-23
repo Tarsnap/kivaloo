@@ -6,6 +6,7 @@
 
 #include "asprintf.h"
 #include "http.h"
+#include "netbuf.h"
 #include "network.h"
 #include "proto_s3.h"
 #include "s3_request.h"

@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "asprintf.h"
+#include "netbuf.h"
 #include "network.h"
 #include "proto_lbs.h"
 #include "warnp.h"

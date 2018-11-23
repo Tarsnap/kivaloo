@@ -3,10 +3,11 @@
 
 #include <stdint.h>
 
-#include "netbuf.h"
-#include "proto_lbs.h"
-
-#include "worker.h"
+/* Opaque types. */
+struct netbuf_read;
+struct netbuf_write;
+struct proto_lbs_request;
+struct storage_state;
 
 /* Linked list structure for queue of pending block reads. */
 struct readq {

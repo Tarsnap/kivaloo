@@ -14,6 +14,8 @@
 #include "wire.h"
 #include "warnp.h"
 
+#include "worker.h"
+
 #include "dispatch.h"
 #include "dispatch_internal.h"
 

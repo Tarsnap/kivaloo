@@ -23,11 +23,11 @@ ${PROG}:${SRCS:.c=.o}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h storage.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
-dispatch.o: dispatch.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../lib/wire/wire.h ../libcperciva/util/warnp.h dispatch.h storage.h dispatch_internal.h worker.h
+dispatch.o: dispatch.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../lib/wire/wire.h ../libcperciva/util/warnp.h worker.h dispatch.h dispatch_internal.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
-dispatch_request.o: dispatch_request.c ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
+dispatch_request.o: dispatch_request.c ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch_request.c -o dispatch_request.o
-dispatch_response.o: dispatch_response.c ../lib/proto_lbs/proto_lbs.h ../lib/netbuf/netbuf.h ../lib/wire/wire.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
+dispatch_response.o: dispatch_response.c ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch_response.c -o dispatch_response.o
 worker.o: worker.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h storage.h worker.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c worker.c -o worker.o
@@ -35,7 +35,7 @@ storage.o: storage.c ../libcperciva/datastruct/elasticqueue.h ../libcperciva/uti
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c storage.c -o storage.o
 storage_findfiles.o: storage_findfiles.c ../libcperciva/util/asprintf.h ../libcperciva/datastruct/elasticqueue.h ../libcperciva/util/hexify.h ../libcperciva/datastruct/ptrheap.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h storage_findfiles.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c storage_findfiles.c -o storage_findfiles.o
-storage_util.o: storage_util.c ../libcperciva/util/asprintf.h ../libcperciva/util/warnp.h storage_internal.h ../libcperciva/datastruct/elasticqueue.h storage_util.h
+storage_util.o: storage_util.c ../libcperciva/util/asprintf.h ../libcperciva/util/warnp.h storage_internal.h storage_util.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c storage_util.c -o storage_util.o
 disk.o: disk.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h disk.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c disk.c -o disk.o
@@ -87,11 +87,11 @@ netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../lib
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
-wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h ../lib/netbuf/netbuf.h
+wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
-proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
+proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_lbs/proto_lbs_server.c -o proto_lbs_server.o

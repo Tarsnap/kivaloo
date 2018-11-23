@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "netbuf.h"
+/* Opaque types. */
+struct netbuf_read;
+struct netbuf_write;
 
 struct wire_packet {
 	uint64_t ID;

@@ -5,6 +5,7 @@
 
 #include "events.h"
 #include "imalloc.h"
+#include "kvldskey.h"
 #include "mpool.h"
 #include "sysendian.h"
 #include "warnp.h"

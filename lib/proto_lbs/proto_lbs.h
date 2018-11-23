@@ -3,9 +3,10 @@
 
 #include <stdint.h>
 
-#include "netbuf.h"
-
-#include "wire.h"
+/* Opaque types. */
+struct netbuf_read;
+struct netbuf_write;
+struct wire_requestqueue;
 
 /**
  * proto_lbs_request_params(Q, callback, cookie):

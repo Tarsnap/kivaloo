@@ -1,9 +1,11 @@
 #ifndef _PROTO_KVLDS_H_
 #define _PROTO_KVLDS_H_
 
-#include "kvldskey.h"
-#include "netbuf.h"
-#include "wire.h"
+/* Opaque types. */
+struct kvldskey;
+struct netbuf_read;
+struct netbuf_write;
+struct wire_requestqueue;
 
 /**
  * proto_kvlds_request_params(Q, callback, cookie):

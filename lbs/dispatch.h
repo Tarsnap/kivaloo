@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#include "storage.h"
+/* Opaque types. */
+struct storage_state;
 
 /**
  * dispatch_init(S, blocklen, nreaders):

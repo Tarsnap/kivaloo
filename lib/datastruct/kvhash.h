@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 
-#include "kvldskey.h"
-#include "kvpair.h"
+/* Opaque types. */
+struct kvldskey;
+struct kvpair_const;
 
 /**
  * A kvhash structure is a hash table containing keys which each has either

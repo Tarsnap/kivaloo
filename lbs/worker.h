@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 
-#include "storage.h"
-
-/* Opaque thread control structure. */
+/* Opaque types. */
+struct storage_state;
 struct workctl;
 
 /**

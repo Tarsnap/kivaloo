@@ -14,6 +14,7 @@
 #include "btree_find.h"
 #include "btree_mutate.h"
 #include "btree_node.h"
+#include "node.h"
 
 #include "dispatch.h"
 

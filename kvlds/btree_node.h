@@ -6,11 +6,11 @@
 #include "pool.h"
 
 #include "btree.h"
-#include "node.h"
 
 /* Opaque types. */
 struct kvldskey;
 struct kvpair_const;
+struct node;
 
 /**
  * btree_node_mknode(T, type, height, nkeys, keys, children, pairs):

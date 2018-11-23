@@ -4,7 +4,8 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include "elasticqueue.h"
+/* Opaque types. */
+struct elasticqueue;
 
 /* Back-end storage state. */
 struct storage_state {

@@ -1,7 +1,8 @@
 #ifndef _STORAGE_UTIL_H_
 #define _STORAGE_UTIL_H_
 
-#include "storage_internal.h"
+/* Opaque types. */
+struct storage_state;
 
 /**
  * storage_util_readlock(S):

@@ -3,6 +3,7 @@
 
 #include "events.h"
 #include "imalloc.h"
+#include "kvldskey.h"
 #include "kvpair.h"
 #include "ptrheap.h"
 #include "netbuf.h"
@@ -11,6 +12,7 @@
 #include "btree.h"
 #include "btree_find.h"
 #include "btree_node.h"
+#include "node.h"
 
 #include "dispatch.h"
 

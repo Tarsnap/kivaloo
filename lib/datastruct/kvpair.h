@@ -1,7 +1,8 @@
 #ifndef _KVPAIR_H_
 #define _KVPAIR_H_
 
-#include "kvldskey.h"
+/* Opaque types. */
+struct kvldskey;
 
 /* Key-value pair structure. */
 struct kvpair {

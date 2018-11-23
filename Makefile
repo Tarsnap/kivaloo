@@ -2,12 +2,14 @@
 
 PKG=	kivaloo
 PROGS=	lbs kvlds mux s3 lbs-s3
-TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
-	perftests/kvldsperf perftests/kvldsclean perftests/http \
-	perftests/s3 perftests/s3_put
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs
+# For compatibility with other libcperciva software, we don't use
+# ${BENCHES} in the shared code, so we add it to ${TESTS}.
+TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
+	perftests/kvldsperf perftests/kvldsclean perftests/http \
+	perftests/s3 perftests/s3_put ${BENCHES}
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2
 TEST_CMD=	${MAKE} -C tests test
@@ -18,7 +20,7 @@ all:	cpusupport-config.h posix-flags.sh
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
 	. ./posix-flags.sh;				\
 	. ./cpusupport-config.h;			\
-	for D in ${PROGS} ${BENCHES} ${TESTS}; do	\
+	for D in ${PROGS} ${TESTS}; do			\
 		( cd $${D} && ${MAKE} all ) || exit 2;	\
 	done
 
@@ -54,7 +56,7 @@ install:	all
 
 clean:
 	rm -f cpusupport-config.h posix-flags.sh
-	for D in ${PROGS}; do					\
+	for D in ${PROGS} ${TESTS}; do				\
 		( cd $${D} && ${MAKE} clean ) || exit 2;	\
 	done
 

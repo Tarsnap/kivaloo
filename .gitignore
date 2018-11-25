@@ -18,6 +18,7 @@ perftests/kvldsclean/test_kvldsclean
 perftests/kvldsperf/test_kvldsperf
 perftests/s3/test_s3
 perftests/s3_put/s3_put
+perftests/serverpool/test_serverpool
 s3/s3
 tests/crc32/test_crc32
 tests/heap/test_heap

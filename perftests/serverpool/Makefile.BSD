@@ -1,0 +1,46 @@
+PROG=	test_serverpool
+SRCS=	main.c
+
+# Data structures
+.PATH.c	:	../../libcperciva/datastruct
+SRCS	+=	elasticarray.c
+SRCS	+=	ptrheap.c
+SRCS	+=	timerqueue.c
+IDIRS	+=	-I ../../libcperciva/datastruct
+
+# Utility functions
+.PATH.c	:	../../libcperciva/util
+SRCS	+=	asprintf.c
+SRCS	+=	monoclock.c
+SRCS	+=	noeintr.c
+SRCS	+=	sock.c
+SRCS	+=	sock_util.c
+SRCS	+=	warnp.c
+IDIRS	+=	-I ../../libcperciva/util
+
+# Event loop
+.PATH.c	:	../../libcperciva/events
+SRCS	+=	events_immediate.c
+SRCS	+=	events_network.c
+SRCS	+=	events_network_selectstats.c
+SRCS	+=	events_timer.c
+SRCS	+=	events.c
+IDIRS	+=	-I ../../libcperciva/events
+
+# Event-driven networking
+.PATH.c	:	../../libcperciva/network
+SRCS	+=	network_read.c
+SRCS	+=	network_write.c
+IDIRS	+=	-I ../../libcperciva/network
+
+# Server pool management
+.PATH.c	:	../../lib/serverpool
+SRCS	+=	serverpool.c
+IDIRS	+=	-I ../../lib/serverpool
+
+CFLAGS	+=	-g
+
+test:	test_serverpool
+	./test_serverpool dynamodb.us-east-1.amazonaws.com:80
+
+.include <bsd.prog.mk>

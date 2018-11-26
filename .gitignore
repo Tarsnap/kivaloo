@@ -9,10 +9,13 @@ bench/hotspot_read/hotspot_read
 bench/mkpairs/mkpairs
 bench/random_mixed/random_mixed
 bench/random_read/random_read
+dynamodb-kv/dynamodb-kv
 kvlds/kvlds
+lbs-dynamodb/lbs-dynamodb
 lbs-s3/lbs-s3
 lbs/lbs
 mux/mux
+perftests/dynamodb_kv/test_dynamodb_kv
 perftests/dynamodb_request/test_dynamodb_request
 perftests/dynamodb_sign/dynamodb_sign
 perftests/dynamodb_queue/test_dynamodb_queue
@@ -25,6 +28,7 @@ perftests/serverpool/test_serverpool
 s3/s3
 tests/crc32/test_crc32
 tests/heap/test_heap
+tests/kvlds-ddbkv/test_kvlds
 tests/kvlds-s3/test_kvlds
 tests/kvlds/test_kvlds
 tests/lbs/test_lbs

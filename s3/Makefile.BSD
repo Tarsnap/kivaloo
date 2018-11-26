@@ -42,7 +42,7 @@ IDIRS	+=	-I ../lib/logging
 .PATH.c	:	../libcperciva/alg
 SRCS	+=	crc32c.c
 SRCS	+=	md5.c
-SRCS	+=	sha1.c
+SRCS	+=	sha256.c
 IDIRS	+=	-I ../libcperciva/alg
 
 # Event loop
@@ -61,6 +61,12 @@ SRCS	+=	network_connect.c
 SRCS	+=	network_read.c
 SRCS	+=	network_write.c
 IDIRS	+=	-I ../libcperciva/network
+
+# AWS request signing
+.PATH.c	:	../libcperciva/aws
+SRCS	+=	aws_readkeys.c
+SRCS	+=	aws_sign.c
+IDIRS	+=	-I ../libcperciva/aws
 
 # Buffered networking
 .PATH.c	:	../lib/netbuf

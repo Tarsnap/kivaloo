@@ -9,12 +9,13 @@ struct s3_request;
 struct s3_request_queue;
 
 /**
- * s3_request_queue_init(key_id, key_secret, conns):
+ * s3_request_queue_init(key_id, key_secret, region, conns):
  * Create an S3 request queue using the AWS Key ID ${key_id} and the Secret
- * Access Key ${key_secret} to perform up to ${conns} simultaneous requests.
+ * Access Key ${key_secret} to perform up to ${conns} simultaneous requests
+ * to the S3 region ${region}.
  */
 struct s3_request_queue * s3_request_queue_init(const char *, const char *,
-    size_t);
+    const char *, size_t);
 
 /**
  * s3_request_queue_log(Q, F):

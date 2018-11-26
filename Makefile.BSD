@@ -8,7 +8,9 @@ BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 	perftests/kvldsperf perftests/kvldsclean perftests/http \
 	perftests/s3 perftests/s3_put perftests/serverpool	\
-	perftests/dynamodb_sign ${BENCHES}
+	perftests/dynamodb_sign perftests/dynamodb_request	\
+	perftests/dynamodb_queue				\
+	${BENCHES}
 SUBST_VERSION_FILES=	lbs/main.c kvlds/main.c mux/main.c s3/main.c \
 			lbs-s3/main.c
 PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib libcperciva bench

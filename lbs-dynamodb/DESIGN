@@ -1,0 +1,78 @@
+LBS-DynamoDB-kv design
+======================
+
+The lbs-dynamodb-kv block store is invoked as
+
+# kivaloo-lbs-dynamodb-kv -s <lbs socket> -t <dynamodb-kv socket>
+      -b <item size> [-1] [-p <pidfile>]
+
+It creates a socket <lbs socket> on which it listens for incoming connections,
+accepts one at a time, and performs I/Os following the LBS protocol.  It
+stores data in Amazon DynamoDB via the kivaloo-dynamodb-kv protocol, using
+DynamoDB items of size <item size>; the LBS block size is slightly smaller.
+
+The user is responsible for ensuring that the DynamoDB table at which the
+dynamodb-kv daemon is pointed is initialized with a string partition key "K"
+and no items.
+
+The other options are:
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <lbs socket>.pid.  (Note that if <lbs socket> is not an absolute
+	path, the default pid file location is in the current directory.)
+  -1
+	Exit after handling one connection.
+
+NOTE: THE USER MUST ENSURE THAT THERE ARE NEVER TWO LBS-DYNAMODB-KV DAEMONS
+USING THE SAME DYNAMODB TABLE.  Two daemons operating on the same table
+will overwrite each other's data and generally cause utter chaos, and since
+lbs-dynamodb-kv must be able to resume after a crash, there is no way for
+it to "lock" a bucket.
+
+Overview
+--------
+
+LBS-DynamoDB-kv implements an "append multiple blocks" / "read one block" /
+"delete blocks up to" logging block store on top of Amazon DynamoDB, using
+one DynamoDB item for each block.  Requests are made to DynamoDB via the
+dynamodb-kv daemon; items are expressed as key-value pairs with a string
+K=<64-bit ID in hex> and a binary V=<block data provided from upstream>.
+
+Aside from the DynamoDB items which are block data -- which are written once
+and never modified -- there are two other items stored: One with K="lastblk"
+which is (given a *consistent* read) guaranteed to be >= any block IDs for
+which a PutItem has been initiated; and one with K="DeletedTo", which (even
+if read with weak consistency) is guaranteed to be <= all blocks for which a
+DeleteItem has been issued.  The former is used to ensure that we can resume
+after a crash and both (a) find the most recent KVLDS root page, and (b)
+ensure that we never reuse a block ID.
+
+Since we never reuse block IDs, we can read blocks using weak consistency,
+and only perform a strongly consistent read in the (very unlikely) event that
+the weakly consistent read does not find the block (because it hasn't been
+gossipped between DynamoDB nodes yet).
+
+Writes are performed by
+1. Updating "lastblk",
+2. Storing all of the blocks *except the last block*, and then
+3. Storing the last block.
+
+This guarantees that if the final block has been stored then all previous
+blocks have also been stored (even if requests are handled out of order); but
+if we crash in the middle of the second phase the upstream service may see an
+arbitrary subset of the non-final blocks as having been stored.  Since the
+KVLDS daemon scans for the last page containing a B+Tree root node and skips
+over any non-present pages, this works fine for KVLDS; other users may need
+to have special handling of partial writes.
+
+Code structure
+--------------
+
+main.c		-- Processes command line, connects to target, initializes
+		   state, creates a listening socket, daemonizes, accepts
+		   one connection at once, and runs the event loop.
+dispatch.c	-- Reads requests from a connection and drops the connection
+		   if one cannot be read.  Passes requests to state.c.
+state.c		-- Manages the internal storage state and processes requests.
+deleteto.c	-- Implements the DeleteTo algorithm.
+objmap.c	-- Converts object #s into stringified keys.

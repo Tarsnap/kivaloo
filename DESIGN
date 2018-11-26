@@ -159,6 +159,26 @@ retrying of requests which fail due to internal S3 errors (HTTP 500/503):
 	Issue a DELETE request for the specified bucket/object.  Return the
 	HTTP status (204 for success).
 
+DynamoDB-KV operations
+----------------------
+
+The kivaloo-dynamodb-kv daemon provides an interface to use Amazon DynamoDB
+as a key-value store, abstracting away request queuing, DNS resolution,
+endpoint selection, and retrying of requests which fail due to internal
+DynamoDB errors (HTTP 500/503) and request rate throttling (HTTP 400 with a
+ProvisionedThroughputExceededException code):
+* PUT(key, len, data):
+	Associate the provided (binary) data with the provided (string) key.
+	Return 0 for success or 1 for failure.
+* GET(key):
+	Read the value associated with the provided key, using an "eventually
+	consistent" GetItem request.  Returns a status of 0 and the value; a
+	status of 1 on error; or a status of 2 if there is no such item.
+* GETC(key):
+	Operate as GET(key) except that strong consistency is used.
+* DELETE(key):
+	Delete the provided key and associate value.
+
 Consistency guarantees
 ----------------------
 

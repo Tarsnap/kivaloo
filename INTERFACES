@@ -1,5 +1,5 @@
 Kivaloo daemon interfaces
------------------------
+-------------------------
 
 Kivaloo components communicate via sockets (either UNIX domain sockets or TCP
 sockets) using a request-response wire protocol supporting out-of-order
@@ -266,3 +266,51 @@ DELETE:	Request type = 0x00010030
 
 	Response:
 	[4 byte HTTP status]
+
+DynamoDB-KV interface
+---------------------
+
+PUT:	Request type = 0x00010100
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[4 byte value length][X byte value]
+
+	Response:
+	[4 byte status (0 = success, 1 = failure)]
+
+GET:	Request type = 0x00010110
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+
+	Response (success):
+	[4 byte status = 0]
+	[4 byte value length][X byte value]
+
+	Response (otherwise):
+	[4 byte status = 1 (failure) or 2 (no such key/value pair)]
+
+GETC:	Request type = 0x00010111
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+
+	Response (success):
+	[4 byte status = 0]
+	[4 byte value length][X byte value]
+
+	Response (otherwise):
+	[4 byte status = 1 (failure) or 2 (no such key/value pair)]
+
+DELETE:	Request type = 0x00010120
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+
+	Response:
+	[4 byte status (0 = success, 1 = failure)]

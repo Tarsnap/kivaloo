@@ -1,0 +1,111 @@
+# Program name
+PROG	=	dynamodb-kv
+
+# Libraries which are sometimes merged into libc
+LDADD	=	-lrt
+#LDADD	+=	-lxnet  # Missing on FreeBSD
+
+# dynamodb-kv code
+SRCS	=	main.c
+SRCS	+=	dispatch.c
+
+# Data structures
+.PATH.c	:	../libcperciva/datastruct
+SRCS	+=	elasticarray.c
+SRCS	+=	ptrheap.c
+SRCS	+=	timerqueue.c
+IDIRS	+=	-I ../libcperciva/datastruct
+
+# Utility functions
+.PATH.c	:	../libcperciva/util
+SRCS	+=	asprintf.c
+SRCS	+=	b64encode.c
+SRCS	+=	daemonize.c
+SRCS	+=	getopt.c
+SRCS	+=	hexify.c
+SRCS	+=	insecure_memzero.c
+SRCS	+=	json.c
+SRCS	+=	monoclock.c
+SRCS	+=	noeintr.c
+SRCS	+=	sock.c
+SRCS	+=	sock_util.c
+SRCS	+=	warnp.c
+IDIRS	+=	-I ../libcperciva/util
+
+# Logging code
+.PATH.c	:	../lib/logging
+SRCS	+=	logging.c
+IDIRS	+=	-I ../lib/logging
+
+# Fundamental algorithms
+.PATH.c	:	../libcperciva/alg
+SRCS	+=	crc32c.c
+SRCS	+=	sha256.c
+IDIRS	+=	-I ../libcperciva/alg
+
+# Event loop
+.PATH.c	:	../libcperciva/events
+SRCS	+=	events_immediate.c
+SRCS	+=	events_network.c
+SRCS	+=	events_network_selectstats.c
+SRCS	+=	events_timer.c
+SRCS	+=	events.c
+IDIRS	+=	-I ../libcperciva/events
+
+# Event-driven networking
+.PATH.c	:	../libcperciva/network
+SRCS	+=	network_accept.c
+SRCS	+=	network_connect.c
+SRCS	+=	network_read.c
+SRCS	+=	network_write.c
+IDIRS	+=	-I ../libcperciva/network
+
+# AWS request signing
+.PATH.c	:	../libcperciva/aws
+SRCS	+=	aws_readkeys.c
+SRCS	+=	aws_sign.c
+IDIRS	+=	-I ../libcperciva/aws
+
+# Buffered networking
+.PATH.c	:	../lib/netbuf
+SRCS	+=	netbuf_read.c
+SRCS	+=	netbuf_write.c
+IDIRS	+=	-I ../lib/netbuf
+
+# DynamoDB protocol
+.PATH.c	:	../lib/dynamodb
+SRCS	+=	dynamodb_kv.c
+SRCS	+=	dynamodb_request.c
+SRCS	+=	dynamodb_request_queue.c
+IDIRS	+=	-I ../lib/dynamodb
+
+# HTTP client protocol
+.PATH.c	:	../lib/http
+SRCS	+=	http.c
+IDIRS	+=	-I ../lib/http
+
+# DynamoDB-KV request/response packets
+.PATH.c	:	../lib/proto_dynamodb_kv
+SRCS	+=	proto_dynamodb_kv_server.c
+IDIRS	+=	-I ../lib/proto_dynamodb_kv
+
+# Wire protocol
+.PATH.c	:	../lib/wire
+SRCS	+=	wire_packet.c
+SRCS	+=	wire_readpacket.c
+SRCS	+=	wire_writepacket.c
+IDIRS	+=	-I ../lib/wire
+
+# Server pool management
+.PATH.c	:	../lib/serverpool
+SRCS	+=	serverpool.c
+IDIRS	+=	-I ../lib/serverpool
+
+# Debugging options
+#CFLAGS	+=	-g
+#CFLAGS	+=	-DNDEBUG
+#CFLAGS	+=	-DDEBUG
+#CFLAGS	+=	-pg
+WARNS	=	0
+
+.include <bsd.prog.mk>

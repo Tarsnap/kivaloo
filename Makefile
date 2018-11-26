@@ -1,17 +1,18 @@
 .POSIX:
 
 PKG=	kivaloo
-PROGS=	lbs kvlds mux s3 lbs-s3
+PROGS=	lbs kvlds mux s3 lbs-s3 dynamodb-kv lbs-dynamodb
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs
 # For compatibility with other libcperciva software, we don't use
 # ${BENCHES} in the shared code, so we add it to ${TESTS}.
 TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
+	tests/kvlds-ddbkv \
 	perftests/kvldsperf perftests/kvldsclean perftests/http \
 	perftests/s3 perftests/s3_put perftests/serverpool	\
 	perftests/dynamodb_sign perftests/dynamodb_request	\
-	perftests/dynamodb_queue				\
+	perftests/dynamodb_queue perftests/dynamodb_kv		\
 	${BENCHES}
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2

@@ -14,7 +14,7 @@ TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 	${BENCHES}
 SUBST_VERSION_FILES=	lbs/main.c kvlds/main.c mux/main.c s3/main.c \
 			lbs-s3/main.c
-PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE POSIX lib libcperciva bench
+PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE Makefile lib libcperciva bench perftests tests
 
 ### Shared code between Tarsnap projects.
 
@@ -93,12 +93,8 @@ publish: clean Makefiles
 	fi
 	rm -f ${PKG}-${VERSION}.tgz
 	mkdir ${PKG}-${VERSION}
-	tar -cf- --exclude 'Makefile.*' --exclude Makefile ${PUBLISH} | \
+	tar -cf- --exclude 'Makefile.*' ${PUBLISH} | \
 	    tar -xf- -C ${PKG}-${VERSION}
-	cp Makefile.POSIX ${PKG}-${VERSION}/Makefile
-.for D in ${PROGS} ${TESTS}
-	${MAKEBSD} ${PKG}-${VERSION}/${D}/Makefile
-.endfor
 .for F in ${SUBST_VERSION_FILES}
 	sed -e 's/@VERSION@/${VERSION}/' -e 's/@DATE@/${RELEASEDATE}/' \
 	    < ${PKG}-${VERSION}/${F} > ${PKG}-${VERSION}/${F}.tmp

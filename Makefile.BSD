@@ -34,6 +34,8 @@ ${D}/Makefile::
 	( cd ${D} && printf 'SRCS=' && ${MAKEBSD} -V SRCS | sed -e 's| cpusupport-config.h||' ) >> $@
 	( cd ${D} && printf 'IDIRS=' && ${MAKEBSD} -V IDIRS ) >> $@
 	( cd ${D} && printf 'LDADD_REQ=' && ${MAKEBSD} -V LDADD_REQ ) >> $@
+	( cd ${D} && printf 'SUBDIR_DEPTH=' && ${MAKEBSD} -V SUBDIR_DEPTH ) >> $@
+	( cd ${D} && printf 'RELATIVE_DIR=${D}\n' ) >> $@
 	if [ `cd ${D} && ${MAKEBSD} -V NOINST` ]; then		\
 		cat Makefile.prog |				\
 		    perl -0pe 's/(install:.*?)\n\n//s' >> $@ ;	\
@@ -50,9 +52,10 @@ ${D}/Makefile::
 		S=`${MAKEBSD} source-$${F}`;	\
 		CF=`${MAKEBSD} cflags-$${F}`;	\
 		IDIRS=`${MAKEBSD} -V IDIRS`;	\
-		echo `${CPP} $${S} -I.. $${IDIRS} -MM -MT $${F}` \
+		SUBDIR_DEPTH=`${MAKEBSD} -V SUBDIR_DEPTH`;	\
+		echo `${CPP} $${S} -std=c99 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I$${SUBDIR_DEPTH} $${IDIRS} -MM -MT $${F}` \
 			| sed -e 's| \\ | |g'; \
-		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} ${CFLAGS_HARDCODED} $${CF} -I.. \$${IDIRS} -c $${S} -o $${F}"; \
+		echo "	\$${CC} \$${CFLAGS} \$${CFLAGS_POSIX} ${CFLAGS_HARDCODED} $${CF} -I$${SUBDIR_DEPTH} \$${IDIRS} -c $${S} -o $${F}"; \
 	    done ) >> $@
 	if grep -q "all_extra:" ${D}/Makefile.BSD ; then		\
 		printf "\n" >> $@;					\

@@ -5,8 +5,17 @@ MAN1=
 SRCS=main.c dns.c dispatch.c elasticarray.c ptrheap.c timerqueue.c elasticqueue.c asprintf.c b64encode.c daemonize.c getopt.c hexify.c insecure_memzero.c monoclock.c noeintr.c sock.c sock_util.c warnp.c logging.c crc32c.c md5.c sha256.c events_immediate.c events_network.c events_network_selectstats.c events_timer.c events.c network_accept.c network_connect.c network_read.c network_write.c aws_readkeys.c aws_sign.c netbuf_read.c netbuf_write.c http.c s3_request.c s3_request_queue.c s3_serverpool.c s3_verifyetag.c wire_packet.c wire_readpacket.c wire_writepacket.c proto_s3_server.c
 IDIRS=-I ../libcperciva/datastruct -I ../libcperciva/util -I ../lib/logging -I ../libcperciva/alg -I ../libcperciva/events -I ../libcperciva/network -I ../libcperciva/aws -I ../lib/netbuf -I ../lib/http -I ../lib/s3 -I ../lib/wire -I ../lib/proto_s3
 LDADD_REQ=
+SUBDIR_DEPTH=..
+RELATIVE_DIR=s3
 
-all:	${PROG}
+all:
+	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
+		cd ${SUBDIR_DEPTH}; \
+		${MAKE} BUILD_SUBDIR=${RELATIVE_DIR} \
+		    BUILD_TARGET=${PROG} buildsubdir; \
+	else \
+		${MAKE} ${PROG}; \
+	fi
 
 install:${PROG}
 	mkdir -p ${BINDIR}
@@ -14,98 +23,106 @@ install:${PROG}
 	    strip ${BINDIR}/_inst.${PROG}.$$$$_ &&	\
 	    chmod 0555 ${BINDIR}/_inst.${PROG}.$$$$_ && \
 	    mv -f ${BINDIR}/_inst.${PROG}.$$$$_ ${BINDIR}/${PROG}
+	if ! [ -z "${MAN1DIR}" ]; then			\
+		mkdir -p ${MAN1DIR};			\
+		for MPAGE in ${MAN1}; do						\
+			cp $$MPAGE ${MAN1DIR}/_inst.$$MPAGE.$$$$_ &&			\
+			    chmod 0444 ${MAN1DIR}/_inst.$$MPAGE.$$$$_ &&		\
+			    mv -f ${MAN1DIR}/_inst.$$MPAGE.$$$$_ ${MAN1DIR}/$$MPAGE;	\
+		done;									\
+	fi
 
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
 ${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../lib/logging/logging.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h dns.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dns.o: dns.c ../libcperciva/network/network.h ../libcperciva/util/noeintr.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../libcperciva/util/warnp.h dns.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dns.c -o dns.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dns.c -o dns.o
 dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../lib/http/http.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_s3/proto_s3.h ../lib/s3/s3_request.h ../lib/s3/s3_request_queue.h ../lib/s3/s3_verifyetag.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 elasticarray.o: ../libcperciva/datastruct/elasticarray.c ../libcperciva/datastruct/elasticarray.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/datastruct/elasticarray.c -o elasticarray.o
 ptrheap.o: ../libcperciva/datastruct/ptrheap.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/datastruct/ptrheap.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/ptrheap.c -o ptrheap.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/datastruct/ptrheap.c -o ptrheap.o
 timerqueue.o: ../libcperciva/datastruct/timerqueue.c ../libcperciva/datastruct/ptrheap.h ../libcperciva/datastruct/timerqueue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/timerqueue.c -o timerqueue.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/datastruct/timerqueue.c -o timerqueue.o
 elasticqueue.o: ../libcperciva/datastruct/elasticqueue.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/datastruct/elasticqueue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/datastruct/elasticqueue.c -o elasticqueue.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/datastruct/elasticqueue.c -o elasticqueue.o
 asprintf.o: ../libcperciva/util/asprintf.c ../libcperciva/util/asprintf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/asprintf.c -o asprintf.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/asprintf.c -o asprintf.o
 b64encode.o: ../libcperciva/util/b64encode.c ../libcperciva/util/b64encode.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/b64encode.c -o b64encode.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/b64encode.c -o b64encode.o
 daemonize.o: ../libcperciva/util/daemonize.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h ../libcperciva/util/daemonize.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/daemonize.c -o daemonize.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/daemonize.c -o daemonize.o
 getopt.o: ../libcperciva/util/getopt.c ../libcperciva/util/getopt.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/getopt.c -o getopt.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/getopt.c -o getopt.o
 hexify.o: ../libcperciva/util/hexify.c ../libcperciva/util/hexify.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/hexify.c -o hexify.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/hexify.c -o hexify.o
 insecure_memzero.o: ../libcperciva/util/insecure_memzero.c ../libcperciva/util/insecure_memzero.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
 monoclock.o: ../libcperciva/util/monoclock.c ../libcperciva/util/warnp.h ../libcperciva/util/monoclock.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/monoclock.c -o monoclock.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/monoclock.c -o monoclock.o
 noeintr.o: ../libcperciva/util/noeintr.c ../libcperciva/util/noeintr.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/noeintr.c -o noeintr.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/noeintr.c -o noeintr.o
 sock.o: ../libcperciva/util/sock.c ../libcperciva/util/imalloc.h ../libcperciva/util/warnp.h ../libcperciva/util/sock.h ../libcperciva/util/sock_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/sock.c -o sock.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/sock.c -o sock.o
 sock_util.o: ../libcperciva/util/sock_util.c ../libcperciva/util/asprintf.h ../libcperciva/util/sock.h ../libcperciva/util/sock_internal.h ../libcperciva/util/sock_util.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/sock_util.c -o sock_util.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/sock_util.c -o sock_util.o
 warnp.o: ../libcperciva/util/warnp.c ../libcperciva/util/warnp.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/util/warnp.c -o warnp.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/warnp.c -o warnp.o
 logging.o: ../lib/logging/logging.c ../libcperciva/events/events.h ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h ../lib/logging/logging.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/logging/logging.c -o logging.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/logging/logging.c -o logging.o
 crc32c.o: ../libcperciva/alg/crc32c.c ../libcperciva/alg/crc32c.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
 md5.o: ../libcperciva/alg/md5.c ../libcperciva/util/insecure_memzero.h ../libcperciva/util/sysendian.h ../libcperciva/alg/md5.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/alg/md5.c -o md5.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/md5.c -o md5.o
 sha256.o: ../libcperciva/alg/sha256.c ../libcperciva/util/insecure_memzero.h ../libcperciva/util/sysendian.h ../libcperciva/alg/sha256.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/alg/sha256.c -o sha256.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/sha256.c -o sha256.o
 events_immediate.o: ../libcperciva/events/events_immediate.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
 events_network.o: ../libcperciva/events/events_network.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/warnp.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_network.c -o events_network.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_network.c -o events_network.o
 events_network_selectstats.o: ../libcperciva/events/events_network_selectstats.c ../libcperciva/util/monoclock.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o
 events_timer.o: ../libcperciva/events/events_timer.c ../libcperciva/util/monoclock.h ../libcperciva/datastruct/timerqueue.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events_timer.c -o events_timer.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_timer.c -o events_timer.o
 events.o: ../libcperciva/events/events.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/events/events.c -o events.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events.c -o events.o
 network_accept.o: ../libcperciva/network/network_accept.c ../libcperciva/events/events.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_accept.c -o network_accept.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/network/network_accept.c -o network_accept.o
 network_connect.o: ../libcperciva/network/network_connect.c ../libcperciva/events/events.h ../libcperciva/util/sock.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_connect.c -o network_connect.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/network/network_connect.c -o network_connect.o
 network_read.o: ../libcperciva/network/network_read.c ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_read.c -o network_read.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/network/network_read.c -o network_read.o
 network_write.o: ../libcperciva/network/network_write.c ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../libcperciva/util/warnp.h ../libcperciva/network/network.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/network/network_write.c -o network_write.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/network/network_write.c -o network_write.o
 aws_readkeys.o: ../libcperciva/aws/aws_readkeys.c ../libcperciva/util/insecure_memzero.h ../libcperciva/util/warnp.h ../libcperciva/aws/aws_readkeys.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
 aws_sign.o: ../libcperciva/aws/aws_sign.c ../libcperciva/util/asprintf.h ../libcperciva/util/hexify.h ../libcperciva/alg/sha256.h ../libcperciva/util/warnp.h ../libcperciva/aws/aws_sign.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../libcperciva/aws/aws_sign.c -o aws_sign.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/aws/aws_sign.c -o aws_sign.o
 netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
 http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/http/http.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/http/http.c -o http.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/http/http.c -o http.o
 s3_request.o: ../lib/s3/s3_request.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_sign.h ../lib/http/http.h ../libcperciva/util/warnp.h ../lib/s3/s3_request.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/s3/s3_request.c -o s3_request.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_request.c -o s3_request.o
 s3_request_queue.o: ../lib/s3/s3_request_queue.c ../lib/http/http.h ../lib/logging/logging.h ../libcperciva/util/monoclock.h ../lib/s3/s3_request.h ../lib/s3/s3_serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../lib/s3/s3_request_queue.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/s3/s3_request_queue.c -o s3_request_queue.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_request_queue.c -o s3_request_queue.o
 s3_serverpool.o: ../lib/s3/s3_serverpool.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/monoclock.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../lib/s3/s3_serverpool.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/s3/s3_serverpool.c -o s3_serverpool.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_serverpool.c -o s3_serverpool.o
 s3_verifyetag.o: ../lib/s3/s3_verifyetag.c ../libcperciva/util/hexify.h ../lib/http/http.h ../libcperciva/alg/md5.h ../lib/s3/s3_verifyetag.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/s3/s3_verifyetag.c -o s3_verifyetag.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_verifyetag.c -o s3_verifyetag.o
 wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_packet.c -o wire_packet.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_packet.c -o wire_packet.o
 wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../libcperciva/events/events.h ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
 proto_s3_server.o: ../lib/proto_s3/proto_s3_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_s3/proto_s3.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/proto_s3/proto_s3_server.c -o proto_s3_server.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/proto_s3/proto_s3_server.c -o proto_s3_server.o

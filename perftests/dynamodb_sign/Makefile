@@ -5,8 +5,17 @@ MAN1=
 SRCS=main.c asprintf.c hexify.c insecure_memzero.c warnp.c sha256.c aws_readkeys.c aws_sign.c
 IDIRS=-I ../../libcperciva/util -I ../../libcperciva/alg -I ../../libcperciva/aws
 LDADD_REQ=
+SUBDIR_DEPTH=../..
+RELATIVE_DIR=perftests/dynamodb_sign
 
-all:	${PROG}
+all:
+	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
+		cd ${SUBDIR_DEPTH}; \
+		${MAKE} BUILD_SUBDIR=${RELATIVE_DIR} \
+		    BUILD_TARGET=${PROG} buildsubdir; \
+	else \
+		${MAKE} ${PROG}; \
+	fi
 
 install:${PROG}
 	mkdir -p ${BINDIR}
@@ -14,26 +23,34 @@ install:${PROG}
 	    strip ${BINDIR}/_inst.${PROG}.$$$$_ &&	\
 	    chmod 0555 ${BINDIR}/_inst.${PROG}.$$$$_ && \
 	    mv -f ${BINDIR}/_inst.${PROG}.$$$$_ ${BINDIR}/${PROG}
+	if ! [ -z "${MAN1DIR}" ]; then			\
+		mkdir -p ${MAN1DIR};			\
+		for MPAGE in ${MAN1}; do						\
+			cp $$MPAGE ${MAN1DIR}/_inst.$$MPAGE.$$$$_ &&			\
+			    chmod 0444 ${MAN1DIR}/_inst.$$MPAGE.$$$$_ &&		\
+			    mv -f ${MAN1DIR}/_inst.$$MPAGE.$$$$_ ${MAN1DIR}/$$MPAGE;	\
+		done;									\
+	fi
 
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
 ${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../../libcperciva/util/asprintf.h ../../libcperciva/aws/aws_readkeys.h ../../libcperciva/aws/aws_sign.h ../../libcperciva/util/insecure_memzero.h ../../libcperciva/util/warnp.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 asprintf.o: ../../libcperciva/util/asprintf.c ../../libcperciva/util/asprintf.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/asprintf.c -o asprintf.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/util/asprintf.c -o asprintf.o
 hexify.o: ../../libcperciva/util/hexify.c ../../libcperciva/util/hexify.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/hexify.c -o hexify.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/util/hexify.c -o hexify.o
 insecure_memzero.o: ../../libcperciva/util/insecure_memzero.c ../../libcperciva/util/insecure_memzero.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
 warnp.o: ../../libcperciva/util/warnp.c ../../libcperciva/util/warnp.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/warnp.c -o warnp.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/util/warnp.c -o warnp.o
 sha256.o: ../../libcperciva/alg/sha256.c ../../libcperciva/util/insecure_memzero.h ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/alg/sha256.c -o sha256.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/alg/sha256.c -o sha256.o
 aws_readkeys.o: ../../libcperciva/aws/aws_readkeys.c ../../libcperciva/util/insecure_memzero.h ../../libcperciva/util/warnp.h ../../libcperciva/aws/aws_readkeys.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
 aws_sign.o: ../../libcperciva/aws/aws_sign.c ../../libcperciva/util/asprintf.h ../../libcperciva/util/hexify.h ../../libcperciva/alg/sha256.h ../../libcperciva/util/warnp.h ../../libcperciva/aws/aws_sign.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/aws/aws_sign.c -o aws_sign.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_sign.c -o aws_sign.o

@@ -93,12 +93,8 @@ publish: clean Makefiles
 	fi
 	rm -f ${PKG}-${VERSION}.tgz
 	mkdir ${PKG}-${VERSION}
-	tar -cf- --exclude 'Makefile.*' --exclude Makefile ${PUBLISH} | \
+	tar -cf- --exclude 'Makefile.*' ${PUBLISH} | \
 	    tar -xf- -C ${PKG}-${VERSION}
-	cp Makefile.POSIX ${PKG}-${VERSION}/Makefile
-.for D in ${PROGS} ${TESTS}
-	${MAKEBSD} ${PKG}-${VERSION}/${D}/Makefile
-.endfor
 .for F in ${SUBST_VERSION_FILES}
 	sed -e 's/@VERSION@/${VERSION}/' -e 's/@DATE@/${RELEASEDATE}/' \
 	    < ${PKG}-${VERSION}/${F} > ${PKG}-${VERSION}/${F}.tmp

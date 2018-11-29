@@ -6,7 +6,7 @@ SRCS=	main.c
 SRCS	+=	insecure_memzero.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ../../libcperciva/util
-.PATH.c	:	../lib/
+.PATH.c	:	../lib
 SRCS	+=	mkpair.c
 IDIRS	+=	-I ../lib
 

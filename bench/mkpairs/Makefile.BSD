@@ -1,19 +1,22 @@
 PROG=	mkpairs
 SRCS=	main.c
 
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../../libcperciva
+
 # Utility functions
-.PATH.c	:	../../libcperciva/util
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
 SRCS	+=	insecure_memzero.c
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../../libcperciva/util
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 .PATH.c	:	../lib
 SRCS	+=	mkpair.c
 IDIRS	+=	-I ../lib
 
 # Fundamental algorithms
-.PATH.c	:	../../libcperciva/alg
+.PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	sha256.c
-IDIRS	+=	-I ../../libcperciva/alg
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
 # Debugging options
 #CFLAGS	+=	-g

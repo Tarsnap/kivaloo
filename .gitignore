@@ -34,3 +34,7 @@ tests/kvlds/test_kvlds
 tests/lbs/test_lbs
 tests/mux/test_mux
 tests/s3/test_s3
+# test output on FreeBSD
+tests/*/.depend
+tests/*/*.debug
+tests/*/*.full

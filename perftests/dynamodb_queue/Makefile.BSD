@@ -3,6 +3,7 @@ SRCS=	main.c
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
 
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
@@ -52,31 +53,31 @@ SRCS	+=	aws_sign.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 
 # Buffered networking
-.PATH.c	:	../../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # HTTP protocol
-.PATH.c	:	../../lib/http
+.PATH.c	:	${LIB_DIR}/http
 SRCS	+=	http.c
-IDIRS	+=	-I ../../lib/http
+IDIRS	+=	-I ${LIB_DIR}/http
 
 # DynamoDB protocol
-.PATH.c	:	../../lib/dynamodb
+.PATH.c	:	${LIB_DIR}/dynamodb
 SRCS	+=	dynamodb_request.c
 SRCS	+=	dynamodb_request_queue.c
-IDIRS	+=	-I ../../lib/dynamodb
+IDIRS	+=	-I ${LIB_DIR}/dynamodb
 
 # Server pool management
-.PATH.c	:	../../lib/serverpool
+.PATH.c	:	${LIB_DIR}/serverpool
 SRCS	+=	serverpool.c
-IDIRS	+=	-I ../../lib/serverpool
+IDIRS	+=	-I ${LIB_DIR}/serverpool
 
 # Logging framework
-.PATH.c	:	../../lib/logging
+.PATH.c	:	${LIB_DIR}/logging
 SRCS	+=	logging.c
-IDIRS	+=	-I ../../lib/logging
+IDIRS	+=	-I ${LIB_DIR}/logging
 
 CFLAGS	+=	-g
 

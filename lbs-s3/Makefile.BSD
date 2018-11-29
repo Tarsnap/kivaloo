@@ -7,6 +7,7 @@ LDADD	=	-lrt
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../libcperciva
+LIB_DIR	=	../lib
 
 # LBS code
 SRCS	=	main.c
@@ -61,28 +62,28 @@ SRCS	+=	network_write.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # Buffered networking
-.PATH.c	:	../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # Wire protocol
-.PATH.c	:	../lib/wire
+.PATH.c	:	${LIB_DIR}/wire
 SRCS	+=	wire_packet.c
 SRCS	+=	wire_readpacket.c
 SRCS	+=	wire_requestqueue.c
 SRCS	+=	wire_writepacket.c
-IDIRS	+=	-I ../lib/wire
+IDIRS	+=	-I ${LIB_DIR}/wire
 
 # S3 request/response packets
-.PATH.c	:	../lib/proto_s3
+.PATH.c	:	${LIB_DIR}/proto_s3
 SRCS	+=	proto_s3_client.c
-IDIRS	+=	-I ../lib/proto_s3
+IDIRS	+=	-I ${LIB_DIR}/proto_s3
 
 # LBS request/response packets
-.PATH.c	:	../lib/proto_lbs
+.PATH.c	:	${LIB_DIR}/proto_lbs
 SRCS	+=	proto_lbs_server.c
-IDIRS	+=	-I ../lib/proto_lbs
+IDIRS	+=	-I ${LIB_DIR}/proto_lbs
 
 # Debugging options
 #CFLAGS	+=	-g

@@ -7,6 +7,7 @@ LDADD	=	-lrt
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../libcperciva
+LIB_DIR	=	../lib
 
 # LBS code
 SRCS	=	main.c
@@ -37,9 +38,9 @@ SRCS	+=	warnp.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # Logging code
-.PATH.c	:	../lib/logging
+.PATH.c	:	${LIB_DIR}/logging
 SRCS	+=	logging.c
-IDIRS	+=	-I ../lib/logging
+IDIRS	+=	-I ${LIB_DIR}/logging
 
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
@@ -72,35 +73,35 @@ SRCS	+=	aws_sign.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 
 # Buffered networking
-.PATH.c	:	../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # HTTP client protocol
-.PATH.c	:	../lib/http
+.PATH.c	:	${LIB_DIR}/http
 SRCS	+=	http.c
-IDIRS	+=	-I ../lib/http
+IDIRS	+=	-I ${LIB_DIR}/http
 
 # S3 client protocol and request queue
-.PATH.c	:	../lib/s3
+.PATH.c	:	${LIB_DIR}/s3
 SRCS	+=	s3_request.c
 SRCS	+=	s3_request_queue.c
 SRCS	+=	s3_serverpool.c
 SRCS	+=	s3_verifyetag.c
-IDIRS	+=	-I ../lib/s3
+IDIRS	+=	-I ${LIB_DIR}/s3
 
 # Wire protocol
-.PATH.c	:	../lib/wire
+.PATH.c	:	${LIB_DIR}/wire
 SRCS	+=	wire_packet.c
 SRCS	+=	wire_readpacket.c
 SRCS	+=	wire_writepacket.c
-IDIRS	+=	-I ../lib/wire
+IDIRS	+=	-I ${LIB_DIR}/wire
 
 # S3 request/response packets
-.PATH.c	:	../lib/proto_s3
+.PATH.c	:	${LIB_DIR}/proto_s3
 SRCS	+=	proto_s3_server.c
-IDIRS	+=	-I ../lib/proto_s3
+IDIRS	+=	-I ${LIB_DIR}/proto_s3
 
 # Debugging options
 #CFLAGS	+=	-g

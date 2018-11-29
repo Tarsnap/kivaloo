@@ -3,6 +3,7 @@ SRCS=	main.c
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
 
 # Data structures (libcperciva)
 .PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
@@ -14,9 +15,9 @@ SRCS	+=	seqptrmap.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
 
 # Data structures
-.PATH.c	:	../../lib/datastruct
+.PATH.c	:	${LIB_DIR}/datastruct
 SRCS	+=	kvldskey.c
-IDIRS	+=	-I ../../lib/datastruct
+IDIRS	+=	-I ${LIB_DIR}/datastruct
 
 # Utility functions
 .PATH.c	:	${LIBCPERCIVA_DIR}/util
@@ -46,23 +47,23 @@ SRCS	+=	network_write.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # Buffered networking
-.PATH.c	:	../../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # Wire protocol
-.PATH.c	:	../../lib/wire
+.PATH.c	:	${LIB_DIR}/wire
 SRCS	+=	wire_packet.c
 SRCS	+=	wire_readpacket.c
 SRCS	+=	wire_writepacket.c
 SRCS	+=	wire_requestqueue.c
-IDIRS	+=	-I ../../lib/wire
+IDIRS	+=	-I ${LIB_DIR}/wire
 
 # KVLDS request/response packets
-.PATH.c	:	../../lib/proto_kvlds
+.PATH.c	:	${LIB_DIR}/proto_kvlds
 SRCS	+=	proto_kvlds_client.c
-IDIRS	+=	-I ../../lib/proto_kvlds
+IDIRS	+=	-I ${LIB_DIR}/proto_kvlds
 
 # Debugging options
 #CFLAGS	+=	-g

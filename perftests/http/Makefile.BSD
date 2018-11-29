@@ -3,6 +3,7 @@ SRCS=	main.c
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
 
 # Data structures
 .PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
@@ -36,15 +37,15 @@ SRCS	+=	network_write.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # Buffered networking
-.PATH.c	:	../../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # HTTP protocol
-.PATH	:	../../lib/http
+.PATH	:	${LIB_DIR}/http
 SRCS	+=	http.c
-IDIRS	+=	-I ../../lib/http
+IDIRS	+=	-I ${LIB_DIR}/http
 
 CFLAGS	+=	-g
 

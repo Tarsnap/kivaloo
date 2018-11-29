@@ -3,6 +3,7 @@ SRCS=	main.c
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
 
 # Data structures
 .PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
@@ -37,9 +38,9 @@ SRCS	+=	network_write.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # Server pool management
-.PATH.c	:	../../lib/serverpool
+.PATH.c	:	${LIB_DIR}/serverpool
 SRCS	+=	serverpool.c
-IDIRS	+=	-I ../../lib/serverpool
+IDIRS	+=	-I ${LIB_DIR}/serverpool
 
 CFLAGS	+=	-g
 

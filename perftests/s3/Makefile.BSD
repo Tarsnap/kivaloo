@@ -3,6 +3,7 @@ SRCS=	main.c
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
 
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
@@ -50,20 +51,20 @@ SRCS	+=	aws_sign.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 
 # Buffered networking
-.PATH.c	:	../../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # HTTP protocol
-.PATH	:	../../lib/http
+.PATH	:	${LIB_DIR}/http
 SRCS	+=	http.c
-IDIRS	+=	-I ../../lib/http
+IDIRS	+=	-I ${LIB_DIR}/http
 
 # S3 protocol
-.PATH	:	../../lib/s3
+.PATH	:	${LIB_DIR}/s3
 SRCS	+=	s3_request.c
-IDIRS	+=	-I ../../lib/s3
+IDIRS	+=	-I ${LIB_DIR}/s3
 
 CFLAGS	+=	-g
 

@@ -1,20 +1,24 @@
 PROG=	test_dynamodb_queue
 SRCS=	main.c
 
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
+
 # Fundamental algorithms
-.PATH.c	:	../../libcperciva/alg
+.PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	sha256.c
-IDIRS	+=	-I ../../libcperciva/alg
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
 # Data structures
-.PATH.c	:	../../libcperciva/datastruct
+.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
 SRCS	+=	elasticarray.c
 SRCS	+=	ptrheap.c
 SRCS	+=	timerqueue.c
-IDIRS	+=	-I ../../libcperciva/datastruct
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
 
 # Utility functions
-.PATH.c	:	../../libcperciva/util
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
 SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
 SRCS	+=	hexify.c
@@ -24,56 +28,56 @@ SRCS	+=	noeintr.c
 SRCS	+=	sock.c
 SRCS	+=	sock_util.c
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../../libcperciva/util
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # Event loop
-.PATH.c	:	../../libcperciva/events
+.PATH.c	:	${LIBCPERCIVA_DIR}/events
 SRCS	+=	events_immediate.c
 SRCS	+=	events_network.c
 SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 SRCS	+=	events.c
-IDIRS	+=	-I ../../libcperciva/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 
 # Event-driven networking
-.PATH.c	:	../../libcperciva/network
+.PATH.c	:	${LIBCPERCIVA_DIR}/network
 SRCS	+=	network_connect.c
 SRCS	+=	network_read.c
 SRCS	+=	network_write.c
-IDIRS	+=	-I ../../libcperciva/network
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # AWS request signing
-.PATH.c	:	../../libcperciva/aws
+.PATH.c	:	${LIBCPERCIVA_DIR}/aws
 SRCS	+=	aws_readkeys.c
 SRCS	+=	aws_sign.c
-IDIRS	+=	-I ../../libcperciva/aws
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 
 # Buffered networking
-.PATH.c	:	../../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # HTTP protocol
-.PATH.c	:	../../lib/http
+.PATH.c	:	${LIB_DIR}/http
 SRCS	+=	http.c
-IDIRS	+=	-I ../../lib/http
+IDIRS	+=	-I ${LIB_DIR}/http
 
 # DynamoDB protocol
-.PATH.c	:	../../lib/dynamodb
+.PATH.c	:	${LIB_DIR}/dynamodb
 SRCS	+=	dynamodb_request.c
 SRCS	+=	dynamodb_request_queue.c
-IDIRS	+=	-I ../../lib/dynamodb
+IDIRS	+=	-I ${LIB_DIR}/dynamodb
 
 # Server pool management
-.PATH.c	:	../../lib/serverpool
+.PATH.c	:	${LIB_DIR}/serverpool
 SRCS	+=	serverpool.c
-IDIRS	+=	-I ../../lib/serverpool
+IDIRS	+=	-I ${LIB_DIR}/serverpool
 
 # Logging framework
-.PATH.c	:	../../lib/logging
+.PATH.c	:	${LIB_DIR}/logging
 SRCS	+=	logging.c
-IDIRS	+=	-I ../../lib/logging
+IDIRS	+=	-I ${LIB_DIR}/logging
 
 CFLAGS	+=	-g
 

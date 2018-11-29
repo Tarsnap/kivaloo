@@ -5,6 +5,9 @@ source-${X:.c=.o}: ${X}
 cflags-${X:.c=.o}:
 .endfor
 
+# Expand ${IDIRS} before it is used
+IDIRS	:=	${IDIRS}
+
 # Defaults for all kivaloo code
 WARNS	?=	3
 

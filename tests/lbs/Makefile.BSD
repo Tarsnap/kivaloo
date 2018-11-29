@@ -2,60 +2,64 @@ PROG=	test_lbs
 SRCS=	main.c
 MAN1=
 
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
+
 # Data structures
-.PATH.c	:	../../libcperciva/datastruct
+.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
 SRCS	+=	elasticarray.c
 SRCS	+=	ptrheap.c
 SRCS	+=	timerqueue.c
 SRCS	+=	elasticqueue.c
 SRCS	+=	seqptrmap.c
-IDIRS	+=	-I ../../libcperciva/datastruct
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
 
 # Utility functions
-.PATH.c	:	../../libcperciva/util
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../../libcperciva/util
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # Fundamental algorithms
-.PATH.c	:	../../libcperciva/alg
+.PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	crc32c.c
-IDIRS	+=	-I ../../libcperciva/alg
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
 # Event loop
-.PATH.c	:	../../libcperciva/events
+.PATH.c	:	${LIBCPERCIVA_DIR}/events
 SRCS	+=	events_immediate.c
 SRCS	+=	events_network.c
 SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 SRCS	+=	events.c
-IDIRS	+=	-I ../../libcperciva/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 
 # Event-driven networking
-.PATH.c	:	../../libcperciva/network
+.PATH.c	:	${LIBCPERCIVA_DIR}/network
 SRCS	+=	network_read.c
 SRCS	+=	network_write.c
-IDIRS	+=	-I ../../libcperciva/network
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # Buffered networking
-.PATH.c	:	../../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # Wire protocol
-.PATH.c	:	../../lib/wire
+.PATH.c	:	${LIB_DIR}/wire
 SRCS	+=	wire_packet.c
 SRCS	+=	wire_readpacket.c
 SRCS	+=	wire_writepacket.c
 SRCS	+=	wire_requestqueue.c
-IDIRS	+=	-I ../../lib/wire
+IDIRS	+=	-I ${LIB_DIR}/wire
 
 # LBS request/response packets
-.PATH.c	:	../../lib/proto_lbs
+.PATH.c	:	${LIB_DIR}/proto_lbs
 SRCS	+=	proto_lbs_client.c
-IDIRS	+=	-I ../../lib/proto_lbs
+IDIRS	+=	-I ${LIB_DIR}/proto_lbs
 
 # Debugging options
 #CFLAGS	+=	-g

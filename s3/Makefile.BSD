@@ -5,21 +5,25 @@ PROG	=	s3
 LDADD	=	-lrt
 #LDADD	+=	-lxnet  # Missing on FreeBSD
 
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../libcperciva
+LIB_DIR	=	../lib
+
 # LBS code
 SRCS	=	main.c
 SRCS	+=	dns.c
 SRCS	+=	dispatch.c
 
 # Data structures
-.PATH.c	:	../libcperciva/datastruct
+.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
 SRCS	+=	elasticarray.c
 SRCS	+=	ptrheap.c
 SRCS	+=	timerqueue.c
 SRCS	+=	elasticqueue.c
-IDIRS	+=	-I ../libcperciva/datastruct
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
 
 # Utility functions
-.PATH.c	:	../libcperciva/util
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
 SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
 SRCS	+=	daemonize.c
@@ -31,73 +35,73 @@ SRCS	+=	noeintr.c
 SRCS	+=	sock.c
 SRCS	+=	sock_util.c
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../libcperciva/util
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # Logging code
-.PATH.c	:	../lib/logging
+.PATH.c	:	${LIB_DIR}/logging
 SRCS	+=	logging.c
-IDIRS	+=	-I ../lib/logging
+IDIRS	+=	-I ${LIB_DIR}/logging
 
 # Fundamental algorithms
-.PATH.c	:	../libcperciva/alg
+.PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	crc32c.c
 SRCS	+=	md5.c
 SRCS	+=	sha256.c
-IDIRS	+=	-I ../libcperciva/alg
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
 # Event loop
-.PATH.c	:	../libcperciva/events
+.PATH.c	:	${LIBCPERCIVA_DIR}/events
 SRCS	+=	events_immediate.c
 SRCS	+=	events_network.c
 SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 SRCS	+=	events.c
-IDIRS	+=	-I ../libcperciva/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 
 # Event-driven networking
-.PATH.c	:	../libcperciva/network
+.PATH.c	:	${LIBCPERCIVA_DIR}/network
 SRCS	+=	network_accept.c
 SRCS	+=	network_connect.c
 SRCS	+=	network_read.c
 SRCS	+=	network_write.c
-IDIRS	+=	-I ../libcperciva/network
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
 # AWS request signing
-.PATH.c	:	../libcperciva/aws
+.PATH.c	:	${LIBCPERCIVA_DIR}/aws
 SRCS	+=	aws_readkeys.c
 SRCS	+=	aws_sign.c
-IDIRS	+=	-I ../libcperciva/aws
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 
 # Buffered networking
-.PATH.c	:	../lib/netbuf
+.PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ../lib/netbuf
+IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # HTTP client protocol
-.PATH.c	:	../lib/http
+.PATH.c	:	${LIB_DIR}/http
 SRCS	+=	http.c
-IDIRS	+=	-I ../lib/http
+IDIRS	+=	-I ${LIB_DIR}/http
 
 # S3 client protocol and request queue
-.PATH.c	:	../lib/s3
+.PATH.c	:	${LIB_DIR}/s3
 SRCS	+=	s3_request.c
 SRCS	+=	s3_request_queue.c
 SRCS	+=	s3_serverpool.c
 SRCS	+=	s3_verifyetag.c
-IDIRS	+=	-I ../lib/s3
+IDIRS	+=	-I ${LIB_DIR}/s3
 
 # Wire protocol
-.PATH.c	:	../lib/wire
+.PATH.c	:	${LIB_DIR}/wire
 SRCS	+=	wire_packet.c
 SRCS	+=	wire_readpacket.c
 SRCS	+=	wire_writepacket.c
-IDIRS	+=	-I ../lib/wire
+IDIRS	+=	-I ${LIB_DIR}/wire
 
 # S3 request/response packets
-.PATH.c	:	../lib/proto_s3
+.PATH.c	:	${LIB_DIR}/proto_s3
 SRCS	+=	proto_s3_server.c
-IDIRS	+=	-I ../lib/proto_s3
+IDIRS	+=	-I ${LIB_DIR}/proto_s3
 
 # Debugging options
 #CFLAGS	+=	-g

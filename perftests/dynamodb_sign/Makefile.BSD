@@ -6,24 +6,27 @@ MK_MAN=	no
 LDADD	=	-lrt
 #LDADD	+=	-lxnet  # Missing on FreeBSD
 
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../../libcperciva
+
 # Utility functions
-.PATH.c	:	../../libcperciva/util
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
 SRCS	+=	asprintf.c
 SRCS	+=	hexify.c
 SRCS	+=	insecure_memzero.c
 SRCS	+=	warnp.c
-IDIRS	+=	-I ../../libcperciva/util
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # Fundamental algorithms
-.PATH.c	:	../../libcperciva/alg
+.PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	sha256.c
-IDIRS	+=	-I ../../libcperciva/alg
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
 # AWS request signing
-.PATH.c	:	../../libcperciva/aws
+.PATH.c	:	${LIBCPERCIVA_DIR}/aws
 SRCS	+=	aws_readkeys.c
 SRCS	+=	aws_sign.c
-IDIRS	+=	-I ../../libcperciva/aws
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 
 test: all
 	@./test_sign.sh

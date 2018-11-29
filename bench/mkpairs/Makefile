@@ -27,7 +27,7 @@ insecure_memzero.o: ../../libcperciva/util/insecure_memzero.c ../../libcperciva/
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/insecure_memzero.c -o insecure_memzero.o
 warnp.o: ../../libcperciva/util/warnp.c ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/warnp.c -o warnp.o
-mkpair.o: ../lib//mkpair.c ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h ../lib/mkpair.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib//mkpair.c -o mkpair.o
+mkpair.o: ../lib/mkpair.c ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h ../lib/mkpair.h
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/mkpair.c -o mkpair.o
 sha256.o: ../../libcperciva/alg/sha256.c ../../libcperciva/util/insecure_memzero.h ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/alg/sha256.c -o sha256.o

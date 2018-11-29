@@ -43,8 +43,8 @@ sock.o: ../../libcperciva/util/sock.c ../../libcperciva/util/imalloc.h ../../lib
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/sock.c -o sock.o
 warnp.o: ../../libcperciva/util/warnp.c ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/util/warnp.c -o warnp.o
-mkpair.o: ../lib//mkpair.c ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h ../lib/mkpair.h
-	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib//mkpair.c -o mkpair.o
+mkpair.o: ../lib/mkpair.c ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h ../lib/mkpair.h
+	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../lib/mkpair.c -o mkpair.o
 crc32c.o: ../../libcperciva/alg/crc32c.c ../../libcperciva/alg/crc32c.h
 	${CC} ${CFLAGS} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700  -I.. ${IDIRS} -c ../../libcperciva/alg/crc32c.c -o crc32c.o
 sha256.o: ../../libcperciva/alg/sha256.c ../../libcperciva/util/insecure_memzero.h ../../libcperciva/util/sysendian.h ../../libcperciva/alg/sha256.h

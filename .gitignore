@@ -9,6 +9,7 @@ bench/hotspot_read/hotspot_read
 bench/mkpairs/mkpairs
 bench/random_mixed/random_mixed
 bench/random_read/random_read
+bench/tokyo/tokyo
 dynamodb-kv/dynamodb-kv
 kvlds/kvlds
 lbs-dynamodb/lbs-dynamodb

@@ -2,7 +2,7 @@ PKG=	kivaloo
 PROGS=	lbs kvlds mux s3 lbs-s3 dynamodb-kv lbs-dynamodb
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
-	bench/mkpairs
+	bench/mkpairs bench/tokyo
 # For compatibility with other libcperciva software, we don't use
 # ${BENCHES} in the shared code, so we add it to ${TESTS}.
 TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \

@@ -25,10 +25,10 @@ rm -rf $TMPDIR
 
 # Start DynamoDB-KV daemon
 mkdir $TMPDIR
-$DDBKV -s $SOCKDDBKV -r $REGION -t $TABLE -k $AWSKEY -l $LOGFILE
+$DDBKV -1 -s $SOCKDDBKV -r $REGION -t $TABLE -k $AWSKEY -l $LOGFILE
 
 # Start LBS
-$LBS -s $SOCKL -t $SOCKDDBKV -b 512
+$LBS -1 -s $SOCKL -t $SOCKDDBKV -b 512
 
 # Start KVLDS (the small number of pages should trigger evictions)
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -k 40 -C 1024
@@ -45,10 +45,8 @@ fi
 # Let kvlds delete old pages before we shut down
 sleep 1800
 
-# Shut down daemons
+# Shut down kvlds; other daemons should shut down automatically
 kill `cat $SOCKK.pid`
-kill `cat $SOCKL.pid`
-kill `cat $SOCKDDBKV.pid`
 
 # Clean up
 rm -r $TMPDIR

@@ -29,13 +29,14 @@ dynamodb_kv_put(const char * table, const char * key,
 	 *   "Item": {
 	 *     "K": { "S": "KEY" },
 	 *     "V": { "B": "BASE64VALUE" }
-	 *   }
+	 *   },
+	 *   "ReturnConsumedCapacity": "TOTAL"
 	 * }
 	 */
 	const char * s1 = "{\"TableName\":\"";
 	const char * s2 = "\",\"Item\":{\"K\":{\"S\":\"";
 	const char * s3 = "\"},\"V\":{\"B\":\"";
-	const char * s4 = "\"}}}";
+	const char * s4 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
 	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
 	    strlen(s3) + ((len + 2) / 3) * 4 + strlen(s4);
 	size_t spos = 0;
@@ -77,12 +78,13 @@ dynamodb_kv_get(const char * table, const char * key)
 	 * { "TableName": "TABLE",
 	 *   "Key": {
 	 *     "K": { "S": "KEY" }
-	 *   }
+	 *   },
+	 *   "ReturnConsumedCapacity": "TOTAL"
 	 * }
 	 */
 	const char * s1 = "{\"TableName\":\"";
 	const char * s2 = "\",\"Key\":{\"K\":{\"S\":\"";
-	const char * s3 = "\"}}}";
+	const char * s3 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
 	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
 	    strlen(s3);
 	size_t spos = 0;
@@ -123,12 +125,13 @@ dynamodb_kv_getc(const char * table, const char * key)
 	 *   "TableName": "TABLE",
 	 *   "Key": {
 	 *     "K": { "S": "KEY" }
-	 *   }
+	 *   },
+	 *   "ReturnConsumedCapacity": "TOTAL"
 	 * }
 	 */
 	const char * s1 = "{\"ConsistentRead\":true,\"TableName\":\"";
 	const char * s2 = "\",\"Key\":{\"K\":{\"S\":\"";
-	const char * s3 = "\"}}}";
+	const char * s3 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
 	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
 	    strlen(s3);
 	size_t spos = 0;
@@ -167,12 +170,13 @@ dynamodb_kv_delete(const char * table, const char * key)
 	 * { "TableName": "TABLE",
 	 *   "Key": {
 	 *     "K": { "S": "KEY" }
-	 *   }
+	 *   },
+	 *   "ReturnConsumedCapacity": "TOTAL"
 	 * }
 	 */
 	const char * s1 = "{\"TableName\":\"";
 	const char * s2 = "\",\"Key\":{\"K\":{\"S\":\"";
-	const char * s3 = "\"}}}";
+	const char * s3 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
 	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
 	    strlen(s3);
 	size_t spos = 0;

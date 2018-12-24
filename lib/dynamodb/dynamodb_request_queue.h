@@ -1,6 +1,8 @@
 #ifndef _DYNAMODB_REQUEST_QUEUE_H_
 #define _DYNAMODB_REQUEST_QUEUE_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct dynamodb_request_queue;
 struct http_response;

@@ -74,10 +74,11 @@ main(int argc, char * argv[])
 
 	/* Create a request queue. */
 	if ((Q = dynamodb_request_queue_init(key_id, key_secret, "us-east-1",
-	    SP, 5)) == NULL) {
+	    SP)) == NULL) {
 		warnp("Error initializing DynamoDB request queue");
 		exit(1);
 	}
+	dynamodb_request_queue_setcapacity(Q, 5);
 
 	/* Log requests. */
 	if ((F = logging_open(argv[2])) == NULL) {

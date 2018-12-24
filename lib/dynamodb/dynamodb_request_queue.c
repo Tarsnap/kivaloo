@@ -6,12 +6,14 @@
 #include "events.h"
 #include "http.h"
 #include "insecure_memzero.h"
+#include "json.h"
 #include "logging.h"
 #include "monoclock.h"
 #include "ptrheap.h"
 #include "serverpool.h"
 #include "sock.h"
 #include "sock_util.h"
+#include "warnp.h"
 
 #include "dynamodb_request_queue.h"
 
@@ -39,12 +41,13 @@ struct dynamodb_request_queue {
 	char * key_secret;
 	char * region;
 	struct serverpool * SP;
-	int ratelimited;
-	struct timeval ratedelay;
+	double mu_capperreq;
+	double spercap;
+	double bucket_cap;
+	double maxburst_cap;
 	void * timer_cookie;
 	void * immediate_cookie;
 	size_t inflight;
-	size_t inflight_max;
 	struct ptrheap * reqs;
 	uint64_t reqnum;
 	struct logging_file * logfile;
@@ -60,6 +63,9 @@ poke_timer(void * cookie)
 
 	/* There is no timer callback pending any more. */
 	Q->timer_cookie = NULL;
+
+	/* Increase burst capacity. */
+	Q->bucket_cap += 1.0;
 
 	/* Run the queue. */
 	return (runqueue(Q));
@@ -78,21 +84,15 @@ poke_immediate(void * cookie)
 	return (runqueue(Q));
 }
 
-/* Schedule an immediate or timer callback as appropriate. */
+/* Schedule an immediate callback if appropriate. */
 static int
 poke(struct dynamodb_request_queue * Q)
 {
 
-	/* If not already scheduled, schedule the appropriate callback. */
-	if (Q->ratelimited) {
-		if ((Q->timer_cookie == NULL) &&
-		    ((Q->timer_cookie = events_timer_register(poke_timer,
-			Q, &Q->ratedelay)) == NULL))
-			goto err0;
-	} else {
-		if ((Q->immediate_cookie == NULL) &&
-		    ((Q->immediate_cookie = events_immediate_register(
-			poke_immediate, Q, 0)) == NULL))
+	/* Do we need an immediate callback? */
+	if (Q->immediate_cookie == NULL) {
+		if ((Q->immediate_cookie = events_immediate_register(
+		    poke_immediate, Q, 0)) == NULL)
 			goto err0;
 	}
 
@@ -130,7 +130,7 @@ isthrottle(struct http_response * res)
 /* Log the (attempted) request. */
 static int
 logreq(struct logging_file * F, struct request * R,
-    struct http_response * res)
+    struct http_response * res, double capacity)
 {
 	struct timeval t_end;
 	long t_micros;
@@ -158,9 +158,9 @@ logreq(struct logging_file * F, struct request * R,
 	}
 
 	/* Write to the log file. */
-	if (logging_printf(F, "|%s|%s|%d|%s|%ld|%zu",
+	if (logging_printf(F, "|%s|%s|%d|%s|%ld|%zu|%f",
 	    R->op, R->logstr ? R->logstr : "",
-	    status, addr, t_micros, bodylen))
+	    status, addr, t_micros, bodylen, capacity))
 		goto err1;
 
 	/* Free string allocated by sock_addr_prettyprint. */
@@ -176,6 +176,62 @@ err0:
 	return (-1);
 }
 
+/* Extract ConsumedCapacity->CapacityUnits from returned JSON. */
+static int
+extractcapacity(struct http_response * res, double * pcap)
+{
+	const uint8_t * buf = res->body;
+	const uint8_t * end = res->body + res->bodylen;
+	char * capacity;
+	size_t len;
+	double c;
+
+	/* Look for ConsumedCapacity. */
+	buf = json_find(buf, end, "ConsumedCapacity");
+
+	/* Look for CapacityUnits inside that. */
+	buf = json_find(buf, end, "CapacityUnits");
+
+	/* Figure out how long the numeric value is. */
+	for (len = 0; &buf[len] < end; len++) {
+		if (strchr("+-0123456789.eE", buf[len]) == NULL)
+			break;
+	}
+
+	/* Extract it into a (NUL-terminated) string. */
+	if ((capacity = malloc(len + 1)) == NULL)
+		goto err0;
+	memcpy(capacity, buf, len);
+	capacity[len] = '\0';
+
+	/* Parse the string. */
+	c = strtod(capacity, NULL);
+	if ((c < 0) || (c > 400)) {
+		/*
+		 * As specified right now, DynamoDB should never return a
+		 * CapacityUnits outside [0, 400]; but just in case that
+		 * changes in the future, print a warning but don't treat
+		 * it as an error.
+		 */
+		warn0("Invalid DynamoDB CapacityUnits returned: %s",
+		    capacity);
+		c = 0.0;
+	}
+
+	/* Free the capacity string. */
+	free(capacity);
+
+	/* Return the parsed capacity. */
+	*pcap = c;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /* Callback from dynamodb_request (aka. from http_request). */
 static int
 callback_reqdone(void * cookie, struct http_response * res)
@@ -183,16 +239,34 @@ callback_reqdone(void * cookie, struct http_response * res)
 	struct request * R = cookie;
 	struct dynamodb_request_queue * Q = R->Q;
 	int rc = 0;
+	double capacity = 0.0;
+
+	/*
+	 * If we have a response body, extract the number of capacity units
+	 * used and update our rolling average.
+	 */
+	if ((res != NULL) && (res->bodylen > 0)) {
+		if (extractcapacity(res, &capacity))
+			rc = -1;
+		if (capacity != 0.0)
+			Q->mu_capperreq +=
+			    (capacity - Q->mu_capperreq) * 0.01;
+	}
 
 	/* Optionally log this request. */
 	if (Q->logfile) {
-		if (logreq(Q->logfile, R, res))
+		if (logreq(Q->logfile, R, res, capacity))
 			rc = -1;
 	}
 
 	/* This request is no longer in progress. */
 	R->http_cookie = NULL;
 	Q->inflight--;
+
+	/* We may have used up some capacity. */
+	Q->bucket_cap -= capacity;
+	if (Q->bucket_cap < 0.0)
+		Q->bucket_cap = 0.0;
 
 	/* Don't need the target address any more. */
 	sock_addr_free(R->addrs[0]);
@@ -204,11 +278,12 @@ callback_reqdone(void * cookie, struct http_response * res)
 	/* What should we do with this response? */
 	if ((res != NULL) && (res->status == 400) && isthrottle(res)) {
 		/*
-		 * We hit the throughput limits.  Turn on rate limiting for
-		 * the queue, and leave the request on the queue; we'll be
-		 * retrying it.
+		 * We hit the throughput limits.  Zero out our estimate of
+		 * the number of tokens in the bucket; we won't send any
+		 * more requests until timer ticks add more tokens to the
+		 * modelled bucket.
 		 */
-		Q->ratelimited = 1;
+		Q->bucket_cap = 0.0;
 	} else if ((res != NULL) && (res->status < 500)) {
 		/*
 		 * Anything which isn't an internal DynamoDB error or a
@@ -234,7 +309,9 @@ callback_reqdone(void * cookie, struct http_response * res)
 	/*
 	 * Poke the queue.  If the request failed, it may be possible to
 	 * re-issue it; if the request succeeded, we may have ceased to be
-	 * at our in-flight limit and might be able to issue a new request.
+	 * at our in-flight limit and might be able to issue a new request;
+	 * if we just hit our first congestion, we need to start a timer to
+	 * add more tokens to our modelled bucket.
 	 */
 	if (poke(Q))
 		rc = -1;
@@ -282,40 +359,29 @@ runqueue(struct dynamodb_request_queue * Q)
 {
 	struct request * R;
 
-	/* If we're waiting for a timer, keep waiting. */
-	if (Q->timer_cookie != NULL)
-		goto done;
+	/* Send requests as long as we have enough capacity. */
+	while ((Q->inflight * Q->mu_capperreq < Q->maxburst_cap) &&
+	    (Q->inflight * Q->mu_capperreq < Q->bucket_cap)) {
+		/* Find the highest-priority request in the queue. */
+		R = ptrheap_getmin(Q->reqs);
 
-	/* Find the highest-priority request in the queue. */
-	R = ptrheap_getmin(Q->reqs);
+		/* Nothing left to send? */
+		if ((R == NULL) || (R->http_cookie != NULL))
+			break;
 
-	/*
-	 * Rate-limiting of requests ends as soon as we have no requests
-	 * waiting to be sent when the timer has expired.
-	 */
-	if ((R == NULL) || (R->http_cookie != NULL)) {
-		Q->ratelimited = 0;
-		goto done;
+		/* Send the highest-priority request. */
+		if (sendreq(Q, R))
+			goto err0;
 	}
 
-	/*
-	 * If we're already at our maximum number of in-flight requests,
-	 * return without doing anything.  Either our network is broken and
-	 * requests are stuck on the wire somewhere, or we're handling a
-	 * flood of requests before rate limiting has kicked in.
-	 */
-	if (Q->inflight == Q->inflight_max)
-		goto done;
+	/* Do we need to (re)start the capacity-accumulation timer? */
+	if ((Q->timer_cookie == NULL) &&
+	    (Q->bucket_cap * Q->spercap < 300.0)) {
+		if ((Q->timer_cookie = events_timer_register_double(
+		        poke_timer, Q, Q->spercap)) == NULL)
+			goto err0;
+	}
 
-	/* Send the highest-priority request. */
-	if (sendreq(Q, R))
-		goto err0;
-
-	/* Schedule a callback to send the next request (if any). */
-	if (poke(Q))
-		goto err0;
-
-done:
 	/* Success! */
 	return (0);
 
@@ -364,15 +430,14 @@ setreccookie(void * cookie, void * ptr, size_t rc)
 }
 
 /**
- * dynamodb_request_queue_init(key_id, key_secret, region, SP, opps):
+ * dynamodb_request_queue_init(key_id, key_secret, region, SP):
  * Create a DynamoDB request queue using AWS key id ${key_id} and secret key
  * ${key_secret} to make requests to DynamoDB in ${region}.  Obtain target
- * addresses from the pool ${SP}.  Upon encountering a "Throughput Exceeded"
- * exception, limit the request rate to ${opps} operations per second.
+ * addresses from the pool ${SP}.
  */
 struct dynamodb_request_queue *
 dynamodb_request_queue_init(const char * key_id, const char * key_secret,
-    const char * region, struct serverpool * SP, int opps)
+    const char * region, struct serverpool * SP)
 {
 	struct dynamodb_request_queue * Q;
 
@@ -391,20 +456,18 @@ dynamodb_request_queue_init(const char * key_id, const char * key_secret,
 	/* Record the server pool to draw IP addresses from. */
 	Q->SP = SP;
 
-	/* Initialize rate-limiting parameters. */
-	Q->ratelimited = 0;
-	if (opps == 1) {
-		Q->ratedelay.tv_sec = 1;
-		Q->ratedelay.tv_usec = 0;
-	} else {
-		Q->ratedelay.tv_sec = 0;
-		Q->ratedelay.tv_usec = 1000000 / opps;
-	}
+	/*
+	 * Initialize rate-limiting parameters.  The initial bucket capacity
+	 * is set to 300 seconds of 50k capacity units per second; this
+	 * allows an effectively unlimited burst until the first "capacity
+	 * exceeded" warning is seen, after which bucket_cap is limited to
+	 * 300 seconds of provisioned capacity.
+	 */
+	Q->mu_capperreq = 1.0;
+	Q->bucket_cap = 300.0 * 50000.0;
+	dynamodb_request_queue_setcapacity(Q, 0);
 
-	/* Allow a maximum of 5 seconds of quota in flight at once. */
-	Q->inflight_max = opps * 5;
-
-	/* We have no pending pokes. */
+	/* We have no pending events. */
 	Q->timer_cookie = NULL;
 	Q->immediate_cookie = NULL;
 
@@ -447,12 +510,46 @@ dynamodb_request_queue_log(struct dynamodb_request_queue * Q,
 }
 
 /**
+ * dynamodb_request_queue_setcapacity(Q, capacity):
+ * Set the capacity of the DyanamoDB request queue to ${capacity} capacity
+ * units per second; use this value (along with ConsumedCapacity fields from
+ * DynamoDB responses) to rate-limit requests after seeing a "Throughput
+ * Exceeded" exception.  If passed a capacity of 0, the request rate will
+ * not be limited.
+ */
+void
+dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
+    int capacity)
+{
+
+	/* How long does it take for one capacity unit to arrive? */
+	if (capacity > 0)
+		Q->spercap = 1.0 / capacity;
+	else
+		Q->spercap = 0.0;
+
+	/*
+	 * Allow up to 5 seconds worth of requests to be in flight at once
+	 * (in the event of request bursts), up to a maximum of 500 requests
+	 * (to avoid having an unreasonable number of connections open at
+	 * once -- with single-digit request latencies, this is >50k requests
+	 * per second, so it's not likely to be a problem).
+	 */
+	if ((capacity > 0) && (capacity < 100))
+		Q->maxburst_cap = capacity * 5.0;
+	else
+		Q->maxburst_cap = 500.0;
+}
+
+/**
  * dynamodb_request_queue(Q, prio, op, body, maxrlen, logstr, callback, cookie):
  * Using the DynamoDB request queue ${Q}, queue the DynamoDB request
  * contained in ${body} for the operation ${op}.  Read a response with a body
  * of up to ${maxrlen} bytes and invoke the callback as per dynamodb_request.
  * The strings ${op} and ${body} must remain valid until the callback is
- * invoked or the queue is flushed.
+ * invoked or the queue is flushed.  For accurate rate limiting, on tables
+ * with "provisioned" capacity requests must elicit ConsumedCapacity fields
+ * in their responses.
  * 
  * HTTP 5xx errors and HTTP 400 "Throughput Exceeded" errors will be
  * automatically retried; other errors are passed back.

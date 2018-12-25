@@ -5,6 +5,9 @@ source-${X:.c=.o}: ${X}
 cflags-${X:.c=.o}:
 .endfor
 
+# Used to track the subdirectory depth (other directories append to this)
+SUBDIR_DEPTH	=	..
+
 # Expand ${IDIRS} before it is used
 IDIRS	:=	${IDIRS}
 

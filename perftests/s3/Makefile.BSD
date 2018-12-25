@@ -5,9 +5,16 @@ SRCS=	main.c
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
 
+# CPU features detection
+.PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
+SRCS	+=	cpusupport_x86_shani.c
+SRCS	+=	cpusupport_x86_ssse3.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
+
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	sha256.c
+SRCS	+=	sha256_shani.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
 # Data structures
@@ -67,6 +74,9 @@ SRCS	+=	s3_request.c
 IDIRS	+=	-I ${LIB_DIR}/s3
 
 CFLAGS	+=	-g
+
+cflags-sha256_shani.o:
+	@echo '$${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}'
 
 test:	test_s3
 	./test_s3 ~/.s3/aws.key

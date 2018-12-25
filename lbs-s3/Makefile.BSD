@@ -17,6 +17,11 @@ SRCS	+=	deleteto.c
 SRCS	+=	findlast.c
 SRCS	+=	objmap.c
 
+# CPU features detection
+.PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
+SRCS	+=	cpusupport_x86_crc32.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
+
 # Data structures
 .PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
 SRCS	+=	elasticarray.c
@@ -42,6 +47,7 @@ IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	crc32c.c
+SRCS	+=	crc32c_sse42.c
 SRCS	+=	md5.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 
@@ -90,5 +96,8 @@ IDIRS	+=	-I ${LIB_DIR}/proto_lbs
 #CFLAGS	+=	-DNDEBUG
 #CFLAGS	+=	-DDEBUG
 #CFLAGS	+=	-pg
+
+cflags-crc32c_sse42.o:
+	@echo '$${CFLAGS_X86_CRC32}'
 
 .include <bsd.prog.mk>

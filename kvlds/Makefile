@@ -114,7 +114,7 @@ crc32c_sse42.o: ../libcperciva/alg/crc32c_sse42.c ../libcperciva/cpusupport/cpus
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" ${CFLAGS_X86_CRC32} -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/crc32c_sse42.c -o crc32c_sse42.o
 events_immediate.o: ../libcperciva/events/events_immediate.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o
-events_network.o: ../libcperciva/events/events_network.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/warnp.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
+events_network.o: ../libcperciva/events/events_network.c ../libcperciva/util/ctassert.h ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/warnp.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_network.c -o events_network.o
 events_network_selectstats.o: ../libcperciva/events/events_network_selectstats.c ../libcperciva/util/monoclock.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_network_selectstats.c -o events_network_selectstats.o

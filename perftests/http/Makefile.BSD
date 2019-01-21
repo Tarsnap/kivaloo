@@ -50,8 +50,6 @@ IDIRS	+=	-I ${LIB_DIR}/http
 CFLAGS	+=	-g
 
 test:	test_http
-	@./test_http www.google.com /
-	@./test_http s3.amazonaws.com /
-	@./test_http www.tarsnap.com /kivaloo.html
+	@./test_http.sh
 
 .include <bsd.prog.mk>

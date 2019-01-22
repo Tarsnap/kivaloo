@@ -24,7 +24,8 @@ mkdir stor
 if [ -n "${WITHMUX+set}" ]; then
 	../../mux/mux -t `pwd`/stor/sock_kvlds -s `pwd`/stor/sock_mux
 fi
-/usr/bin/time -h ./test_kvldsperf `pwd`/stor/${TARGETSOCK}
+/usr/bin/time -p ./test_kvldsperf `pwd`/stor/${TARGETSOCK}	\
+	2>&1 | tr "\n" "\t" ; printf "\n"
 if [ -n "${WITHMUX+set}" ]; then
 	kill `cat stor/sock_kvlds.pid`
 	kill `cat stor/sock_lbs.pid`
@@ -40,7 +41,8 @@ rm -f stor/sock*
 if [ -n "${WITHMUX+set}" ]; then
 	../../mux/mux -t `pwd`/stor/sock_kvlds -s `pwd`/stor/sock_mux
 fi
-/usr/bin/time -h ./test_kvldsperf `pwd`/stor/${TARGETSOCK}
+/usr/bin/time -p ./test_kvldsperf `pwd`/stor/${TARGETSOCK}	\
+	2>&1 | tr "\n" "\t" ; printf "\n"
 if [ -n "${WITHMUX+set}" ]; then
 	kill `cat stor/sock_kvlds.pid`
 	kill `cat stor/sock_lbs.pid`

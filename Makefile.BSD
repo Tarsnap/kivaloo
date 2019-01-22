@@ -111,6 +111,5 @@ publish: clean Makefiles
 	tar -cvzf ${PKG}-${VERSION}.tgz ${PKG}-${VERSION}
 	rm -r ${PKG}-${VERSION}
 
-#SUBDIR=	${PROGS} ${TESTS} ${BENCHES}
 SUBDIR=	${PROGS}
 .include <bsd.subdir.mk>

@@ -90,3 +90,6 @@ wire_requestqueue.o: ../../lib/wire/wire_requestqueue.c ../../libcperciva/events
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
 proto_dynamodb_kv_client.o: ../../lib/proto_dynamodb_kv/proto_dynamodb_kv_client.c ../../libcperciva/util/sysendian.h ../../libcperciva/util/warnp.h ../../lib/wire/wire.h ../../lib/proto_dynamodb_kv/proto_dynamodb_kv.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/proto_dynamodb_kv/proto_dynamodb_kv_client.c -o proto_dynamodb_kv_client.o
+
+test: all
+	./test_kv.sh

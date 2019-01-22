@@ -92,3 +92,6 @@ wire_requestqueue.o: ../../lib/wire/wire_requestqueue.c ../../libcperciva/events
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/wire/wire_requestqueue.c -o wire_requestqueue.o
 proto_kvlds_client.o: ../../lib/proto_kvlds/proto_kvlds_client.c ../../libcperciva/events/events.h ../../libcperciva/util/imalloc.h ../../lib/datastruct/kvldskey.h ../../libcperciva/util/ctassert.h ../../libcperciva/datastruct/mpool.h ../../libcperciva/util/sysendian.h ../../libcperciva/util/warnp.h ../../lib/wire/wire.h ../../lib/proto_kvlds/proto_kvlds.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/proto_kvlds/proto_kvlds_client.c -o proto_kvlds_client.o
+
+test:	all
+	@./test_kvldsclean.sh

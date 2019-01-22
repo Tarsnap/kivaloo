@@ -76,3 +76,6 @@ netbuf_write.o: ../../lib/netbuf/netbuf_write.c ../../libcperciva/network/networ
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_write.c -o netbuf_write.o
 http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/http.c -o http.o
+
+test:	test_http
+	@./test_http.sh

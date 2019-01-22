@@ -1,7 +1,6 @@
 #!/bin/sh
 
-jot 10 |
-    while read X; do
+for X in 1 2 3 4 5 6 7 8 9 10; do
 	NODISK=YES ./test_kvldsperf.sh 2>&1;
 done |				\
     awk '{print $2 " "}' |	\

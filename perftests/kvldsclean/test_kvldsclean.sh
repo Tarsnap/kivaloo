@@ -4,7 +4,7 @@ set -e
 
 rm -rf stor
 mkdir stor
-chflags nodump stor
+[ `uname` = "FreeBSD" ] && chflags nodump stor
 ../../lbs/lbs -s `pwd`/stor/sock_lbs -d stor -b 2048
 ../../kvlds/kvlds -s `pwd`/stor/sock_kvlds -l `pwd`/stor/sock_lbs -S 1000
 ( ./test_kvldsclean `pwd`/stor/sock_kvlds &	\

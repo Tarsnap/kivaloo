@@ -19,7 +19,7 @@ fi
 
 rm -rf stor
 mkdir stor
-chflags nodump stor
+[ `uname` = "FreeBSD" ] && chflags nodump stor
 ../../lbs/lbs -s `pwd`/stor/sock_lbs -d stor -b 2048 ${DASHL}
 ../../kvlds/kvlds -s `pwd`/stor/sock_kvlds -l `pwd`/stor/sock_lbs
 if [ -n "${WITHMUX+set}" ]; then

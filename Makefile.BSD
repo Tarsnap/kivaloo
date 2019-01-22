@@ -57,6 +57,11 @@ ${D}/Makefile::
 			| sed -e 's| \\ | |g'; \
 		echo "	\$${CC} \$${CFLAGS_POSIX} ${CFLAGS_HARDCODED} $${CF} -I$${SUBDIR_DEPTH} \$${IDIRS} \$${CPPFLAGS} \$${CFLAGS} -c $${S} -o $${F}"; \
 	    done ) >> $@
+	if grep -q "test:" ${D}/Makefile.BSD ; then		\
+		printf "\n" >> $@;					\
+		( cd ${D} && awk '/test:/, /^$$/' Makefile.BSD |	\
+		    awk '$$1' ) >> $@;					\
+	fi
 	if grep -q "all_extra:" ${D}/Makefile.BSD ; then		\
 		printf "\n" >> $@;					\
 		( cd ${D} && awk '/all_extra:/, /^$$/' Makefile.BSD |	\

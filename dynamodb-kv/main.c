@@ -12,59 +12,23 @@
 #include "getopt.h"
 #include "insecure_memzero.h"
 #include "logging.h"
-#include "parsenum.h"
 #include "serverpool.h"
 #include "sock.h"
 #include "warnp.h"
 
+#include "capacity.h"
 #include "dispatch.h"
 
 static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: dynamodb-kv %s %s %s %s %s %s %s %s\n",
+	fprintf(stderr, "usage: dynamodb-kv %s %s %s %s %s %s %s\n",
 	    "-s <dynamodb-kv socket>", "-r <DynamoDB region>",
 	    "-t <DynamoDB table>", "-k <keyfile>", "[-1]",
-	    "[-l <logfile>]", "[-p <pidfile>]",
-	    "[--rate <writes>:<reads>]");
+	    "[-l <logfile>]", "[-p <pidfile>]");
 	fprintf(stderr, "       dynamodb-kv --version\n");
 	exit(1);
-}
-
-static int
-splitrate(const char * s, int * writes, int * reads)
-{
-	char * s2;
-	char * s3;
-
-	/* Duplicate the string and split at the first ':'. */
-	if ((s2 = strdup(s)) == NULL)
-		goto err0;
-	s3 = strchr(s2, ':');
-	if (*s3 == '\0') {
-		errno = EINVAL;
-		goto err1;
-	}
-	*s3++ = '\0';
-
-	/* Parse the two strings. */
-	if (PARSENUM(writes, s2, 1, 1000000))
-		goto err1;
-	if (PARSENUM(reads, s3, 1, 1000000))
-		goto err1;
-
-	/* Free string allocated by strdup. */
-	free(s2);
-
-	/* Success! */
-	return (0);
-
-err1:
-	free(s2);
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /* Macro to simplify error-handling in command-line parse loop. */
@@ -90,9 +54,6 @@ main(int argc, char * argv[])
 	char * opt_r = NULL;
 	char * opt_s = NULL;
 	char * opt_t = NULL;
-	int opt_rate_set = 0;
-	int opt_rate_writes = 5;
-	int opt_rate_reads = 5;
 	int opt_1 = 0;
 
 	/* Working variable. */
@@ -101,6 +62,7 @@ main(int argc, char * argv[])
 	char * key_secret;
 	struct sock_addr ** sas;
 	struct logging_file * logfile;
+	struct capacity_reader * M;
 	const char * ch;
 
 	WARNP_INIT;
@@ -142,14 +104,6 @@ main(int argc, char * argv[])
 			if (opt_t != NULL)
 				usage();
 			if ((opt_t = strdup(optarg)) == NULL)
-				OPT_EPARSE(ch, optarg);
-			break;
-		GETOPT_OPTARG("--rate"):
-			if (opt_rate_set)
-				usage();
-			opt_rate_set = 1;
-			if (splitrate(optarg,
-			    &opt_rate_writes, &opt_rate_reads))
 				OPT_EPARSE(ch, optarg);
 			break;
 		GETOPT_OPT("--version"):
@@ -206,13 +160,20 @@ main(int argc, char * argv[])
 
 	/* Create DynamoDB request queues for writes and reads. */
 	if ((QW = dynamodb_request_queue_init(key_id, key_secret,
-	    opt_r, SP, opt_rate_writes)) == NULL) {
+	    opt_r, SP)) == NULL) {
 		warnp("Error creating DynamoDB request queue");
 		exit(1);
 	}
 	if ((QR = dynamodb_request_queue_init(key_id, key_secret,
-	    opt_r, SP, opt_rate_reads)) == NULL) {
+	    opt_r, SP)) == NULL) {
 		warnp("Error creating DynamoDB request queue");
+		exit(1);
+	}
+
+	/* Start reading table throughput parameters. */
+	if ((M = capacity_init(key_id, key_secret, opt_t, opt_r,
+	    SP, QW, QR)) == NULL) {
+		warnp("Error reading DynamoDB table metadata");
 		exit(1);
 	}
 
@@ -287,6 +248,9 @@ main(int argc, char * argv[])
 
 	/* Free the address structures. */
 	sock_addr_freelist(sas);
+
+	/* Stop performing DescribeTable requests. */
+	capacity_free(M);
 
 	/* Free DynamoDB request queues. */
 	dynamodb_request_queue_free(QR);

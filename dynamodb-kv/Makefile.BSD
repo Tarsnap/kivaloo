@@ -11,6 +11,7 @@ LIB_DIR	=	../lib
 
 # dynamodb-kv code
 SRCS	=	main.c
+SRCS	+=	capacity.c
 SRCS	+=	dispatch.c
 
 # CPU features detection

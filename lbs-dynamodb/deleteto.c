@@ -32,7 +32,7 @@ callback_deletedto_get(void * cookie, int status,
 
 	/* Failures are bad. */
 	if (status == 1) {
-		warn0("Error reading DeleteTo");
+		warn0("Error reading DeletedTo");
 		goto err0;
 	}
 
@@ -212,7 +212,6 @@ deleteto_deleteto(struct deleteto * D, uint64_t N)
 int
 deleteto_stop(struct deleteto * D)
 {
-	int rc;
 
 	/* We don't want to do any more DELETEs, just shut down. */
 	D->shuttingdown = 1;
@@ -220,12 +219,26 @@ deleteto_stop(struct deleteto * D)
 	/* Store DeletedTo when all the DELETEs have finished. */
 	D->updateDeletedTo = 1;
 
+	/* Poke the deleter in case it's not already doing anything. */
+	if (poke(D))
+		goto err0;
+
 	/* Wait for all pending operations to finish. */
-	rc = events_spin(&D->shutdown);
+	if (events_spin(&D->shutdown))
+		goto err0;
 
 	/* Free the DeleteTo structure. */
 	free(D);
 
-	/* Return status from events_spin. */
-	return (rc);
+	/* Success! */
+	return (0);
+
+	/*
+	 * We don't free D in the error path, in case there are pending
+	 * callbacks holding references to it; until D->shutdown is nonzero
+	 * we can't assume that all operations have completed.
+	 */
+err0:
+	/* Failure! */
+	return (-1);
 }

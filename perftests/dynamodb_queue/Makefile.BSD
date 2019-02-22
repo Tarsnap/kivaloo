@@ -30,6 +30,7 @@ SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
 SRCS	+=	hexify.c
 SRCS	+=	insecure_memzero.c
+SRCS	+=	json.c
 SRCS	+=	monoclock.c
 SRCS	+=	noeintr.c
 SRCS	+=	sock.c
@@ -72,6 +73,7 @@ IDIRS	+=	-I ${LIB_DIR}/http
 
 # DynamoDB protocol
 .PATH.c	:	${LIB_DIR}/dynamodb
+SRCS	+=	dynamodb_kv.c
 SRCS	+=	dynamodb_request.c
 SRCS	+=	dynamodb_request_queue.c
 IDIRS	+=	-I ${LIB_DIR}/dynamodb

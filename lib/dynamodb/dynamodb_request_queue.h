@@ -1,6 +1,8 @@
 #ifndef _DYNAMODB_REQUEST_QUEUE_H_
 #define _DYNAMODB_REQUEST_QUEUE_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct dynamodb_request_queue;
 struct http_response;
@@ -8,14 +10,13 @@ struct logging_file;
 struct serverpool;
 
 /**
- * dynamodb_request_queue_init(key_id, key_secret, region, SP, opps):
+ * dynamodb_request_queue_init(key_id, key_secret, region, SP):
  * Create a DynamoDB request queue using AWS key id ${key_id} and secret key
  * ${key_secret} to make requests to DynamoDB in ${region}.  Obtain target
- * addresses from the pool ${SP}.  Upon encountering a "Throughput Exceeded"
- * exception, limit the request rate to ${opps} operations per second.
+ * addresses from the pool ${SP}.
  */
 struct dynamodb_request_queue * dynamodb_request_queue_init(const char *,
-    const char *, const char *, struct serverpool *, int);
+    const char *, const char *, struct serverpool *);
 
 /**
  * dynamodb_request_queue_log(Q, F):
@@ -25,12 +26,24 @@ void dynamodb_request_queue_log(struct dynamodb_request_queue *,
     struct logging_file *);
 
 /**
+ * dynamodb_request_queue_setcapacity(Q, capacity):
+ * Set the capacity of the DyanamoDB request queue to ${capacity} capacity
+ * units per second; use this value (along with ConsumedCapacity fields from
+ * DynamoDB responses) to rate-limit requests after seeing a "Throughput
+ * Exceeded" exception.  If passed a capacity of 0, the request rate will
+ * not be limited.
+ */
+void dynamodb_request_queue_setcapacity(struct dynamodb_request_queue *, int);
+
+/**
  * dynamodb_request_queue(Q, prio, op, body, maxrlen, logstr, callback, cookie):
  * Using the DynamoDB request queue ${Q}, queue the DynamoDB request
  * contained in ${body} for the operation ${op}.  Read a response with a body
  * of up to ${maxrlen} bytes and invoke the callback as per dynamodb_request.
  * The strings ${op} and ${body} must remain valid until the callback is
- * invoked or the queue is flushed.
+ * invoked or the queue is flushed.  For accurate rate limiting, on tables
+ * with "provisioned" capacity requests must elicit ConsumedCapacity fields
+ * in their responses.
  * 
  * HTTP 5xx errors and HTTP 400 "Throughput Exceeded" errors will be
  * automatically retried; other errors are passed back.

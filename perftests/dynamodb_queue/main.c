@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "asprintf.h"
 #include "aws_readkeys.h"
+#include "dynamodb_kv.h"
 #include "dynamodb_request_queue.h"
 #include "events.h"
 #include "http.h"
@@ -74,10 +74,11 @@ main(int argc, char * argv[])
 
 	/* Create a request queue. */
 	if ((Q = dynamodb_request_queue_init(key_id, key_secret, "us-east-1",
-	    SP, 5)) == NULL) {
+	    SP)) == NULL) {
 		warnp("Error initializing DynamoDB request queue");
 		exit(1);
 	}
+	dynamodb_request_queue_setcapacity(Q, 5);
 
 	/* Log requests. */
 	if ((F = logging_open(argv[2])) == NULL) {
@@ -90,15 +91,9 @@ main(int argc, char * argv[])
 	done = 0;
 	for (i = 0; i < 500; i++) {
 		sprintf(keyname, "key%zu", i);
-		if (asprintf(&bodies[i],
-		    "{"
-			"\"TableName\": \"kivaloo-testing\","
-			"\"Item\": {"
-			    "\"K\": { \"S\": \"key%zu\" },"
-			    "\"V\": { \"B\": \"dmFsdWUK\" }"
-			"}"
-		    "}", i) == -1) {
-			warnp("asprintf");
+		if ((bodies[i] = dynamodb_kv_put("kivaloo-testing", keyname,
+		    (const uint8_t *)"value\n", 6)) == NULL) {
+			warnp("dynamodb_kv_put");
 			exit(1);
 		}
 		inprogress++;
@@ -123,14 +118,9 @@ main(int argc, char * argv[])
 	done = 0;
 	for (i = 0; i < 500; i++) {
 		sprintf(keyname, "key%zu", i);
-		if (asprintf(&bodies[i],
-		    "{"
-			"\"TableName\": \"kivaloo-testing\","
-			"\"Key\": {"
-			    "\"K\": { \"S\": \"key%zu\" }"
-			"}"
-		    "}", i) == -1) {
-			warnp("asprintf");
+		if ((bodies[i] =
+		    dynamodb_kv_get("kivaloo-testing", keyname)) == NULL) {
+			warnp("dynamodb_kv_get");
 			exit(1);
 		}
 		inprogress++;
@@ -155,14 +145,9 @@ main(int argc, char * argv[])
 	done = 0;
 	for (i = 0; i < 500; i++) {
 		sprintf(keyname, "key%zu", i);
-		if (asprintf(&bodies[i],
-		    "{"
-			"\"TableName\": \"kivaloo-testing\","
-			"\"Key\": {"
-			    "\"K\": { \"S\": \"key%zu\" }"
-			"}"
-		    "}", i) == -1) {
-			warnp("asprintf");
+		if ((bodies[i] =
+		    dynamodb_kv_delete("kivaloo-testing", keyname)) == NULL) {
+			warnp("dynamodb_kv_delete");
 			exit(1);
 		}
 		inprogress++;

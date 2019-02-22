@@ -81,19 +81,6 @@ cflags-crc32c_sse42.o:
 	@echo '$${CFLAGS_X86_CRC32}'
 
 test:	all
-	@rm -rf stor
-	@mkdir stor
-	@chflags nodump stor
-	@../../lbs/lbs -s `pwd`/stor/sock_lbs -d stor -b 2048
-	@../../kvlds/kvlds -s `pwd`/stor/sock_kvlds -l `pwd`/stor/sock_lbs -S 1000
-	@( ./test_kvldsclean `pwd`/stor/sock_kvlds & \
-	jot 330 | while read X; do		\
-		du stor 2>/dev/null || true;	\
-		sleep 1;			\
-	done )
-	@kill `cat stor/sock_kvlds.pid`
-	@kill `cat stor/sock_lbs.pid`
-	@rm -f stor/sock*
-	@rm -r stor
+	@./test_kvldsclean.sh
 
 .include <bsd.prog.mk>

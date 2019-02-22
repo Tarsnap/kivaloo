@@ -74,3 +74,6 @@ network_write.o: ../../libcperciva/network/network_write.c ../../libcperciva/eve
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/network/network_write.c -o network_write.o
 serverpool.o: ../../lib/serverpool/serverpool.c ../../libcperciva/datastruct/elasticarray.h ../../libcperciva/util/monoclock.h ../../libcperciva/network/network.h ../../libcperciva/util/noeintr.h ../../libcperciva/util/sock.h ../../libcperciva/util/sock_util.h ../../libcperciva/util/warnp.h ../../lib/serverpool/serverpool.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/serverpool/serverpool.c -o serverpool.o
+
+test:	test_serverpool
+	./test_serverpool dynamodb.us-east-1.amazonaws.com:80

@@ -96,3 +96,6 @@ http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/http.c -o http.o
 dynamodb_request.o: ../../lib/dynamodb/dynamodb_request.c ../../libcperciva/util/asprintf.h ../../libcperciva/aws/aws_sign.h ../../lib/http/http.h ../../lib/dynamodb/dynamodb_request.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/dynamodb/dynamodb_request.c -o dynamodb_request.o
+
+test:	test_dynamodb_request
+	./test_dynamodb_request ~/.dynamodb/aws.key

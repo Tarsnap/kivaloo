@@ -60,3 +60,6 @@ aws_readkeys.o: ../../libcperciva/aws/aws_readkeys.c ../../libcperciva/util/inse
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
 aws_sign.o: ../../libcperciva/aws/aws_sign.c ../../libcperciva/util/asprintf.h ../../libcperciva/util/hexify.h ../../libcperciva/alg/sha256.h ../../libcperciva/util/warnp.h ../../libcperciva/aws/aws_sign.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_sign.c -o aws_sign.o
+
+test: all
+	@./test_sign.sh

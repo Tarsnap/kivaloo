@@ -95,6 +95,7 @@ cflags-sha256_shani.o:
 
 test:	test_dynamodb_queue
 	./test_dynamodb_queue ~/.dynamodb/aws.key dynamodb.log
+
 CLEANFILES +=	dynamodb.log
 
 .include <bsd.prog.mk>

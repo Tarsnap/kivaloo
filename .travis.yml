@@ -1,10 +1,6 @@
 language: C
 sudo: false
 dist: trusty
-addons:
-  apt:
-    packages:
-      - bmake
 env:
   global:
     # Some projects need -std=c99 to specify library support for ./configure
@@ -13,7 +9,7 @@ env:
     - COVERITY_SCAN_PROJECT_NAME="Tarsnap/kivaloo"
     - COVERITY_SCAN_BRANCH_PATTERN="coverity-scan"
     - COVERITY_SCAN_NOTIFICATION_EMAIL="cperciva@tarsnap.com"
-    - COVERITY_SCAN_BUILD_COMMAND="bmake all clean"
+    - COVERITY_SCAN_BUILD_COMMAND="make all clean"
 before_install:
   # Handle Coverity scan
   - >
@@ -28,4 +24,4 @@ before_install:
       exit 0
     fi
 script:
-  - bmake test
+  - make test

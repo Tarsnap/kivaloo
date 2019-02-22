@@ -110,3 +110,6 @@ serverpool.o: ../../lib/serverpool/serverpool.c ../../libcperciva/datastruct/ela
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/serverpool/serverpool.c -o serverpool.o
 logging.o: ../../lib/logging/logging.c ../../libcperciva/events/events.h ../../libcperciva/util/noeintr.h ../../libcperciva/util/warnp.h ../../lib/logging/logging.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/logging/logging.c -o logging.o
+
+test:	test_dynamodb_queue
+	./test_dynamodb_queue ~/.dynamodb/aws.key dynamodb.log

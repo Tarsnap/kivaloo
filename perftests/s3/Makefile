@@ -96,3 +96,6 @@ http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/http.c -o http.o
 s3_request.o: ../../lib/s3/s3_request.c ../../libcperciva/util/asprintf.h ../../libcperciva/aws/aws_sign.h ../../lib/http/http.h ../../libcperciva/util/warnp.h ../../lib/s3/s3_request.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/s3/s3_request.c -o s3_request.o
+
+test:	test_s3
+	./test_s3 ~/.s3/aws.key

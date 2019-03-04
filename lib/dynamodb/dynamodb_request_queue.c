@@ -17,6 +17,14 @@
 
 #include "dynamodb_request_queue.h"
 
+/**
+ * Requests can be in three states:
+ * 1. Waiting to be sent -- http_cookie and timeout_cookie are NULL.
+ * 2. Request is in progress -- http_cookie and timeout_cookie are non-NULL.
+ * 3. Request failed but we're waiting until out timer expires before we
+ * allow it to be sent again -- http_cookie is NULL but timeout_cookie isn't.
+ */
+
 /* Request. */
 struct request {
 	struct dynamodb_request_queue * Q;
@@ -29,6 +37,8 @@ struct request {
 	void * cookie;
 	struct sock_addr * addrs[2];
 	void * http_cookie;
+	void * timeout_cookie;
+	size_t ntries;
 	struct timeval t_start;
 	int prio;
 	uint64_t reqnum;
@@ -232,6 +242,66 @@ err0:
 	return (-1);
 }
 
+/* Clean up an HTTP request. */
+static int
+done_http(struct request * R, int timedout)
+{
+	struct dynamodb_request_queue * Q = R->Q;
+	int rc = 0;
+
+	/* Cancel the request if it hasn't completed and we timed out. */
+	if (timedout && R->http_cookie) {
+		http_request_cancel(R->http_cookie);
+		if (Q->logfile) {
+			if (logreq(Q->logfile, R, NULL, 0.0))
+				rc = -1;
+		}
+	}
+
+	/* If a request was in flight, it isn't any more. */
+	if (R->http_cookie) {
+		R->http_cookie = NULL;
+		Q->inflight--;
+		sock_addr_free(R->addrs[0]);
+		R->addrs[0] = NULL;
+	}
+
+	/* Return status. */
+	return (rc);
+}
+
+/* Callback from events_timer. */
+static int
+callback_timeout(void * cookie)
+{
+	struct request * R = cookie;
+	struct dynamodb_request_queue * Q = R->Q;
+
+	/* We are no longer waiting for a timer callback. */
+	R->timeout_cookie = NULL;
+
+	/* Clean up the HTTP request. */
+	if (done_http(R, 1))
+		goto err0;
+
+	/* The priority of this request has changed. */
+	ptrheap_decrease(Q->reqs, R->rc);
+
+	/*
+	 * Poke the queue -- this request has moved from "in progress" back
+	 * to "waiting to be sent", so it might be possible to send it now.
+	 */
+	if (poke(Q))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /* Callback from dynamodb_request (aka. from http_request). */
 static int
 callback_reqdone(void * cookie, struct http_response * res)
@@ -243,14 +313,18 @@ callback_reqdone(void * cookie, struct http_response * res)
 
 	/*
 	 * If we have a response body, extract the number of capacity units
-	 * used and update our rolling average.
+	 * used, and update our rolling average and current capacity.
 	 */
 	if ((res != NULL) && (res->bodylen > 0)) {
 		if (extractcapacity(res, &capacity))
 			rc = -1;
-		if (capacity != 0.0)
+		if (capacity != 0.0) {
 			Q->mu_capperreq +=
 			    (capacity - Q->mu_capperreq) * 0.01;
+			Q->bucket_cap -= capacity;
+			if (Q->bucket_cap < 0.0)
+				Q->bucket_cap = 0.0;
+		}
 	}
 
 	/* Optionally log this request. */
@@ -259,21 +333,13 @@ callback_reqdone(void * cookie, struct http_response * res)
 			rc = -1;
 	}
 
-	/* This request is no longer in progress. */
-	R->http_cookie = NULL;
-	Q->inflight--;
-
-	/* We may have used up some capacity. */
-	Q->bucket_cap -= capacity;
-	if (Q->bucket_cap < 0.0)
-		Q->bucket_cap = 0.0;
-
-	/* Don't need the target address any more. */
-	sock_addr_free(R->addrs[0]);
-	R->addrs[0] = NULL;
-
-	/* The priority of this request has changed. */
-	ptrheap_decrease(Q->reqs, R->rc);
+	/*
+	 * This HTTP request has completed; we call done_http here rather
+	 * than earlier because it frees the target address, which is printed
+	 * to the request log.
+	 */
+	if (done_http(R, 0))
+		rc = -1;
 
 	/* What should we do with this response? */
 	if ((res != NULL) && (res->status == 400) && isthrottle(res)) {
@@ -294,6 +360,9 @@ callback_reqdone(void * cookie, struct http_response * res)
 		/* Dequeue the request. */
 		ptrheap_delete(Q->reqs, R->rc);
 
+		/* Cancel the request timeout. */
+		events_timer_cancel(R->timeout_cookie);
+
 		/* Invoke the upstream callback. */
 		if (rc) {
 			(void)(R->callback)(R->cookie, res);
@@ -305,6 +374,13 @@ callback_reqdone(void * cookie, struct http_response * res)
 		free(R->logstr);
 		free(R);
 	}
+
+	/*
+	 * If we didn't send the response upstream, the request is still on
+	 * our queue with a timeout callback pending.  We're going to leave
+	 * it that way -- we don't want to retry the failed request until
+	 * the callback fires.
+	 */
 
 	/*
 	 * Poke the queue.  If the request failed, it may be possible to
@@ -324,6 +400,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 static int
 sendreq(struct dynamodb_request_queue * Q, struct request * R)
 {
+	double timeo;
 
 	/* Get a target address. */
 	R->addrs[0] = serverpool_pick(Q->SP);
@@ -332,12 +409,31 @@ sendreq(struct dynamodb_request_queue * Q, struct request * R)
 	if (monoclock_get(&R->t_start))
 		goto err1;
 
+	/*
+	 * Compute a timeout.  TODO use accumulated statistics to determine
+	 * the timeout length rather than always using the same 1/2/4/8/15
+	 * second timeouts.
+	 */
+	if (R->ntries < 20) {
+		timeo = 1.0 * (1 << R->ntries);
+		if (timeo > 15.0)
+			timeo = 15.0;
+	} else {
+		timeo = 15.0;
+	}
+	R->ntries++;
+
+	/* Time out if we take too long. */
+	if ((R->timeout_cookie =
+	    events_timer_register_double(callback_timeout, R, timeo)) == NULL)
+		goto err1;
+
 	/* Send the request. */
 	Q->inflight++;
 	if ((R->http_cookie = dynamodb_request(R->addrs, Q->key_id,
 	    Q->key_secret, Q->region, R->op, R->body, R->bodylen, R->maxrlen,
 	    callback_reqdone, R)) == NULL)
-		goto err1;
+		goto err2;
 
 	/* The priority of this request has changed. */
 	ptrheap_increase(Q->reqs, R->rc);
@@ -345,6 +441,9 @@ sendreq(struct dynamodb_request_queue * Q, struct request * R)
 	/* Success! */
 	return (0);
 
+err2:
+	events_timer_cancel(R->timeout_cookie);
+	R->timeout_cookie = NULL;
 err1:
 	sock_addr_free(R->addrs[0]);
 	R->addrs[0] = NULL;
@@ -366,7 +465,7 @@ runqueue(struct dynamodb_request_queue * Q)
 		R = ptrheap_getmin(Q->reqs);
 
 		/* Nothing left to send? */
-		if ((R == NULL) || (R->http_cookie != NULL))
+		if ((R == NULL) || (R->timeout_cookie != NULL))
 			break;
 
 		/* Send the highest-priority request. */
@@ -400,9 +499,9 @@ compar(void * cookie, const void * x, const void * y)
 	(void)cookie; /* UNUSED */
 
 	/* Is one of the requests in progress? */
-	if ((_x->http_cookie != NULL) && (_y->http_cookie == NULL))
+	if ((_x->timeout_cookie != NULL) && (_y->timeout_cookie == NULL))
 		return (1);
-	if ((_x->http_cookie == NULL) && (_y->http_cookie != NULL))
+	if ((_x->timeout_cookie == NULL) && (_y->timeout_cookie != NULL))
 		return (-1);
 
 	/* Is one a higher priority? */
@@ -579,11 +678,13 @@ dynamodb_request_queue(struct dynamodb_request_queue * Q, int prio,
 	R->callback = callback;
 	R->cookie = cookie;
 	R->http_cookie = NULL;
+	R->timeout_cookie = NULL;
 	R->addrs[0] = NULL;
 	R->addrs[1] = NULL;
 	R->prio = prio;
 	R->reqnum = Q->reqnum++;
 	R->rc = 0;
+	R->ntries = 0;
 
 	/* Duplicate the additional logging data. */
 	if (logstr != NULL) {
@@ -631,6 +732,8 @@ dynamodb_request_queue_flush(struct dynamodb_request_queue * Q)
 		ptrheap_deletemin(Q->reqs);
 
 		/* Cancel any in-progress operation. */
+		if (R->timeout_cookie != NULL)
+			events_timer_cancel(R->timeout_cookie);
 		if (R->http_cookie != NULL) {
 			http_request_cancel(R->http_cookie);
 			sock_addr_free(R->addrs[0]);

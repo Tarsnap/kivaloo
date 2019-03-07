@@ -61,6 +61,8 @@ struct dynamodb_request_queue {
 	struct ptrheap * reqs;
 	uint64_t reqnum;
 	struct logging_file * logfile;
+	double tmu;
+	double tmud;
 };
 
 static int runqueue(struct dynamodb_request_queue *);
@@ -308,6 +310,8 @@ callback_reqdone(void * cookie, struct http_response * res)
 {
 	struct request * R = cookie;
 	struct dynamodb_request_queue * Q = R->Q;
+	struct timeval t_end;
+	double treq;
 	int rc = 0;
 	double capacity = 0.0;
 
@@ -363,6 +367,25 @@ callback_reqdone(void * cookie, struct http_response * res)
 		/* Cancel the request timeout. */
 		events_timer_cancel(R->timeout_cookie);
 
+		/*
+		 * Update request timeout statistics.  Following the strategy
+		 * used in TCP, we compute exponential rolling averages for
+		 * the mean and mean deviation; unlike TCP, we update our
+		 * statistics even on retries, since we know which attempt
+		 * succeeded.
+		 */
+		if (monoclock_get(&t_end)) {
+			t_end = R->t_start;
+			rc = -1;
+		}
+		treq = (t_end.tv_sec - R->t_start.tv_sec) +
+		    (t_end.tv_usec - R->t_start.tv_usec) * 0.000001;
+		Q->tmu += (treq - Q->tmu) * 0.125;
+		if (treq > Q->tmu)
+			Q->tmud += ((treq - Q->tmu) - Q->tmud) * 0.25;
+		else
+			Q->tmud += ((Q->tmu - treq) - Q->tmud) * 0.25;
+
 		/* Invoke the upstream callback. */
 		if (rc) {
 			(void)(R->callback)(R->cookie, res);
@@ -410,12 +433,15 @@ sendreq(struct dynamodb_request_queue * Q, struct request * R)
 		goto err1;
 
 	/*
-	 * Compute a timeout.  TODO use accumulated statistics to determine
-	 * the timeout length rather than always using the same 1/2/4/8/15
-	 * second timeouts.
+	 * Compute a timeout; we start with a timeout equal to the mean times
+	 * 1.5 plus four times the mean difference then double for each retry
+	 * until we hit a maximum of 15 seconds.  This is the same as TCP
+	 * except for the factor of 1.5; we include that due to TCP-over-TCP
+	 * issues, since the loss of a single TCP segment will result in at
+	 * least one extra network RTT.
 	 */
 	if (R->ntries < 20) {
-		timeo = 1.0 * (1 << R->ntries);
+		timeo = (Q->tmu * 1.5 + Q->tmud * 4) * (1 << R->ntries);
 		if (timeo > 15.0)
 			timeo = 15.0;
 	} else {
@@ -565,6 +591,10 @@ dynamodb_request_queue_init(const char * key_id, const char * key_secret,
 	Q->mu_capperreq = 1.0;
 	Q->bucket_cap = 300.0 * 50000.0;
 	dynamodb_request_queue_setcapacity(Q, 0);
+
+	/* Initialize request timeout statistics to conservative values. */
+	Q->tmu = 1.0;
+	Q->tmud = 0.25;
 
 	/* We have no pending events. */
 	Q->timer_cookie = NULL;

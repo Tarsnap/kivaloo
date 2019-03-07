@@ -142,17 +142,15 @@ isthrottle(struct http_response * res)
 /* Log the (attempted) request. */
 static int
 logreq(struct logging_file * F, struct request * R,
-    struct http_response * res, double capacity)
+    struct http_response * res, double capacity,
+    struct timeval t_end)
 {
-	struct timeval t_end;
 	long t_micros;
 	char * addr;
 	int status;
 	size_t bodylen;
-	
+
 	/* Compute how long the request took. */
-	if (monoclock_get(&t_end))
-		goto err0;
 	t_micros = (long)(t_end.tv_sec - R->t_start.tv_sec) * 1000000 +
 	    t_end.tv_usec - R->t_start.tv_usec;
 
@@ -249,13 +247,19 @@ static int
 done_http(struct request * R, int timedout)
 {
 	struct dynamodb_request_queue * Q = R->Q;
+	struct timeval t_end;
 	int rc = 0;
 
 	/* Cancel the request if it hasn't completed and we timed out. */
 	if (timedout && R->http_cookie) {
 		http_request_cancel(R->http_cookie);
 		if (Q->logfile) {
-			if (logreq(Q->logfile, R, NULL, 0.0))
+			if (monoclock_get(&t_end)) {
+				warnp("monoclock_get");
+				t_end = R->t_start;
+				rc = -1;
+			}
+			if (logreq(Q->logfile, R, NULL, 0.0, t_end))
 				rc = -1;
 		}
 	}
@@ -331,9 +335,16 @@ callback_reqdone(void * cookie, struct http_response * res)
 		}
 	}
 
+	/* Figure out how long this request took. */
+	if (monoclock_get(&t_end)) {
+		warnp("monoclock_get");
+		t_end = R->t_start;
+		rc = -1;
+	}
+
 	/* Optionally log this request. */
 	if (Q->logfile) {
-		if (logreq(Q->logfile, R, res, capacity))
+		if (logreq(Q->logfile, R, res, capacity, t_end))
 			rc = -1;
 	}
 
@@ -374,10 +385,6 @@ callback_reqdone(void * cookie, struct http_response * res)
 		 * statistics even on retries, since we know which attempt
 		 * succeeded.
 		 */
-		if (monoclock_get(&t_end)) {
-			t_end = R->t_start;
-			rc = -1;
-		}
 		treq = (t_end.tv_sec - R->t_start.tv_sec) +
 		    (t_end.tv_usec - R->t_start.tv_usec) * 0.000001;
 		Q->tmu += (treq - Q->tmu) * 0.125;
@@ -429,8 +436,10 @@ sendreq(struct dynamodb_request_queue * Q, struct request * R)
 	R->addrs[0] = serverpool_pick(Q->SP);
 
 	/* Record start time. */
-	if (monoclock_get(&R->t_start))
+	if (monoclock_get(&R->t_start)) {
+		warnp("monoclock_get");
 		goto err1;
+	}
 
 	/*
 	 * Compute a timeout; we start with a timeout equal to the mean times

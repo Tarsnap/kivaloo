@@ -250,8 +250,8 @@ done_http(struct request * R, int timedout)
 	struct timeval t_end;
 	int rc = 0;
 
-	/* Cancel the request if it hasn't completed and we timed out. */
-	if (timedout && R->http_cookie) {
+	/* Cancel the request if we timed out. */
+	if (timedout) {
 		http_request_cancel(R->http_cookie);
 		if (Q->logfile) {
 			if (monoclock_get(&t_end)) {
@@ -264,13 +264,11 @@ done_http(struct request * R, int timedout)
 		}
 	}
 
-	/* If a request was in flight, it isn't any more. */
-	if (R->http_cookie) {
-		R->http_cookie = NULL;
-		Q->inflight--;
-		sock_addr_free(R->addrs[0]);
-		R->addrs[0] = NULL;
-	}
+	/* There is no longer a request in flight. */
+	R->http_cookie = NULL;
+	Q->inflight--;
+	sock_addr_free(R->addrs[0]);
+	R->addrs[0] = NULL;
 
 	/* Return status. */
 	return (rc);
@@ -287,7 +285,7 @@ callback_timeout(void * cookie)
 	R->timeout_cookie = NULL;
 
 	/* Clean up the HTTP request. */
-	if (done_http(R, 1))
+	if ((R->http_cookie != NULL) && done_http(R, 1))
 		goto err0;
 
 	/* The priority of this request has changed. */

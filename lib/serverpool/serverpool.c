@@ -58,7 +58,7 @@ addaddr(struct serverpool * P, struct sock_addr * sa)
 		if (sock_addr_cmp(sa, SPAp->sa) == 0) {
 			/* Update EOL and generation number. */
 			if (monoclock_get(&SPAp->eol))
-				goto err1;
+				goto err0;
 			SPAp->eol.tv_sec += P->ttl;
 			SPAp->generation = P->generation;
 

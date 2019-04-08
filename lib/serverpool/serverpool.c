@@ -49,7 +49,7 @@ static int
 addaddr(struct serverpool * P, struct sock_addr * sa)
 {
 	struct serverpool_addr SPA;
-	struct serverpool_addr * SPAp = &SPA;
+	struct serverpool_addr * SPAp;
 	size_t i;
 
 	/* Do we already have this address? */

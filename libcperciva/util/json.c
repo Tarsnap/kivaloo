@@ -290,7 +290,7 @@ match_str(const uint8_t * buf, const uint8_t * end, const char * s,
 		return (end);			\
 	if (*buf++ != ch)			\
 		return (end);			\
-} while (0);
+} while (0)
 
 /**
  * json_find(buf, end, s):

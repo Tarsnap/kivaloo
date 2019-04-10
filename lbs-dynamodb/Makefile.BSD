@@ -14,6 +14,7 @@ SRCS	=	main.c
 SRCS	+=	dispatch.c
 SRCS	+=	state.c
 SRCS	+=	deleteto.c
+SRCS	+=	metadata.c
 SRCS	+=	objmap.c
 
 # CPU features detection

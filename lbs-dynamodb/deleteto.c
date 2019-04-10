@@ -3,9 +3,9 @@
 #include <stdlib.h>
 
 #include "events.h"
+#include "metadata.h"
 #include "objmap.h"
 #include "proto_dynamodb_kv.h"
-#include "sysendian.h"
 #include "warnp.h"
 
 #include "deleteto.h"
@@ -15,53 +15,12 @@ struct deleteto {
 	uint64_t N;	/* Delete objects below this number. */
 	uint64_t M;	/* We've issued deletes up to this number. */
 	size_t npending;	/* Operations in progress. */
-	int inited;		/* We've finished reading M. */
 	int updateDeletedTo;	/* M has changed since it was last stored. */
 	int shuttingdown;	/* Stop issuing DELETEs. */
 	int shutdown;		/* Everything is done. */
 };
 
 static int callback_done(void *, int);
-
-/* Callback for reading DeletedTo. */
-static int
-callback_deletedto_get(void * cookie, int status,
-    const uint8_t * buf, size_t len)
-{
-	struct deleteto * D = cookie;
-
-	/* Failures are bad. */
-	if (status == 1) {
-		warn0("Error reading DeletedTo");
-		goto err0;
-	}
-
-	/* Did the item exist? */
-	if (status == 2) {
-		/* That's fine; we haven't deleted anything yet. */
-		D->M = 0;
-		goto done;
-	}
-
-	/* We should have 8 bytes. */
-	if (len != 8) {
-		warn0("DeletedTo has incorrect size: %zu", len);
-		goto err0;
-	}
-
-	/* Parse it. */
-	D->M = be64dec(buf);
-
-done:
-	D->inited = 1;
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
 
 /**
  * deleteto_init(Q_DDBKV):
@@ -79,16 +38,12 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV)
 	D->Q = Q_DDBKV;
 	D->N = 0;
 	D->npending = 0;
-	D->inited = 0;
 	D->updateDeletedTo = 0;
 	D->shuttingdown = 0;
 	D->shutdown = 0;
 
-	/* Read "DeletedTo" into M.  Eventual consistency is fine. */
-	if (proto_dynamodb_kv_request_get(D->Q, "DeletedTo",
-	    callback_deletedto_get, D))
-		goto err1;
-	if (events_spin(&D->inited))
+	/* Read "DeletedTo" into M. */
+	if (metadata_deletedto_read(D->Q, &D->M))
 		goto err1;
 
 	/* Success! */
@@ -105,7 +60,6 @@ err0:
 static int
 poke(struct deleteto * D)
 {
-	uint8_t DeletedTo[8];
 
 	/* If we're already busy, don't do anything. */
 	if (D->npending)
@@ -116,9 +70,7 @@ poke(struct deleteto * D)
 	 * progress, we're guaranteed to have deleted everything below M.
 	 */
 	if (D->updateDeletedTo) {
-		be64enc(DeletedTo, D->M);
-		if (proto_dynamodb_kv_request_put(D->Q, "DeletedTo",
-		    DeletedTo, 8, callback_done, D))
+		if (metadata_deletedto_write(D->Q, D->M, callback_done, D))
 			goto err0;
 		D->npending++;
 		D->updateDeletedTo = 0;

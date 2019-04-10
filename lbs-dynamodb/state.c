@@ -4,9 +4,9 @@
 #include <string.h>
 
 #include "events.h"
+#include "metadata.h"
 #include "proto_lbs.h"
 #include "proto_dynamodb_kv.h"
-#include "sysendian.h"
 #include "warnp.h"
 #include "wire.h"
 
@@ -42,48 +42,6 @@ struct append_cookie {
 /* Overhead per KV item: Item size minus block size. */
 #define KVOVERHEAD 18
 
-/* Used for reading "lastblk" during initialization. */
-struct readlastblk {
-	uint64_t lastblk;
-	int done;
-};
-static int
-callback_readlastblk(void * cookie, int status,
-    const uint8_t * buf, size_t len)
-{
-	struct readlastblk * R = cookie;
-
-	/* Failures are bad. */
-	if (status == 1)
-		goto err0;
-
-	/* Did the item exist? */
-	if (status == 2) {
-		/* That's fine; we have no blocks yet. */
-		R->lastblk = (uint64_t)(-1);
-		goto done;
-	}
-
-	/* We should have 8 bytes. */
-	if (len != 8) {
-		warn0("lastblk has incorrect size: %zu", len);
-		goto err0;
-	}
-
-	/* Parse it. */
-	R->lastblk = be64dec(buf);
-
-done:
-	R->done = 1;
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
 /**
  * state_init(Q_DDBKV, itemsz, D):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
@@ -97,7 +55,6 @@ state_init(struct wire_requestqueue * Q_DDBKV,
     size_t itemsz, struct deleteto * D)
 {
 	struct state * S;
-	struct readlastblk R;
 
 	/* Allocate a structure and initialize. */
 	if ((S = malloc(sizeof(struct state))) == NULL)
@@ -108,14 +65,8 @@ state_init(struct wire_requestqueue * Q_DDBKV,
 	S->npending = 0;
 
 	/* Read "lastblk"; we *might* have written up to here. */
-	R.done = 0;
-	if (proto_dynamodb_kv_request_getc(S->Q, "lastblk",
-	    callback_readlastblk, &R) ||
-	    events_spin(&R.done)) {
-		warnp("Error reading lastblk");
+	if (metadata_lastblk_read(S->Q, &S->lastblk))
 		goto err1;
-	}
-	S->lastblk = R.lastblk;
 
 	/* Success! */
 	return (S);
@@ -234,7 +185,6 @@ state_append(struct state * S, struct proto_lbs_request * R,
     int (* callback)(void *, struct proto_lbs_request *), void * cookie)
 {
 	struct append_cookie * C;
-	uint8_t lastblk[8];
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct append_cookie))) == NULL)
@@ -247,8 +197,7 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	C->lastblk_new = S->lastblk + R->r.append.nblks;
 
 	/* Store the new value of lastblk. */
-	be64enc(lastblk, C->lastblk_new);
-	if (proto_dynamodb_kv_request_put(S->Q, "lastblk", lastblk, 8,
+	if (metadata_lastblk_write(S->Q, C->lastblk_new,
 	    callback_append_put_lastblk, C))
 		goto err1;
 

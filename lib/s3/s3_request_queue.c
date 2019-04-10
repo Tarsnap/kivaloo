@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "http.h"
+#include "insecure_memzero.h"
 #include "logging.h"
 #include "monoclock.h"
 #include "s3_request.h"
@@ -415,7 +416,7 @@ s3_request_queue_free(struct s3_request_queue * Q)
 	free(Q->region);
 
 	/* Free the S3 keys. */
-	memset(Q->key_secret, 0, strlen(Q->key_secret));
+	insecure_memzero(Q->key_secret, strlen(Q->key_secret));
 	free(Q->key_secret);
 	free(Q->key_id);
 

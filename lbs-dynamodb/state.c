@@ -15,6 +15,15 @@
 
 #include "state.h"
 
+/* Internal state structure. */
+struct state {
+	uint32_t blklen;	/* Block size. */
+	uint64_t lastblk;	/* Last written block #. */
+	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
+	struct deleteto * D;	/* DeleteTo state. */
+	size_t npending;	/* Callbacks not performed yet. */
+};
+
 static int callback_get(void *, int, const uint8_t *, size_t);
 
 struct get_cookie {
@@ -33,7 +42,7 @@ int callback_append_put_finalblk(void *, int);
 struct append_cookie {
 	struct state * S;
 	struct proto_lbs_request * R;
-	int (* callback)(void *, struct proto_lbs_request *);
+	int (* callback)(void *, struct proto_lbs_request *, uint64_t);
 	void * cookie;
 	uint64_t nblks_left;
 	uint64_t lastblk_new;
@@ -76,6 +85,19 @@ err1:
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * state_params(S, blklen, lastblk):
+ * Return the block size and last written block # via the provided pointers.
+ */
+void
+state_params(struct state * S, uint32_t * blklen, uint64_t * lastblk)
+{
+
+	/* Extract the requested fields from our internal state. */
+	*blklen = S->blklen;
+	*lastblk = S->lastblk;
 }
 
 /**
@@ -182,7 +204,8 @@ err0:
  */
 int
 state_append(struct state * S, struct proto_lbs_request * R,
-    int (* callback)(void *, struct proto_lbs_request *), void * cookie)
+    int (* callback)(void *, struct proto_lbs_request *, uint64_t),
+    void * cookie)
 {
 	struct append_cookie * C;
 
@@ -316,7 +339,7 @@ callback_append_put_finalblk(void * cookie, int status)
 	S->lastblk = C->lastblk_new;
 
 	/* Tell the dispatcher to send its response back. */
-	rc = (C->callback)(C->cookie, C->R);
+	rc = (C->callback)(C->cookie, C->R, S->lastblk);
 
 	/* We've done a callback. */
 	S->npending -= 1;

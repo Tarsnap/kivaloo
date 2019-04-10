@@ -6,18 +6,6 @@ struct deleteto;
 struct proto_lbs_request;
 struct wire_requestqueue;
 
-/* Internal state structure. */
-struct state {
-	/* Bits dispatch.c needs to look at. */
-	uint32_t blklen;	/* Block size. */
-	uint64_t lastblk;	/* Last written block #. */
-
-	/* Internal data. */
-	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
-	struct deleteto * D;	/* DeleteTo state. */
-	size_t npending;	/* Callbacks not performed yet. */
-};
-
 /**
  * state_init(Q_DDBKV, itemsz, D):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
@@ -28,6 +16,12 @@ struct state {
  */
 struct state * state_init(struct wire_requestqueue *, size_t,
     struct deleteto *);
+
+/**
+ * state_params(S, blklen, lastblk):
+ * Return the block size and last written block # via the provided pointers.
+ */
+void state_params(struct state *, uint32_t *, uint64_t *);
 
 /**
  * state_get(S, R, callback, cookie):
@@ -43,10 +37,10 @@ int state_get(struct state *, struct proto_lbs_request *,
 /**
  * state_append(S, R, callback, cookie):
  * Perform the APPEND operation specified by the LBS protocol request ${R} on
- * the state ${S}.  Invoke ${callback}(${cookie}, ${R}) when done.
+ * the state ${S}.  Invoke ${callback}(${cookie}, ${R}, lastblk) when done.
  */
 int state_append(struct state *, struct proto_lbs_request *,
-    int (*)(void *, struct proto_lbs_request *), void *);
+    int (*)(void *, struct proto_lbs_request *, uint64_t), void *);
 
 /**
  * state_gc(S, blkno):

@@ -273,6 +273,7 @@ s3_request_queue_init(const char * key_id, const char * key_secret,
 	return (Q);
 
 err4:
+	insecure_memzero(Q->key_secret, strlen(Q->key_secret));
 	free(Q->key_secret);
 err3:
 	free(Q->key_id);

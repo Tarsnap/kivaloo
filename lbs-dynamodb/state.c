@@ -238,7 +238,7 @@ callback_append_put_lastblk(void * cookie, int status)
 			goto err0;
 	}
 
-	/* If there only was one block, it. */
+	/* If there only was one block, store it. */
 	if (R->r.append.nblks == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
@@ -278,7 +278,6 @@ callback_append_put_blks(void * cookie, int status)
 	 * If there's only one block left to store, it's the final block in
 	 * the request; store it now.
 	 */
-
 	if (C->nblks_left == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,

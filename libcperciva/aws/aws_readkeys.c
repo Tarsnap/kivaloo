@@ -95,10 +95,7 @@ err3:
 err2:
 	fclose(f);
 err1:
-	if (*key_id) {
-		insecure_memzero(*key_id, strlen(*key_id));
-		free(*key_id);
-	}
+	free(*key_id);
 	if (*key_secret) {
 		insecure_memzero(*key_secret, strlen(*key_secret));
 		free(*key_secret);

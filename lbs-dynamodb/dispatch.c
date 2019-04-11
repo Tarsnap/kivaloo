@@ -66,7 +66,7 @@ gotrequest(void * cookie, int status)
 	struct dispatch_state * D = cookie;
 	struct proto_lbs_request * R;
 	uint32_t blklen;
-	uint64_t lastblk;
+	uint64_t nextblk;
 
 	/* We're no longer waiting for a packet to arrive. */
 	D->read_cookie = NULL;
@@ -96,9 +96,9 @@ gotrequest(void * cookie, int status)
 			warn0("Update to a newer version of kvlds");
 			goto drop1;
 		case PROTO_LBS_PARAMS2:
-			state_params(D->S, &blklen, &lastblk);
+			state_params(D->S, &blklen, &nextblk);
 			if (proto_lbs_response_params2(D->writeq, R->ID,
-			    blklen, lastblk + 1, lastblk))
+			    blklen, nextblk, nextblk - 1))
 				goto err1;
 			free(R);
 			break;
@@ -108,10 +108,10 @@ gotrequest(void * cookie, int status)
 				goto err1;
 			break;
 		case PROTO_LBS_APPEND:
-			state_params(D->S, &blklen, &lastblk);
+			state_params(D->S, &blklen, &nextblk);
 			if (R->r.append.blklen != blklen)
 				goto drop2;
-			if ((R->r.append.blkno != lastblk + 1) ||
+			if ((R->r.append.blkno != nextblk) ||
 			    (D->appendip != 0)) {
 				if (proto_lbs_response_append(D->writeq,
 				    R->ID, 1, 0))
@@ -199,13 +199,13 @@ callback_get(void * cookie, struct proto_lbs_request * R,
 
 /* Send an APPEND response back. */
 static int
-callback_append(void * cookie, struct proto_lbs_request * R, uint64_t lastblk)
+callback_append(void * cookie, struct proto_lbs_request * R, uint64_t nextblk)
 {
 	struct dispatch_state * D = cookie;
 	int rc;
 
 	/* Send a response back. */
-	rc = proto_lbs_response_append(D->writeq, R->ID, 0, lastblk + 1);
+	rc = proto_lbs_response_append(D->writeq, R->ID, 0, nextblk);
 
 	/* Free the request. */
 	free(R->r.append.buf);

@@ -39,21 +39,21 @@ dynamodb-kv daemon; items are expressed as key-value pairs with a string
 K=<64-bit ID in hex> and a binary V=<block data provided from upstream>.
 
 Aside from the DynamoDB items which are block data -- which are written once
-and never modified -- there are two other items stored: One with K="lastblk"
-which is (given a *consistent* read) guaranteed to be >= any block IDs for
+and never modified -- there are two other items stored: One with K="nextblk"
+which is (given a *consistent* read) guaranteed to be > any block IDs for
 which a PutItem has been initiated; and one with K="DeletedTo", which (even
 if read with weak consistency) is guaranteed to be <= all blocks for which a
-DeleteItem has been issued.  The former is used to ensure that we can resume
-after a crash and both (a) find the most recent KVLDS root page, and (b)
-ensure that we never reuse a block ID.
+DeleteItem has not been performed.  The former is used to ensure that we can
+resume after a crash and both (a) find the most recent KVLDS root page, and
+(b) ensure that we never reuse a block ID.
 
 Since we never reuse block IDs, we can read blocks using weak consistency,
 and only perform a strongly consistent read in the (very unlikely) event that
 the weakly consistent read does not find the block (because it hasn't been
-gossipped between DynamoDB nodes yet).
+propagated to all of the DynamoDB replicas yet).
 
 Writes are performed by
-1. Updating "lastblk",
+1. Updating "nextblk",
 2. Storing all of the blocks *except the last block*, and then
 3. Storing the last block.
 

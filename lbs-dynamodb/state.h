@@ -18,8 +18,8 @@ struct state * state_init(struct wire_requestqueue *, size_t,
     struct deleteto *);
 
 /**
- * state_params(S, blklen, lastblk):
- * Return the block size and last written block # via the provided pointers.
+ * state_params(S, blklen, nextblk):
+ * Return the block size and next block # to write via the provided pointers.
  */
 void state_params(struct state *, uint32_t *, uint64_t *);
 
@@ -37,7 +37,7 @@ int state_get(struct state *, struct proto_lbs_request *,
 /**
  * state_append(S, R, callback, cookie):
  * Perform the APPEND operation specified by the LBS protocol request ${R} on
- * the state ${S}.  Invoke ${callback}(${cookie}, ${R}, lastblk) when done.
+ * the state ${S}.  Invoke ${callback}(${cookie}, ${R}, nextblk) when done.
  */
 int state_append(struct state *, struct proto_lbs_request *,
     int (*)(void *, struct proto_lbs_request *, uint64_t), void *);

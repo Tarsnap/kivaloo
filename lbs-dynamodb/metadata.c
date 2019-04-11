@@ -7,17 +7,17 @@
 
 #include "metadata.h"
 
-/* Used for reading "lastblk" during initialization. */
-struct readlastblk {
-	uint64_t lastblk;
+/* Used for reading "nextblk" during initialization. */
+struct readnextblk {
+	uint64_t nextblk;
 	int done;
 };
 
 static int
-callback_readlastblk(void * cookie, int status,
+callback_readnextblk(void * cookie, int status,
     const uint8_t * buf, size_t len)
 {
-	struct readlastblk * R = cookie;
+	struct readnextblk * R = cookie;
 
 	/* Failures are bad. */
 	if (status == 1)
@@ -25,19 +25,19 @@ callback_readlastblk(void * cookie, int status,
 
 	/* Did the item exist? */
 	if (status == 2) {
-		/* That's fine; we have no blocks yet. */
-		R->lastblk = (uint64_t)(-1);
+		/* Nothing written yet?  We'll start at block #0. */
+		R->nextblk = 0;
 		goto done;
 	}
 
 	/* We should have 8 bytes. */
 	if (len != 8) {
-		warn0("lastblk has incorrect size: %zu", len);
+		warn0("nextblk has incorrect size: %zu", len);
 		goto err0;
 	}
 
 	/* Parse it. */
-	R->lastblk = be64dec(buf);
+	R->nextblk = be64dec(buf);
 
 done:
 	R->done = 1;
@@ -97,22 +97,22 @@ err0:
 }
 
 /**
- * metadata_lastblk_read(Q, lastblk):
- * Read the "lastblk" value.  This function may call events_run internally.
+ * metadata_nextblk_read(Q, nextblk):
+ * Read the "nextblk" value.  This function may call events_run internally.
  */
 int
-metadata_lastblk_read(struct wire_requestqueue * Q, uint64_t * lastblk)
+metadata_nextblk_read(struct wire_requestqueue * Q, uint64_t * nextblk)
 {
-	struct readlastblk R;
+	struct readnextblk R;
 
 	R.done = 0;
-	if (proto_dynamodb_kv_request_getc(Q, "lastblk",
-	    callback_readlastblk, &R) ||
+	if (proto_dynamodb_kv_request_getc(Q, "nextblk",
+	    callback_readnextblk, &R) ||
 	    events_spin(&R.done)) {
-		warnp("Error reading lastblk");
+		warnp("Error reading nextblk");
 		goto err0;
 	}
-	*lastblk = R.lastblk;
+	*nextblk = R.nextblk;
 
 	/* Success! */
 	return (0);
@@ -123,17 +123,17 @@ err0:
 }
 
 /**
- * metadata_lastblk_write(Q, lastblk, callback, cookie):
- * Store "lastblk" value.  Invoke ${callback}(${cookie}) on success.
+ * metadata_nextblk_write(Q, nextblk, callback, cookie):
+ * Store "nextblk" value.  Invoke ${callback}(${cookie}) on success.
  */
 int
-metadata_lastblk_write(struct wire_requestqueue * Q, uint64_t lastblk,
+metadata_nextblk_write(struct wire_requestqueue * Q, uint64_t nextblk,
     int (*callback)(void *, int), void * cookie)
 {
-	uint8_t lastblk_enc[8];
+	uint8_t nextblk_enc[8];
 
-	be64enc(lastblk_enc, lastblk);
-	if (proto_dynamodb_kv_request_put(Q, "lastblk", lastblk_enc, 8,
+	be64enc(nextblk_enc, nextblk);
+	if (proto_dynamodb_kv_request_put(Q, "nextblk", nextblk_enc, 8,
 	    callback, cookie))
 		goto err0;
 
@@ -146,7 +146,7 @@ err0:
 }
 
 /**
- * metadata_deletedto_read(Q, lastblk):
+ * metadata_deletedto_read(Q, deletedto):
  * Read the "deletedto" value.  This function may call events_run internally.
  */
 int

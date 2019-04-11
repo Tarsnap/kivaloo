@@ -18,7 +18,7 @@
 /* Internal state structure. */
 struct state {
 	uint32_t blklen;	/* Block size. */
-	uint64_t lastblk;	/* Last written block #. */
+	uint64_t nextblk;	/* Next block # to write. */
 	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
 	struct deleteto * D;	/* DeleteTo state. */
 	size_t npending;	/* Callbacks not performed yet. */
@@ -35,7 +35,7 @@ struct get_cookie {
 	int consistent;
 };
 
-int callback_append_put_lastblk(void *, int);
+int callback_append_put_nextblk(void *, int);
 int callback_append_put_blks(void *, int);
 int callback_append_put_finalblk(void *, int);
 
@@ -45,7 +45,7 @@ struct append_cookie {
 	int (* callback)(void *, struct proto_lbs_request *, uint64_t);
 	void * cookie;
 	uint64_t nblks_left;
-	uint64_t lastblk_new;
+	uint64_t nextblk_new;
 };
 
 /* Overhead per KV item: Item size minus block size. */
@@ -73,8 +73,8 @@ state_init(struct wire_requestqueue * Q_DDBKV,
 	S->blklen = itemsz - KVOVERHEAD;
 	S->npending = 0;
 
-	/* Read "lastblk"; we *might* have written up to here. */
-	if (metadata_lastblk_read(S->Q, &S->lastblk))
+	/* Read "nextblk"; we *might* have written anything prior to here. */
+	if (metadata_nextblk_read(S->Q, &S->nextblk))
 		goto err1;
 
 	/* Success! */
@@ -88,16 +88,16 @@ err0:
 }
 
 /**
- * state_params(S, blklen, lastblk):
- * Return the block size and last written block # via the provided pointers.
+ * state_params(S, blklen, nextblk):
+ * Return the block size and next block # to write via the provided pointers.
  */
 void
-state_params(struct state * S, uint32_t * blklen, uint64_t * lastblk)
+state_params(struct state * S, uint32_t * blklen, uint64_t * nextblk)
 {
 
 	/* Extract the requested fields from our internal state. */
 	*blklen = S->blklen;
-	*lastblk = S->lastblk;
+	*nextblk = S->nextblk;
 }
 
 /**
@@ -217,11 +217,11 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	C->callback = callback;
 	C->cookie = cookie;
 	C->nblks_left = R->r.append.nblks;
-	C->lastblk_new = S->lastblk + R->r.append.nblks;
+	C->nextblk_new = S->nextblk + R->r.append.nblks;
 
-	/* Store the new value of lastblk. */
-	if (metadata_lastblk_write(S->Q, C->lastblk_new,
-	    callback_append_put_lastblk, C))
+	/* Store the new value of nextblk. */
+	if (metadata_nextblk_write(S->Q, C->nextblk_new,
+	    callback_append_put_nextblk, C))
 		goto err1;
 
 	/* We will be performing a callback later. */
@@ -237,9 +237,9 @@ err0:
 	return (-1);
 }
 
-/* Callback when "lastblk" has been written. */
+/* Callback when "nextblk" has been written. */
 int
-callback_append_put_lastblk(void * cookie, int status)
+callback_append_put_nextblk(void * cookie, int status)
 {
 	struct append_cookie * C = cookie;
 	struct state * S = C->S;
@@ -248,14 +248,14 @@ callback_append_put_lastblk(void * cookie, int status)
 
 	/* Failures are bad. */
 	if (status) {
-		warn0("DynamoDB-KV failed storing \"lastblk\"");
+		warn0("DynamoDB-KV failed storing \"nextblk\"");
 		goto err0;
 	}
 
 	/* Store all the blocks except the last one. */
 	for (i = 0; i + 1 < R->r.append.nblks; i++) {
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->lastblk + 1 + i),
+		    objmap(S->nextblk + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_blks, C))
 			goto err0;
@@ -265,7 +265,7 @@ callback_append_put_lastblk(void * cookie, int status)
 	if (R->r.append.nblks == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->lastblk + 1 + i),
+		    objmap(S->nextblk + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_finalblk, C))
 			goto err0;
@@ -290,7 +290,7 @@ callback_append_put_blks(void * cookie, int status)
 
 	/* Failures are bad. */
 	if (status) {
-		warn0("DynamoDB-KV failed storing \"lastblk\"");
+		warn0("DynamoDB-KV failed storing data block");
 		goto err0;
 	}
 
@@ -304,7 +304,7 @@ callback_append_put_blks(void * cookie, int status)
 	if (C->nblks_left == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->lastblk + 1 + i),
+		    objmap(S->nextblk + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_finalblk, C))
 			goto err0;
@@ -331,15 +331,15 @@ callback_append_put_finalblk(void * cookie, int status)
 
 	/* Failures are bad. */
 	if (status) {
-		warn0("DynamoDB-KV failed storing \"lastblk\"");
+		warn0("DynamoDB-KV failed storing data block");
 		goto err1;
 	}
 
-	/* Update the last-block value. */
-	S->lastblk = C->lastblk_new;
+	/* Update the next-block-to-write value. */
+	S->nextblk = C->nextblk_new;
 
 	/* Tell the dispatcher to send its response back. */
-	rc = (C->callback)(C->cookie, C->R, S->lastblk);
+	rc = (C->callback)(C->cookie, C->R, S->nextblk);
 
 	/* We've done a callback. */
 	S->npending -= 1;

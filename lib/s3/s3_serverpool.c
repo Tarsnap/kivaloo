@@ -106,7 +106,6 @@ s3_serverpool_add(struct s3_serverpool * SP,
 err1:
 	free(ep.sa);
 err0:
-	abort();
 	/* Failure! */
 	return (-1);
 }

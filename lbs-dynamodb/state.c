@@ -45,7 +45,7 @@ struct append_cookie {
 	int (* callback)(void *, struct proto_lbs_request *, uint64_t);
 	void * cookie;
 	uint64_t nblks_left;
-	uint64_t nextblk_new;
+	uint64_t nextblk_old;
 };
 
 /* Overhead per KV item: Item size minus block size. */
@@ -217,10 +217,11 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	C->callback = callback;
 	C->cookie = cookie;
 	C->nblks_left = R->r.append.nblks;
-	C->nextblk_new = S->nextblk + R->r.append.nblks;
-
-	/* Store the new value of nextblk. */
-	if (metadata_nextblk_write(S->Q, C->nextblk_new,
+	C->nextblk_old = S->nextblk;
+	
+	/* Update nextblk. */
+	S->nextblk += R->r.append.nblks;
+	if (metadata_nextblk_write(S->Q, S->nextblk,
 	    callback_append_put_nextblk, C))
 		goto err1;
 
@@ -255,7 +256,7 @@ callback_append_put_nextblk(void * cookie, int status)
 	/* Store all the blocks except the last one. */
 	for (i = 0; i + 1 < R->r.append.nblks; i++) {
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->nextblk + i),
+		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_blks, C))
 			goto err0;
@@ -265,7 +266,7 @@ callback_append_put_nextblk(void * cookie, int status)
 	if (R->r.append.nblks == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->nextblk + i),
+		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_finalblk, C))
 			goto err0;
@@ -304,7 +305,7 @@ callback_append_put_blks(void * cookie, int status)
 	if (C->nblks_left == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->nextblk + i),
+		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_finalblk, C))
 			goto err0;
@@ -334,9 +335,6 @@ callback_append_put_finalblk(void * cookie, int status)
 		warn0("DynamoDB-KV failed storing data block");
 		goto err1;
 	}
-
-	/* Update the next-block-to-write value. */
-	S->nextblk = C->nextblk_new;
 
 	/* Tell the dispatcher to send its response back. */
 	rc = (C->callback)(C->cookie, C->R, S->nextblk);

@@ -9,6 +9,7 @@
 #include "daemonize.h"
 #include "events.h"
 #include "getopt.h"
+#include "insecure_memzero.h"
 #include "logging.h"
 #include "s3_request_queue.h"
 #include "sock.h"
@@ -263,7 +264,7 @@ main(int argc, char * argv[])
 
 	/* Free key strings. */
 	free(s3_key_id);
-	memset(s3_key_secret, 0, strlen(s3_key_secret));
+	insecure_memzero(s3_key_secret, strlen(s3_key_secret));
 	free(s3_key_secret);
 
 	/* Free option strings. */

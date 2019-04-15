@@ -49,7 +49,7 @@ static int
 addaddr(struct serverpool * P, struct sock_addr * sa)
 {
 	struct serverpool_addr SPA;
-	struct serverpool_addr * SPAp = &SPA;
+	struct serverpool_addr * SPAp;
 	size_t i;
 
 	/* Do we already have this address? */
@@ -58,7 +58,7 @@ addaddr(struct serverpool * P, struct sock_addr * sa)
 		if (sock_addr_cmp(sa, SPAp->sa) == 0) {
 			/* Update EOL and generation number. */
 			if (monoclock_get(&SPAp->eol))
-				goto err1;
+				goto err0;
 			SPAp->eol.tv_sec += P->ttl;
 			SPAp->generation = P->generation;
 

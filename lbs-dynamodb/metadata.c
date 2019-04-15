@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "events.h"
 #include "proto_dynamodb_kv.h"
@@ -6,6 +7,33 @@
 #include "warnp.h"
 
 #include "metadata.h"
+
+/* Internal state. */
+struct metadata {
+	struct wire_requestqueue * Q;
+};
+
+/**
+ * metadata_init(Q):
+ * Prepare for metadata operations using the queue ${Q}.
+ */
+struct metadata *
+metadata_init(struct wire_requestqueue * Q)
+{
+	struct metadata * M;
+
+	/* Bake a cookie. */
+	if ((M = malloc(sizeof(struct metadata))) == NULL)
+		goto err0;
+	M->Q = Q;
+
+	/* Success! */
+	return (M);
+
+err0:
+	/* Failure! */
+	return (NULL);
+}
 
 /* Used for reading "nextblk" during initialization. */
 struct readnextblk {
@@ -97,16 +125,16 @@ err0:
 }
 
 /**
- * metadata_nextblk_read(Q, nextblk):
+ * metadata_nextblk_read(M, nextblk):
  * Read the "nextblk" value.  This function may call events_run internally.
  */
 int
-metadata_nextblk_read(struct wire_requestqueue * Q, uint64_t * nextblk)
+metadata_nextblk_read(struct metadata * M, uint64_t * nextblk)
 {
 	struct readnextblk R;
 
 	R.done = 0;
-	if (proto_dynamodb_kv_request_getc(Q, "nextblk",
+	if (proto_dynamodb_kv_request_getc(M->Q, "nextblk",
 	    callback_readnextblk, &R) ||
 	    events_spin(&R.done)) {
 		warnp("Error reading nextblk");
@@ -123,17 +151,17 @@ err0:
 }
 
 /**
- * metadata_nextblk_write(Q, nextblk, callback, cookie):
+ * metadata_nextblk_write(M, nextblk, callback, cookie):
  * Store "nextblk" value.  Invoke ${callback}(${cookie}) on success.
  */
 int
-metadata_nextblk_write(struct wire_requestqueue * Q, uint64_t nextblk,
+metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
     int (*callback)(void *, int), void * cookie)
 {
 	uint8_t nextblk_enc[8];
 
 	be64enc(nextblk_enc, nextblk);
-	if (proto_dynamodb_kv_request_put(Q, "nextblk", nextblk_enc, 8,
+	if (proto_dynamodb_kv_request_put(M->Q, "nextblk", nextblk_enc, 8,
 	    callback, cookie))
 		goto err0;
 
@@ -146,16 +174,16 @@ err0:
 }
 
 /**
- * metadata_deletedto_read(Q, deletedto):
+ * metadata_deletedto_read(M, deletedto):
  * Read the "deletedto" value.  This function may call events_run internally.
  */
 int
-metadata_deletedto_read(struct wire_requestqueue * Q, uint64_t * deletedto)
+metadata_deletedto_read(struct metadata * M, uint64_t * deletedto)
 {
 	struct readdeletedto R;
 
 	R.done = 0;
-	if (proto_dynamodb_kv_request_get(Q, "DeletedTo",
+	if (proto_dynamodb_kv_request_get(M->Q, "DeletedTo",
 	    callback_deletedto_get, &R) ||
 	    events_spin(&R.done))
 		goto err0;
@@ -170,17 +198,17 @@ err0:
 }
 
 /**
- * metadata_deletedto_write(Q, deletedto, callback, cookie):
+ * metadata_deletedto_write(M, deletedto, callback, cookie):
  * Store "deletedto" value.  Invoke ${callback}(${cookie}) on success.
  */
 int
-metadata_deletedto_write(struct wire_requestqueue * Q, uint64_t deletedto,
+metadata_deletedto_write(struct metadata * M, uint64_t deletedto,
     int (*callback)(void *, int), void * cookie)
 {
 	uint8_t deletedto_enc[8];
 
 	be64enc(deletedto_enc, deletedto);
-	if (proto_dynamodb_kv_request_put(Q, "DeletedTo", deletedto_enc, 8,
+	if (proto_dynamodb_kv_request_put(M->Q, "DeletedTo", deletedto_enc, 8,
 	    callback, cookie))
 		goto err0;
 
@@ -190,4 +218,20 @@ metadata_deletedto_write(struct wire_requestqueue * Q, uint64_t deletedto,
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * metadata_free(M):
+ * Stop metadata operations.
+ */
+void
+metadata_free(struct metadata * M)
+{
+
+	/* Behave consistently with free(NULL). */
+	if (M == NULL)
+		return;
+
+	/* Free our structure. */
+	free(M);
 }

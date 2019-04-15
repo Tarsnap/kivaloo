@@ -14,6 +14,7 @@
 
 #include "deleteto.h"
 #include "dispatch.h"
+#include "metadata.h"
 #include "state.h"
 
 static void
@@ -37,6 +38,7 @@ main(int argc, char * argv[])
 {
 	/* State variables. */
 	struct wire_requestqueue * Q_DDBKV;
+	struct metadata * M;
 	struct deleteto * deleter;
 	struct state * S;
 	struct dispatch_state * D;
@@ -156,14 +158,20 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 
+	/* Create a metadata handler. */
+	if ((M = metadata_init(Q_DDBKV)) == NULL) {
+		warnp("Error initializing state metadata handler");
+		exit(1);
+	}
+
 	/* Create a deleter. */
-	if ((deleter = deleteto_init(Q_DDBKV)) == NULL) {
+	if ((deleter = deleteto_init(Q_DDBKV, M)) == NULL) {
 		warnp("Error initializing garbage collection");
 		exit(1);
 	}
 
 	/* Initialize the internal state. */
-	if ((S = state_init(Q_DDBKV, opt_b, deleter)) == NULL) {
+	if ((S = state_init(Q_DDBKV, opt_b, M)) == NULL) {
 		warnp("Error initializing state from DynamoDB");
 		exit(1);
 	}
@@ -183,7 +191,7 @@ main(int argc, char * argv[])
 	/* Handle connections, one at once. */
 	do {
 		/* Accept a connection. */
-		if ((D = dispatch_accept(S, s)) == NULL)
+		if ((D = dispatch_accept(S, deleter, s)) == NULL)
 			exit(1);
 
 		/* Loop until the connection dies. */
@@ -207,6 +215,9 @@ main(int argc, char * argv[])
 	 * encounter an error at this point).
 	 */
 	deleteto_stop(deleter);
+
+	/* Shut down the metadata handler. */
+	metadata_free(M);
 
 	/* Shut down the dynamodb-kv request queue. */
 	wire_requestqueue_destroy(Q_DDBKV);

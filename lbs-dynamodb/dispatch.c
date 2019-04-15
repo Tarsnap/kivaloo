@@ -9,6 +9,7 @@
 #include "warnp.h"
 #include "wire.h"
 
+#include "deleteto.h"
 #include "state.h"
 
 #include "dispatch.h"
@@ -17,6 +18,7 @@
 struct dispatch_state {
 	/* Internal state. */
 	struct state * S;
+	struct deleteto * D;
 
 	/* Connection management. */
 	int accepting;			/* We are waiting for a connection. */
@@ -124,7 +126,7 @@ gotrequest(void * cookie, int status)
 				goto err1;
 			break;
 		case PROTO_LBS_FREE:
-			if (state_gc(D->S, R->r.free.blkno))
+			if (deleteto_deleteto(D->D, R->r.free.blkno))
 				goto err1;
 			if (proto_lbs_response_free(D->writeq, R->ID))
 				goto err1;
@@ -220,12 +222,13 @@ callback_append(void * cookie, struct proto_lbs_request * R, uint64_t nextblk)
 }
 
 /**
- * dispatch_accept(S, s):
+ * dispatch_accept(S, deleteto, s):
  * Accept a connection from the listening socket ${s} and return a dispatch
- * state for handling requests to the internal state ${S}.
+ * state for handling requests to the internal state ${S} and the deleter
+ * ${deleteto}.
  */
 struct dispatch_state *
-dispatch_accept(struct state * S, int s)
+dispatch_accept(struct state * S, struct deleteto * deleteto, int s)
 {
 	struct dispatch_state * D;
 
@@ -235,6 +238,7 @@ dispatch_accept(struct state * S, int s)
 
 	/* Initialize dispatcher. */
 	D->S = S;
+	D->D = deleteto;
 
 	/* Accept a connection. */
 	D->accepting = 1;

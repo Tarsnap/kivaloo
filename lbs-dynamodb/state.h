@@ -2,20 +2,20 @@
 #define _STATE_H_
 
 /* Opaque types. */
-struct deleteto;
+struct metadata;
 struct proto_lbs_request;
 struct wire_requestqueue;
 
-/**
- * state_init(Q_DDBKV, itemsz, D):
+/*
+ * state_init(Q_DDBKV, itemsz, M):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
  * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
- * DeleteTo state ${D} for handling garbage collection requests.  Return a
- * state which can be passed to other state_* functions.  This function may
- * call events_run internally.
+ * metadata handler ${M} to handle metadata.  Return a state which can be
+ * passed to other state_* functions.  This function may call events_run
+ * internally.
  */
 struct state * state_init(struct wire_requestqueue *, size_t,
-    struct deleteto *);
+    struct metadata *);
 
 /**
  * state_params(S, blklen, nextblk):
@@ -41,13 +41,6 @@ int state_get(struct state *, struct proto_lbs_request *,
  */
 int state_append(struct state *, struct proto_lbs_request *,
     int (*)(void *, struct proto_lbs_request *, uint64_t), void *);
-
-/**
- * state_gc(S, blkno):
- * Garbage collect (or mark as available for garbage collection) all blocks
- * less than ${blkno} in the state ${S}.
- */
-int state_gc(struct state *, uint64_t);
 
 /**
  * state_free(S):

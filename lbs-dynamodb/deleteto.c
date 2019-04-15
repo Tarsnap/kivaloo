@@ -12,6 +12,7 @@
 
 struct deleteto {
 	struct wire_requestqueue * Q;
+	struct metadata * MD;
 	uint64_t N;	/* Delete objects below this number. */
 	uint64_t M;	/* We've issued deletes up to this number. */
 	size_t npending;	/* Operations in progress. */
@@ -23,12 +24,13 @@ struct deleteto {
 static int callback_done(void *, int);
 
 /**
- * deleteto_init(Q_DDBKV):
+ * deleteto_init(Q_DDBKV, M):
  * Initialize the deleter to operate via the DynamoDB-KV daemon connected to
- * ${Q_DDBKV}.  This function may call events_run internally.
+ * ${Q_DDBKV} and the metadata handler M.  This function may call events_run
+ * internally.
  */
 struct deleteto *
-deleteto_init(struct wire_requestqueue * Q_DDBKV)
+deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
 {
 	struct deleteto * D;
 
@@ -36,6 +38,7 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV)
 	if ((D = malloc(sizeof(struct deleteto))) == NULL)
 		goto err0;
 	D->Q = Q_DDBKV;
+	D->MD = M;
 	D->N = 0;
 	D->npending = 0;
 	D->updateDeletedTo = 0;
@@ -43,7 +46,7 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV)
 	D->shutdown = 0;
 
 	/* Read "DeletedTo" into M. */
-	if (metadata_deletedto_read(D->Q, &D->M))
+	if (metadata_deletedto_read(D->MD, &D->M))
 		goto err1;
 
 	/* Success! */
@@ -70,7 +73,7 @@ poke(struct deleteto * D)
 	 * progress, we're guaranteed to have deleted everything below M.
 	 */
 	if (D->updateDeletedTo) {
-		if (metadata_deletedto_write(D->Q, D->M, callback_done, D))
+		if (metadata_deletedto_write(D->MD, D->M, callback_done, D))
 			goto err0;
 		D->npending++;
 		D->updateDeletedTo = 0;

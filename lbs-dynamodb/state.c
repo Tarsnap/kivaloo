@@ -10,7 +10,7 @@
 #include "warnp.h"
 #include "wire.h"
 
-#include "deleteto.h"
+#include "metadata.h"
 #include "objmap.h"
 
 #include "state.h"
@@ -20,7 +20,7 @@ struct state {
 	uint32_t blklen;	/* Block size. */
 	uint64_t nextblk;	/* Next block # to write. */
 	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
-	struct deleteto * D;	/* DeleteTo state. */
+	struct metadata * M;	/* Metadata handler. */
 	size_t npending;	/* Callbacks not performed yet. */
 };
 
@@ -52,16 +52,16 @@ struct append_cookie {
 #define KVOVERHEAD 18
 
 /**
- * state_init(Q_DDBKV, itemsz, D):
+ * state_init(Q_DDBKV, itemsz, M):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
  * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
- * DeleteTo state ${D} for handling garbage collection requests.  Return a
- * state which can be passed to other state_* functions.  This function may
- * call events_run internally.
+ * metadata handler ${M} to handle metadata.  Return a state which can be
+ * passed to other state_* functions.  This function may call events_run
+ * internally.
  */
 struct state *
-state_init(struct wire_requestqueue * Q_DDBKV,
-    size_t itemsz, struct deleteto * D)
+state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
+    struct metadata * M)
 {
 	struct state * S;
 
@@ -69,12 +69,12 @@ state_init(struct wire_requestqueue * Q_DDBKV,
 	if ((S = malloc(sizeof(struct state))) == NULL)
 		goto err0;
 	S->Q = Q_DDBKV;
-	S->D = D;
+	S->M = M;
 	S->blklen = itemsz - KVOVERHEAD;
 	S->npending = 0;
 
 	/* Read "nextblk"; we *might* have written anything prior to here. */
-	if (metadata_nextblk_read(S->Q, &S->nextblk))
+	if (metadata_nextblk_read(S->M, &S->nextblk))
 		goto err1;
 
 	/* Success! */
@@ -221,7 +221,7 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	
 	/* Update nextblk. */
 	S->nextblk += R->r.append.nblks;
-	if (metadata_nextblk_write(S->Q, S->nextblk,
+	if (metadata_nextblk_write(S->M, S->nextblk,
 	    callback_append_put_nextblk, C))
 		goto err1;
 
@@ -353,19 +353,6 @@ err1:
 
 	/* Failure! */
 	return (-1);
-}
-
-/**
- * state_gc(S, blkno):
- * Garbage collect (or mark as available for garbage collection) all blocks
- * less than ${blkno} in the state ${S}.
- */
-int
-state_gc(struct state * S, uint64_t blkno)
-{
-
-	/* Pass this along to the deleter. */
-	return (deleteto_deleteto(S->D, blkno));
 }
 
 /**

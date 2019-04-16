@@ -9,13 +9,14 @@ struct metadata;
 
 /**
  * metadata_init(Q):
- * Prepare for metadata operations using the queue ${Q}.
+ * Prepare for metadata operations using the queue ${Q}.  This function may
+ * call events_run internally.
  */
 struct metadata * metadata_init(struct wire_requestqueue *);
 
 /**
  * metadata_nextblk_read(M, nextblk):
- * Read the "nextblk" value.  This function may call events_run internally.
+ * Read the "nextblk" value.
  */
 int metadata_nextblk_read(struct metadata *, uint64_t *);
 
@@ -28,7 +29,7 @@ int metadata_nextblk_write(struct metadata *, uint64_t,
 
 /**
  * metadata_deletedto_read(M, deletedto):
- * Read the "deletedto" value.  This function may call events_run internally.
+ * Read the "deletedto" value.
  */
 int metadata_deletedto_read(struct metadata *, uint64_t *);
 

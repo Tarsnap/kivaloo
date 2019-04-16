@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -13,20 +14,22 @@ struct metadata {
 	struct wire_requestqueue * Q;
 	uint64_t nextblk;
 	uint64_t deletedto;
+	int (* callback_nextblk)(void *, int);
+	void * cookie_nextblk;
+	int (* callback_deletedto)(void *, int);
+	void * cookie_deletedto;
+	int callbacks;
+#define CB_NEXTBLK 1
+#define CB_DELETEDTO 2
+	void * timer_cookie;
 };
 
-static int callback_readnextblk(void *, int, const uint8_t *, size_t);
-static int callback_deletedto_get(void *, int, const uint8_t *, size_t);
+static int callback_readmetadata(void *, int, const uint8_t *, size_t);
+static int callback_writemetadata(void *, int);
 
-/* Used for reading "nextblk" during initialization. */
-struct readnextblk {
-	uint64_t nextblk;
-	int done;
-};
-
-/* Used for reading "DeletedTo" during initialization. */
-struct readdeletedto {
-	uint64_t deletedto;
+/* Used for reading metadata during initialization. */
+struct readmetadata {
+	struct metadata * M;
 	int done;
 };
 
@@ -39,31 +42,30 @@ struct metadata *
 metadata_init(struct wire_requestqueue * Q)
 {
 	struct metadata * M;
-	struct readnextblk R;
-	struct readdeletedto R2;
+	struct readmetadata R;
 
 	/* Bake a cookie. */
 	if ((M = malloc(sizeof(struct metadata))) == NULL)
 		goto err0;
 	M->Q = Q;
 
-	/* Read nextblk. */
+	/* Read metadata. */
 	R.done = 0;
-	if (proto_dynamodb_kv_request_getc(M->Q, "nextblk",
-	    callback_readnextblk, &R) ||
+	R.M = M;
+	if (proto_dynamodb_kv_request_getc(M->Q, "metadata",
+	    callback_readmetadata, &R) ||
 	    events_spin(&R.done)) {
-		warnp("Error reading nextblk");
+		warnp("Error reading LBS metadata");
 		goto err0;
 	}
-	M->nextblk = R.nextblk;
 
-	/* Read deletedto. */
-	R2.done = 0;
-	if (proto_dynamodb_kv_request_get(M->Q, "DeletedTo",
-	    callback_deletedto_get, &R2) ||
-	    events_spin(&R2.done))
-		goto err0;
-	M->deletedto = R2.deletedto;
+	/* Nothing in progress yet. */
+	M->callback_nextblk = NULL;
+	M->cookie_nextblk = NULL;
+	M->callback_deletedto = NULL;
+	M->cookie_deletedto = NULL;
+	M->callbacks = 0;
+	M->timer_cookie = NULL;
 
 	/* Success! */
 	return (M);
@@ -74,10 +76,11 @@ err0:
 }
 
 static int
-callback_readnextblk(void * cookie, int status,
+callback_readmetadata(void * cookie, int status,
     const uint8_t * buf, size_t len)
 {
-	struct readnextblk * R = cookie;
+	struct readmetadata * R = cookie;
+	struct metadata * M = R->M;
 
 	/* Failures are bad. */
 	if (status == 1)
@@ -85,19 +88,24 @@ callback_readnextblk(void * cookie, int status,
 
 	/* Did the item exist? */
 	if (status == 2) {
-		/* Nothing written yet?  We'll start at block #0. */
-		R->nextblk = 0;
+		/*
+		 * If we have no metadata, we have no data: The next block
+		 * is block 0, and everything below block 0 has been deleted.
+		 */
+		M->nextblk = 0;
+		M->deletedto = 0;
 		goto done;
 	}
 
-	/* We should have 8 bytes. */
-	if (len != 8) {
-		warn0("nextblk has incorrect size: %zu", len);
+	/* We should have 16 bytes. */
+	if (len != 16) {
+		warn0("metadata has incorrect size: %zu", len);
 		goto err0;
 	}
 
 	/* Parse it. */
-	R->nextblk = be64dec(buf);
+	M->nextblk = be64dec(&buf[0]);
+	M->deletedto = be64dec(&buf[8]);
 
 done:
 	R->done = 1;
@@ -110,37 +118,89 @@ err0:
 	return (-1);
 }
 
-/* Callback for reading DeletedTo. */
 static int
-callback_deletedto_get(void * cookie, int status,
-    const uint8_t * buf, size_t len)
+writemetadata(struct metadata * M)
 {
-	struct readdeletedto * D = cookie;
+	uint8_t buf[16];
 
-	/* Failures are bad. */
-	if (status == 1) {
-		warn0("Error reading DeletedTo");
-		goto err0;
+	/* If we have a timer in progress, cancel it. */
+	if (M->timer_cookie != NULL) {
+		events_timer_cancel(M->timer_cookie);
+		M->timer_cookie = NULL;
 	}
 
-	/* Did the item exist? */
-	if (status == 2) {
-		/* That's fine; we haven't deleted anything yet. */
-		D->deletedto = 0;
-		goto done;
+	/* Encode metadata. */
+	be64enc(&buf[0], M->nextblk);
+	be64enc(&buf[8], M->deletedto);
+
+	/* Record which callbacks to perform later. */
+	if (M->callback_nextblk)
+		M->callbacks += CB_NEXTBLK;
+	if (M->callback_deletedto)
+		M->callbacks += CB_DELETEDTO;
+
+	/* Write metadata. */
+	return (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 16,
+	    callback_writemetadata, M));
+}
+
+static int
+callback_writemetadata(void * _M, int status)
+{
+	struct metadata * M = _M;
+	int (* callback)(void *, int);
+	void * cookie;
+	int rc = 0;
+	int rc2;
+
+	/* Perform callbacks as appropriate. */
+	if (M->callbacks & CB_NEXTBLK) {
+		callback = M->callback_nextblk;
+		cookie = M->cookie_nextblk;
+		M->callback_nextblk = NULL;
+		M->cookie_nextblk = NULL;
+		if ((rc2 = (callback)(cookie, status)) != 0)
+			rc = rc2;
+	}
+	if (M->callbacks & CB_DELETEDTO) {
+		callback = M->callback_deletedto;
+		cookie = M->cookie_deletedto;
+		M->callback_deletedto = NULL;
+		M->cookie_deletedto = NULL;
+		if ((rc2 = (callback)(cookie, status)) != 0)
+			rc = rc2;
 	}
 
-	/* We should have 8 bytes. */
-	if (len != 8) {
-		warn0("DeletedTo has incorrect size: %zu", len);
-		goto err0;
+	/* All callbacks have been performed. */
+	M->callbacks = 0;
+
+	/*
+	 * Start another write if we have a new value of nextblk, or if we
+	 * have a new value of deletedto and the timer has expired.
+	 */
+	if ((M->callback_nextblk != NULL) ||
+	    ((M->callback_deletedto != NULL) && (M->timer_cookie == NULL))) {
+		if ((rc2 = writemetadata(M)) != 0)
+			rc = rc2;
 	}
 
-	/* Parse it. */
-	D->deletedto = be64dec(buf);
+	/* Return status from callbacks or writemetadata. */
+	return (rc);
+}
 
-done:
-	D->done = 1;
+static int
+callback_timer(void * cookie)
+{
+	struct metadata * M = cookie;
+
+	/* This callback is no longer pending. */
+	M->timer_cookie = NULL;
+
+	/* Write metadata if a write is not already in progress. */
+	if (M->callbacks == 0) {
+		if (writemetadata(M))
+			goto err0;
+	}
 
 	/* Success! */
 	return (0);
@@ -174,11 +234,19 @@ metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
 {
 	uint8_t nextblk_enc[8];
 
+	/* We shouldn't be storing nextblk already. */
+	assert(M->callback_nextblk == NULL);
+
+	/* Record the new value and callback parameters. */
 	M->nextblk = nextblk;
-	be64enc(nextblk_enc, nextblk);
-	if (proto_dynamodb_kv_request_put(M->Q, "nextblk", nextblk_enc, 8,
-	    callback, cookie))
-		goto err0;
+	M->callback_nextblk = callback;
+	M->cookie_nextblk = cookie;
+
+	/* Write metadata if a write is not already in progress. */
+	if (M->callbacks == 0) {
+		if (writemetadata(M))
+			goto err0;
+	}
 
 	/* Success! */
 	return (0);
@@ -212,10 +280,17 @@ metadata_deletedto_write(struct metadata * M, uint64_t deletedto,
 {
 	uint8_t deletedto_enc[8];
 
+	/* We shouldn't be storing deletedto already. */
+	assert(M->callback_deletedto == NULL);
+
+	/* Record the new value and callback parameters. */
 	M->deletedto = deletedto;
-	be64enc(deletedto_enc, deletedto);
-	if (proto_dynamodb_kv_request_put(M->Q, "DeletedTo", deletedto_enc, 8,
-	    callback, cookie))
+	M->callback_deletedto = callback;
+	M->cookie_deletedto = cookie;
+
+	/* Write metadata in 1 second if not triggered previously. */
+	if ((M->timer_cookie =
+	    events_timer_register_double(callback_timer, M, 1.0)) == NULL)
 		goto err0;
 
 	/* Success! */
@@ -237,6 +312,11 @@ metadata_free(struct metadata * M)
 	/* Behave consistently with free(NULL). */
 	if (M == NULL)
 		return;
+
+	/* We shouldn't have any updates or callbacks in flight. */
+	assert(M->callback_nextblk == NULL);
+	assert(M->callback_deletedto == NULL);
+	assert(M->timer_cookie == NULL);
 
 	/* Free our structure. */
 	free(M);

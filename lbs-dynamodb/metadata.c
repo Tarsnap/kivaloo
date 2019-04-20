@@ -29,50 +29,29 @@ static int callback_writemetadata(void *, int);
 
 /* Used for reading metadata during initialization. */
 struct readmetadata {
-	struct metadata * M;
+	uint64_t nextblk;
+	uint64_t deletedto;
 	int done;
 };
 
-/**
- * metadata_init(Q):
- * Prepare for metadata operations using the queue ${Q}.  This function may
- * call events_run internally.
- */
-struct metadata *
-metadata_init(struct wire_requestqueue * Q)
+static int
+readmetadata(struct wire_requestqueue * Q, struct readmetadata * R)
 {
-	struct metadata * M;
-	struct readmetadata R;
 
-	/* Bake a cookie. */
-	if ((M = malloc(sizeof(struct metadata))) == NULL)
-		goto err0;
-	M->Q = Q;
-
-	/* Read metadata. */
-	R.done = 0;
-	R.M = M;
-	if (proto_dynamodb_kv_request_getc(M->Q, "metadata",
-	    callback_readmetadata, &R) ||
-	    events_spin(&R.done)) {
+	R->done = 0;
+	if (proto_dynamodb_kv_request_getc(Q, "metadata",
+	    callback_readmetadata, R) ||
+	    events_spin(&R->done)) {
 		warnp("Error reading LBS metadata");
 		goto err0;
 	}
 
-	/* Nothing in progress yet. */
-	M->callback_nextblk = NULL;
-	M->cookie_nextblk = NULL;
-	M->callback_deletedto = NULL;
-	M->cookie_deletedto = NULL;
-	M->callbacks = 0;
-	M->timer_cookie = NULL;
-
 	/* Success! */
-	return (M);
+	return (0);
 
 err0:
 	/* Failure! */
-	return (NULL);
+	return (-1);
 }
 
 static int
@@ -80,7 +59,6 @@ callback_readmetadata(void * cookie, int status,
     const uint8_t * buf, size_t len)
 {
 	struct readmetadata * R = cookie;
-	struct metadata * M = R->M;
 
 	/* Failures are bad. */
 	if (status == 1)
@@ -92,8 +70,8 @@ callback_readmetadata(void * cookie, int status,
 		 * If we have no metadata, we have no data: The next block
 		 * is block 0, and everything below block 0 has been deleted.
 		 */
-		M->nextblk = 0;
-		M->deletedto = 0;
+		R->nextblk = 0;
+		R->deletedto = 0;
 		goto done;
 	}
 
@@ -104,8 +82,8 @@ callback_readmetadata(void * cookie, int status,
 	}
 
 	/* Parse it. */
-	M->nextblk = be64dec(&buf[0]);
-	M->deletedto = be64dec(&buf[8]);
+	R->nextblk = be64dec(&buf[0]);
+	R->deletedto = be64dec(&buf[8]);
 
 done:
 	R->done = 1;
@@ -208,6 +186,44 @@ callback_timer(void * cookie)
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/**
+ * metadata_init(Q):
+ * Prepare for metadata operations using the queue ${Q}.  This function may
+ * call events_run internally.
+ */
+struct metadata *
+metadata_init(struct wire_requestqueue * Q)
+{
+	struct metadata * M;
+	struct readmetadata R;
+
+	/* Bake a cookie. */
+	if ((M = malloc(sizeof(struct metadata))) == NULL)
+		goto err0;
+	M->Q = Q;
+
+	/* Read metadata. */
+	if (readmetadata(Q, &R))
+		goto err0;
+	M->nextblk = R.nextblk;
+	M->deletedto = R.deletedto;
+
+	/* Nothing in progress yet. */
+	M->callback_nextblk = NULL;
+	M->cookie_nextblk = NULL;
+	M->callback_deletedto = NULL;
+	M->cookie_deletedto = NULL;
+	M->callbacks = 0;
+	M->timer_cookie = NULL;
+
+	/* Success! */
+	return (M);
+
+err0:
+	/* Failure! */
+	return (NULL);
 }
 
 /**

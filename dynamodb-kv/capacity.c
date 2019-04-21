@@ -215,7 +215,7 @@ capacity_init(const char * key_id, const char * key_secret,
 
 	/* Start reading table metadata. */
 	if (readmetadata(M))
-		goto err0;
+		goto err3;
 
 	/* Wait for reply. */
 	if (events_spin(&M->done))
@@ -224,6 +224,8 @@ capacity_init(const char * key_id, const char * key_secret,
 	/* Success! */
 	return (M);
 
+err3:
+	insecure_memzero(M->key_secret, strlen(M->key_secret));
 err2:
 	free(M->key_id);
 err1:

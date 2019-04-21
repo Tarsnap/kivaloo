@@ -214,7 +214,11 @@ capacity_init(const char * key_id, const char * key_secret,
 	M->done = 0;
 
 	/* Start reading table metadata. */
-	if (readmetadata(M) || events_spin(&M->done))
+	if (readmetadata(M))
+		goto err0;
+
+	/* Wait for reply. */
+	if (events_spin(&M->done))
 		goto err0;
 
 	/* Success! */

@@ -43,7 +43,9 @@ else
 fi
 
 # Let kvlds delete old pages before we shut down
-sleep 1800
+while find ${LOGFILE} -mtime -5s | grep -q .; do
+	sleep 1
+done
 
 # Shut down kvlds; other daemons should shut down automatically
 kill `cat $SOCKK.pid`

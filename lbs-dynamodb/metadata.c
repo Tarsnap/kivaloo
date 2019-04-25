@@ -301,7 +301,6 @@ int
 metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
     int (*callback)(void *, int), void * cookie)
 {
-	uint8_t nextblk_enc[8];
 
 	/* We shouldn't be storing nextblk already. */
 	assert(M->callback_nextblk == NULL);
@@ -347,7 +346,6 @@ int
 metadata_deletedto_write(struct metadata * M, uint64_t deletedto,
     int (*callback)(void *, int), void * cookie)
 {
-	uint8_t deletedto_enc[8];
 
 	/* We shouldn't be storing deletedto already. */
 	assert(M->callback_deletedto == NULL);

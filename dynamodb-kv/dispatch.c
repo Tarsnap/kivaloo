@@ -94,7 +94,7 @@ dropconnection(void * cookie)
 	}
 
 	/*
-	 * Flush the DynamoBD request queues: If the connection is dying,
+	 * Flush the DynamoDB request queues: If the connection is dying,
 	 * we won't be able to send responses back, so there's no point
 	 * processing the requests in the first place.
 	 */

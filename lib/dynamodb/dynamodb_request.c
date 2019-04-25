@@ -62,7 +62,7 @@ dynamodb_request(struct sock_addr * const * addrs, const char * key_id,
 	if (asprintf(&content_length, "%zu", bodylen) ==  -1)
 		goto err3;
 
-	/* Construct HTTP request struccture. */
+	/* Construct HTTP request structure. */
 	RH.method = "POST";
 	RH.path = "/";
 	RH.bodylen = bodylen;

@@ -4,16 +4,25 @@
 #include <string.h>
 
 #include "events.h"
+#include "metadata.h"
 #include "proto_lbs.h"
 #include "proto_dynamodb_kv.h"
-#include "sysendian.h"
 #include "warnp.h"
 #include "wire.h"
 
-#include "deleteto.h"
+#include "metadata.h"
 #include "objmap.h"
 
 #include "state.h"
+
+/* Internal state structure. */
+struct state {
+	uint32_t blklen;	/* Block size. */
+	uint64_t nextblk;	/* Next block # to write. */
+	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
+	struct metadata * M;	/* Metadata handler. */
+	size_t npending;	/* Callbacks not performed yet. */
+};
 
 static int callback_get(void *, int, const uint8_t *, size_t);
 
@@ -26,96 +35,47 @@ struct get_cookie {
 	int consistent;
 };
 
-int callback_append_put_lastblk(void *, int);
+int callback_append_put_nextblk(void *, int);
 int callback_append_put_blks(void *, int);
 int callback_append_put_finalblk(void *, int);
 
 struct append_cookie {
 	struct state * S;
 	struct proto_lbs_request * R;
-	int (* callback)(void *, struct proto_lbs_request *);
+	int (* callback)(void *, struct proto_lbs_request *, uint64_t);
 	void * cookie;
 	uint64_t nblks_left;
-	uint64_t lastblk_new;
+	uint64_t nextblk_old;
 };
 
 /* Overhead per KV item: Item size minus block size. */
 #define KVOVERHEAD 18
 
-/* Used for reading "lastblk" during initialization. */
-struct readlastblk {
-	uint64_t lastblk;
-	int done;
-};
-static int
-callback_readlastblk(void * cookie, int status,
-    const uint8_t * buf, size_t len)
-{
-	struct readlastblk * R = cookie;
-
-	/* Failures are bad. */
-	if (status == 1)
-		goto err0;
-
-	/* Did the item exist? */
-	if (status == 2) {
-		/* That's fine; we have no blocks yet. */
-		R->lastblk = (uint64_t)(-1);
-		goto done;
-	}
-
-	/* We should have 8 bytes. */
-	if (len != 8) {
-		warn0("lastblk has incorrect size: %zu", len);
-		goto err0;
-	}
-
-	/* Parse it. */
-	R->lastblk = be64dec(buf);
-
-done:
-	R->done = 1;
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
 /**
- * state_init(Q_DDBKV, itemsz, D):
+ * state_init(Q_DDBKV, itemsz, M):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
  * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
- * DeleteTo state ${D} for handling garbage collection requests.  Return a
- * state which can be passed to other state_* functions.  This function may
- * call events_run internally.
+ * metadata handler ${M} to handle metadata.  Return a state which can be
+ * passed to other state_* functions.  This function may call events_run
+ * internally.
  */
 struct state *
-state_init(struct wire_requestqueue * Q_DDBKV,
-    size_t itemsz, struct deleteto * D)
+state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
+    struct metadata * M)
 {
 	struct state * S;
-	struct readlastblk R;
 
 	/* Allocate a structure and initialize. */
 	if ((S = malloc(sizeof(struct state))) == NULL)
 		goto err0;
 	S->Q = Q_DDBKV;
-	S->D = D;
+	S->M = M;
 	S->blklen = itemsz - KVOVERHEAD;
 	S->npending = 0;
 
-	/* Read "lastblk"; we *might* have written up to here. */
-	R.done = 0;
-	if (proto_dynamodb_kv_request_getc(S->Q, "lastblk",
-	    callback_readlastblk, &R) ||
-	    events_spin(&R.done)) {
-		warnp("Error reading lastblk");
+	/* Read "nextblk"; we *might* have written anything prior to here. */
+	if (metadata_nextblk_read(S->M, &S->nextblk))
 		goto err1;
-	}
-	S->lastblk = R.lastblk;
 
 	/* Success! */
 	return (S);
@@ -125,6 +85,19 @@ err1:
 err0:
 	/* Failure! */
 	return (NULL);
+}
+
+/**
+ * state_params(S, blklen, nextblk):
+ * Return the block size and next block # to write via the provided pointers.
+ */
+void
+state_params(struct state * S, uint32_t * blklen, uint64_t * nextblk)
+{
+
+	/* Extract the requested fields from our internal state. */
+	*blklen = S->blklen;
+	*nextblk = S->nextblk;
 }
 
 /**
@@ -231,10 +204,10 @@ err0:
  */
 int
 state_append(struct state * S, struct proto_lbs_request * R,
-    int (* callback)(void *, struct proto_lbs_request *), void * cookie)
+    int (* callback)(void *, struct proto_lbs_request *, uint64_t),
+    void * cookie)
 {
 	struct append_cookie * C;
-	uint8_t lastblk[8];
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct append_cookie))) == NULL)
@@ -244,12 +217,12 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	C->callback = callback;
 	C->cookie = cookie;
 	C->nblks_left = R->r.append.nblks;
-	C->lastblk_new = S->lastblk + R->r.append.nblks;
-
-	/* Store the new value of lastblk. */
-	be64enc(lastblk, C->lastblk_new);
-	if (proto_dynamodb_kv_request_put(S->Q, "lastblk", lastblk, 8,
-	    callback_append_put_lastblk, C))
+	C->nextblk_old = S->nextblk;
+	
+	/* Update nextblk. */
+	S->nextblk += R->r.append.nblks;
+	if (metadata_nextblk_write(S->M, S->nextblk,
+	    callback_append_put_nextblk, C))
 		goto err1;
 
 	/* We will be performing a callback later. */
@@ -265,9 +238,9 @@ err0:
 	return (-1);
 }
 
-/* Callback when "lastblk" has been written. */
+/* Callback when "nextblk" has been written. */
 int
-callback_append_put_lastblk(void * cookie, int status)
+callback_append_put_nextblk(void * cookie, int status)
 {
 	struct append_cookie * C = cookie;
 	struct state * S = C->S;
@@ -276,24 +249,24 @@ callback_append_put_lastblk(void * cookie, int status)
 
 	/* Failures are bad. */
 	if (status) {
-		warn0("DynamoDB-KV failed storing \"lastblk\"");
+		warn0("DynamoDB-KV failed storing \"nextblk\"");
 		goto err0;
 	}
 
 	/* Store all the blocks except the last one. */
 	for (i = 0; i + 1 < R->r.append.nblks; i++) {
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->lastblk + 1 + i),
+		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_blks, C))
 			goto err0;
 	}
 
-	/* If there only was one block, it. */
+	/* If there only was one block, store it. */
 	if (R->r.append.nblks == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->lastblk + 1 + i),
+		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_finalblk, C))
 			goto err0;
@@ -318,7 +291,7 @@ callback_append_put_blks(void * cookie, int status)
 
 	/* Failures are bad. */
 	if (status) {
-		warn0("DynamoDB-KV failed storing \"lastblk\"");
+		warn0("DynamoDB-KV failed storing data block");
 		goto err0;
 	}
 
@@ -329,11 +302,10 @@ callback_append_put_blks(void * cookie, int status)
 	 * If there's only one block left to store, it's the final block in
 	 * the request; store it now.
 	 */
-
 	if (C->nblks_left == 1) {
 		i = R->r.append.nblks - 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
-		    objmap(S->lastblk + 1 + i),
+		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
 		    callback_append_put_finalblk, C))
 			goto err0;
@@ -360,15 +332,12 @@ callback_append_put_finalblk(void * cookie, int status)
 
 	/* Failures are bad. */
 	if (status) {
-		warn0("DynamoDB-KV failed storing \"lastblk\"");
+		warn0("DynamoDB-KV failed storing data block");
 		goto err1;
 	}
 
-	/* Update the last-block value. */
-	S->lastblk = C->lastblk_new;
-
 	/* Tell the dispatcher to send its response back. */
-	rc = (C->callback)(C->cookie, C->R);
+	rc = (C->callback)(C->cookie, C->R, S->nextblk);
 
 	/* We've done a callback. */
 	S->npending -= 1;
@@ -384,19 +353,6 @@ err1:
 
 	/* Failure! */
 	return (-1);
-}
-
-/**
- * state_gc(S, blkno):
- * Garbage collect (or mark as available for garbage collection) all blocks
- * less than ${blkno} in the state ${S}.
- */
-int
-state_gc(struct state * S, uint64_t blkno)
-{
-
-	/* Pass this along to the deleter. */
-	return (deleteto_deleteto(S->D, blkno));
 }
 
 /**

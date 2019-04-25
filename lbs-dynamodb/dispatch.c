@@ -9,6 +9,7 @@
 #include "warnp.h"
 #include "wire.h"
 
+#include "deleteto.h"
 #include "state.h"
 
 #include "dispatch.h"
@@ -17,6 +18,7 @@
 struct dispatch_state {
 	/* Internal state. */
 	struct state * S;
+	struct deleteto * D;
 
 	/* Connection management. */
 	int accepting;			/* We are waiting for a connection. */
@@ -31,7 +33,7 @@ struct dispatch_state {
 static int callback_accept(void *, int);
 static int callback_get(void *, struct proto_lbs_request *,
     const uint8_t *, size_t);
-static int callback_append(void *, struct proto_lbs_request *);
+static int callback_append(void *, struct proto_lbs_request *, uint64_t);
 
 /* The connection is dying.  Help speed up the process. */
 static int
@@ -65,6 +67,8 @@ gotrequest(void * cookie, int status)
 {
 	struct dispatch_state * D = cookie;
 	struct proto_lbs_request * R;
+	uint32_t blklen;
+	uint64_t nextblk;
 
 	/* We're no longer waiting for a packet to arrive. */
 	D->read_cookie = NULL;
@@ -94,8 +98,9 @@ gotrequest(void * cookie, int status)
 			warn0("Update to a newer version of kvlds");
 			goto drop1;
 		case PROTO_LBS_PARAMS2:
+			state_params(D->S, &blklen, &nextblk);
 			if (proto_lbs_response_params2(D->writeq, R->ID,
-			    D->S->blklen, D->S->lastblk + 1, D->S->lastblk))
+			    blklen, nextblk, nextblk - 1))
 				goto err1;
 			free(R);
 			break;
@@ -105,9 +110,10 @@ gotrequest(void * cookie, int status)
 				goto err1;
 			break;
 		case PROTO_LBS_APPEND:
-			if (R->r.append.blklen != D->S->blklen)
+			state_params(D->S, &blklen, &nextblk);
+			if (R->r.append.blklen != blklen)
 				goto drop2;
-			if ((R->r.append.blkno != D->S->lastblk + 1) ||
+			if ((R->r.append.blkno != nextblk) ||
 			    (D->appendip != 0)) {
 				if (proto_lbs_response_append(D->writeq,
 				    R->ID, 1, 0))
@@ -120,7 +126,7 @@ gotrequest(void * cookie, int status)
 				goto err1;
 			break;
 		case PROTO_LBS_FREE:
-			if (state_gc(D->S, R->r.free.blkno))
+			if (deleteto_deleteto(D->D, R->r.free.blkno))
 				goto err1;
 			if (proto_lbs_response_free(D->writeq, R->ID))
 				goto err1;
@@ -195,13 +201,13 @@ callback_get(void * cookie, struct proto_lbs_request * R,
 
 /* Send an APPEND response back. */
 static int
-callback_append(void * cookie, struct proto_lbs_request * R)
+callback_append(void * cookie, struct proto_lbs_request * R, uint64_t nextblk)
 {
 	struct dispatch_state * D = cookie;
 	int rc;
 
 	/* Send a response back. */
-	rc = proto_lbs_response_append(D->writeq, R->ID, 0, D->S->lastblk + 1);
+	rc = proto_lbs_response_append(D->writeq, R->ID, 0, nextblk);
 
 	/* Free the request. */
 	free(R->r.append.buf);
@@ -216,12 +222,13 @@ callback_append(void * cookie, struct proto_lbs_request * R)
 }
 
 /**
- * dispatch_accept(S, s):
+ * dispatch_accept(S, deleteto, s):
  * Accept a connection from the listening socket ${s} and return a dispatch
- * state for handling requests to the internal state ${S}.
+ * state for handling requests to the internal state ${S} and the deleter
+ * ${deleteto}.
  */
 struct dispatch_state *
-dispatch_accept(struct state * S, int s)
+dispatch_accept(struct state * S, struct deleteto * deleteto, int s)
 {
 	struct dispatch_state * D;
 
@@ -231,6 +238,7 @@ dispatch_accept(struct state * S, int s)
 
 	/* Initialize dispatcher. */
 	D->S = S;
+	D->D = deleteto;
 
 	/* Accept a connection. */
 	D->accepting = 1;

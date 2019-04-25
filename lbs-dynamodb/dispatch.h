@@ -4,14 +4,17 @@
 #include <stdint.h>
 
 /* Opaque type. */
+struct deleteto;
 struct state;
 
 /**
- * dispatch_accept(S, s):
+ * dispatch_accept(S, deleteto, s):
  * Accept a connection from the listening socket ${s} and return a dispatch
- * state for handling requests to the internal state ${S}.
+ * state for handling requests to the internal state ${S} and the deleter
+ * ${deleteto}.
  */
-struct dispatch_state * dispatch_accept(struct state *, int);
+struct dispatch_state * dispatch_accept(struct state *, struct deleteto *,
+    int);
 
 /**
  * dispatch_alive(D):

@@ -39,22 +39,28 @@ dynamodb-kv daemon; items are expressed as key-value pairs with a string
 K=<64-bit ID in hex> and a binary V=<block data provided from upstream>.
 
 Aside from the DynamoDB items which are block data -- which are written once
-and never modified -- there are two other items stored: One with K="lastblk"
-which is (given a *consistent* read) guaranteed to be >= any block IDs for
-which a PutItem has been initiated; and one with K="DeletedTo", which (even
-if read with weak consistency) is guaranteed to be <= all blocks for which a
-DeleteItem has been issued.  The former is used to ensure that we can resume
-after a crash and both (a) find the most recent KVLDS root page, and (b)
-ensure that we never reuse a block ID.
+and never modified until they are deleted -- there are two other values which
+are stored: The "next block" value and the "deleted to" value.  These act as
+a head and tail: All blocks which have been written and have not been deleted
+satisfy the condition "deleted to" <= block # < "next block".
+
+The two "metadata" values are stored in a series of 4096 items with key
+values K="m<3 hex digits>".  These are stored as a circular buffer with a
+"generation number" added; on startup, a sequence of 13 reads are performed
+executing a binary search to find the most recently stored values.  These
+have a negligable cost (less than 0.015 cents/month of storage) and under
+reasonable assumptions (metadata updates no more than once per 10 ms; at
+least 10 provisioned writes per second per DynamoDB partition) this ensures
+that the rewriting of items does not result in significant "hot spots".
 
 Since we never reuse block IDs, we can read blocks using weak consistency,
 and only perform a strongly consistent read in the (very unlikely) event that
 the weakly consistent read does not find the block (because it hasn't been
-gossipped between DynamoDB nodes yet).
+propagated to all of the DynamoDB replicas yet).
 
 Writes are performed by
-1. Updating "lastblk",
-2. Storing all of the blocks *except the last block*, and then
+1. Recording the new "next block",
+2. Storing all of the blocks being appended *except the last one*, and then
 3. Storing the last block.
 
 This guarantees that if the final block has been stored then all previous
@@ -64,6 +70,11 @@ arbitrary subset of the non-final blocks as having been stored.  Since the
 KVLDS daemon scans for the last page containing a B+Tree root node and skips
 over any non-present pages, this works fine for KVLDS; other users may need
 to have special handling of partial writes.
+
+If KVLDS crashes and a new KVLDS connects, the new KVLDS will "see" the last
+write performed by the deceased KVLDS iff the final block was written before
+the new KVLDS looks for it; thus any acknowledged write is guaranteed to be
+visible while unacknowledged writes offer no guarantee.
 
 Code structure
 --------------

@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "asprintf.h"
 #include "events.h"
 #include "proto_dynamodb_kv.h"
 #include "sysendian.h"
@@ -14,6 +15,7 @@ struct metadata {
 	struct wire_requestqueue * Q;
 	uint64_t nextblk;
 	uint64_t deletedto;
+	uint64_t generation;
 	int (* callback_nextblk)(void *, int);
 	void * cookie_nextblk;
 	int (* callback_deletedto)(void *, int);
@@ -31,24 +33,37 @@ static int callback_writemetadata(void *, int);
 struct readmetadata {
 	uint64_t nextblk;
 	uint64_t deletedto;
+	uint64_t generation;
 	int done;
 };
 
 static int
-readmetadata(struct wire_requestqueue * Q, struct readmetadata * R)
+readmetadata(struct wire_requestqueue * Q, struct readmetadata * R,
+    uint64_t g)
 {
+	char * s;
 
+	/* Construct metadata key. */
+	if (asprintf(&s, "m%03lx", (unsigned long)(g % 4096)) == -1)
+		goto err0;
+
+	/* Read the metadata "shard". */
 	R->done = 0;
-	if (proto_dynamodb_kv_request_getc(Q, "metadata",
+	if (proto_dynamodb_kv_request_getc(Q, s,
 	    callback_readmetadata, R) ||
 	    events_spin(&R->done)) {
 		warnp("Error reading LBS metadata");
-		goto err0;
+		goto err1;
 	}
+
+	/* Free string allocated by asprintf. */
+	free(s);
 
 	/* Success! */
 	return (0);
 
+err1:
+	free(s);
 err0:
 	/* Failure! */
 	return (-1);
@@ -72,11 +87,12 @@ callback_readmetadata(void * cookie, int status,
 		 */
 		R->nextblk = 0;
 		R->deletedto = 0;
+		R->generation = 0;
 		goto done;
 	}
 
-	/* We should have 16 bytes. */
-	if (len != 16) {
+	/* We should have 24 bytes. */
+	if (len != 24) {
 		warn0("metadata has incorrect size: %zu", len);
 		goto err0;
 	}
@@ -84,6 +100,7 @@ callback_readmetadata(void * cookie, int status,
 	/* Parse it. */
 	R->nextblk = be64dec(&buf[0]);
 	R->deletedto = be64dec(&buf[8]);
+	R->generation = be64dec(&buf[16]);
 
 done:
 	R->done = 1;
@@ -99,7 +116,8 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
-	uint8_t buf[16];
+	char * s;
+	uint8_t buf[24];
 
 	/* If we have a timer in progress, cancel it. */
 	if (M->timer_cookie != NULL) {
@@ -107,9 +125,13 @@ writemetadata(struct metadata * M)
 		M->timer_cookie = NULL;
 	}
 
+	/* Increment metadata generation. */
+	M->generation++;
+
 	/* Encode metadata. */
 	be64enc(&buf[0], M->nextblk);
 	be64enc(&buf[8], M->deletedto);
+	be64enc(&buf[16], M->generation);
 
 	/* Record which callbacks to perform later. */
 	if (M->callback_nextblk)
@@ -117,9 +139,27 @@ writemetadata(struct metadata * M)
 	if (M->callback_deletedto)
 		M->callbacks += CB_DELETEDTO;
 
+	/* Construct metadata key. */
+	if (asprintf(&s, "m%03lx",
+	    (unsigned long)(M->generation % 4096)) == -1)
+		goto err0;
+
 	/* Write metadata. */
-	return (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 16,
-	    callback_writemetadata, M));
+	if (proto_dynamodb_kv_request_put(M->Q, s, buf, 24,
+	    callback_writemetadata, M))
+		goto err1;
+
+	/* Free string allocated by asprintf. */
+	free(s);
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(s);
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 static int
@@ -198,17 +238,30 @@ metadata_init(struct wire_requestqueue * Q)
 {
 	struct metadata * M;
 	struct readmetadata R;
+	uint64_t k;
 
 	/* Bake a cookie. */
 	if ((M = malloc(sizeof(struct metadata))) == NULL)
 		goto err0;
 	M->Q = Q;
 
-	/* Read metadata. */
-	if (readmetadata(Q, &R))
+	/* Read metadata from shard #0. */
+	if (readmetadata(Q, &R, 0))
 		goto err0;
 	M->nextblk = R.nextblk;
 	M->deletedto = R.deletedto;
+	M->generation = R.generation;
+
+	/* Binary search for the latest metadata. */
+	for (k = 2048; k != 0; k >>= 1) {
+		if (readmetadata(Q, &R, M->generation + k))
+			goto err0;
+		if (R.generation > M->generation) {
+			M->nextblk = R.nextblk;
+			M->deletedto = R.deletedto;
+			M->generation = R.generation;
+		}
+	}
 
 	/* Nothing in progress yet. */
 	M->callback_nextblk = NULL;

@@ -44,6 +44,15 @@ are stored: The "next block" value and the "deleted to" value.  These act as
 a head and tail: All blocks which have been written and have not been deleted
 satisfy the condition "deleted to" <= block # < "next block".
 
+The two "metadata" values are stored in a series of 4096 items with key
+values K="m<3 hex digits>".  These are stored as a circular buffer with a
+"generation number" added; on startup, a sequence of 13 reads are performed
+executing a binary search to find the most recently stored values.  These
+have a negligable cost (less than 0.015 cents/month of storage) and under
+reasonable assumptions (metadata updates no more than once per 10 ms; at
+least 10 provisioned writes per second per DynamoDB partition) this ensures
+that the rewriting of items does not result in significant "hot spots".
+
 Since we never reuse block IDs, we can read blocks using weak consistency,
 and only perform a strongly consistent read in the (very unlikely) event that
 the weakly consistent read does not find the block (because it hasn't been

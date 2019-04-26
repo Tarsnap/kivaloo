@@ -10,6 +10,7 @@
 #include "elasticarray.h"
 #include "events.h"
 #include "getopt.h"
+#include "parsenum.h"
 #include "sock.h"
 #include "warnp.h"
 #include "wire.h"
@@ -71,9 +72,9 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-n"):
 			if (opt_n != 0)
 				usage();
-			if ((opt_n = strtoimax(optarg, NULL, 0)) == 0) {
+			if (PARSENUM(&opt_n, optarg, 0, 65535)) {
 				warn0("Invalid option: -n %s", optarg);
-				exit(1);
+				usage();
 			}
 			break;
 		GETOPT_OPTARG("-p"):
@@ -132,8 +133,6 @@ main(int argc, char * argv[])
 		usage();
 
 	/* Sanity-check options. */
-	if ((opt_n < 0) || (opt_n > 65535))
-		usage();
 	if ((opt_s_size = addrlist_getsize(opt_s)) == 0)
 		usage();
 	if (opt_t == NULL)

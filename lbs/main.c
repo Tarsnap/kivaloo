@@ -8,6 +8,7 @@
 #include "daemonize.h"
 #include "events.h"
 #include "getopt.h"
+#include "parsenum.h"
 #include "sock.h"
 #include "warnp.h"
 
@@ -61,7 +62,10 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-b"):
 			if (opt_b != -1)
 				usage();
-			opt_b = strtoimax(optarg, NULL, 0);
+			if (PARSENUM(&opt_b, optarg, 512, 128 * 1024)) {
+				warn0("Block size must be in [2^9, 2^17]");
+				exit(1);
+			}
 			break;
 		GETOPT_OPTARG("-d"):
 			if (opt_d != NULL)
@@ -72,7 +76,10 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-l"):
 			if (opt_l != 0)
 				usage();
-			opt_l = strtoimax(optarg, NULL, 0);
+			if (PARSENUM(&opt_l, optarg, 0, 999999999)) {
+				warn0("Read latency must be in [0, 10^9) ns");
+				exit(1);
+			}
 			break;
 		GETOPT_OPT("-L"):
 			if (opt_L != 0)
@@ -82,7 +89,10 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-n"):
 			if (opt_n != 16)
 				usage();
-			opt_n = strtoimax(optarg, NULL, 0);
+			if (PARSENUM(&opt_n, optarg, 1, 1000)) {
+				warn0("Number of readers must be in [1, 1000]");
+				exit(1);
+			}
 			break;
 		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
@@ -127,18 +137,6 @@ main(int argc, char * argv[])
 		usage();
 	if (opt_b == -1)
 		usage();
-	if ((opt_b < 512) || (opt_b > 128 * 1024)) {
-		warn0("Block size must be in [2^9, 2^17]");
-		exit(1);
-	}
-	if ((opt_l < 0) || (opt_l > 999999999)) {
-		warn0("Read latency must be in [0, 10^9) ns");
-		exit(1);
-	}
-	if ((opt_n < 1) || (opt_n > 1000)) {
-		warn0("Number of readers must be in [1, 1000]");
-		exit(1);
-	}
 
 	/* Resolve the listening address. */
 	if ((sas = sock_resolve(opt_s)) == NULL) {

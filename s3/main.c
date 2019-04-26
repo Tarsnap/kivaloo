@@ -11,6 +11,7 @@
 #include "getopt.h"
 #include "insecure_memzero.h"
 #include "logging.h"
+#include "parsenum.h"
 #include "s3_request_queue.h"
 #include "sock.h"
 #include "warnp.h"
@@ -82,7 +83,11 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-n"):
 			if (opt_n != 16)
 				usage();
-			opt_n = strtoimax(optarg, NULL, 0);
+			if (PARSENUM(&opt_n, optarg, 1, 250)) {
+				warn0("Maximum number of connections must"
+				    " be in [1, 250]");
+				exit(1);
+			}
 			break;
 		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
@@ -132,10 +137,6 @@ main(int argc, char * argv[])
 		usage();
 	if (opt_s == NULL)
 		usage();
-	if ((opt_n < 1) || (opt_n > 250)) {
-		warn0("Maximum number of connections must be in [1, 250]");
-		exit(1);
-	}
 
 	/* Read the key file. */
 	if (aws_readkeys(opt_k, &s3_key_id, &s3_key_secret)) {

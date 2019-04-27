@@ -186,7 +186,7 @@ callback_read(void * cookie, ssize_t lenread)
 		goto eof;
 
 	/* We've got more data. */
-	R->datalen += lenread;
+	R->datalen += (size_t)lenread;
 
 	/* Perform callback. */
 	return ((R->callback)(R->cookie, 0));

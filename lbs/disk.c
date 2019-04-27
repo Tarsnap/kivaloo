@@ -97,7 +97,7 @@ disk_read(const char * path, off_t offset, size_t nbytes, uint8_t * buf)
 	}
 
 	/* Read into the buffer. */
-	for (bufpos = 0; bufpos < nbytes; bufpos += lenread) {
+	for (bufpos = 0; bufpos < nbytes; bufpos += (size_t)lenread) {
 		/* Read some bytes. */
 		lenread = read(fd, &buf[bufpos], nbytes - bufpos);
 

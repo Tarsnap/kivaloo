@@ -172,7 +172,7 @@ proto_dynamodb_kv_request_put(struct wire_requestqueue * Q, const char * key,
 	*p++ = (uint8_t)strlen(key);
 	memcpy(p, key, strlen(key));
 	p += strlen(key);
-	be32enc(p, buflen);
+	be32enc(p, (uint32_t)buflen);
 	p += 4;
 	memcpy(p, buf, buflen);
 	p += buflen;

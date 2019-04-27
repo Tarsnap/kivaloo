@@ -872,7 +872,7 @@ proto_kvlds_request_range(struct wire_requestqueue * Q,
 
 	/* Construct request. */
 	be32enc(&buf[0], PROTO_KVLDS_RANGE);
-	be32enc(&buf[4], max);
+	be32enc(&buf[4], (uint32_t)max);
 	bufpos = 8;
 	kvldskey_serialize(start, &buf[bufpos]);
 	bufpos += kvldskey_serial_size(start);

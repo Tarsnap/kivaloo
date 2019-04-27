@@ -354,7 +354,7 @@ verify(struct wire_requestqueue * Q,
 	if (events_spin(&op_done) || op_failed) {
 		warnp("GET request failed");
 		goto err0;
-	};
+	}
 	if (op_badval) {
 		warn0("Bad value returned by GET!");
 		goto err0;
@@ -540,7 +540,7 @@ createmany(struct wire_requestqueue * Q, size_t N)
 	if (events_spin(&op_done) || op_failed) {
 		warnp("GET request failed");
 		return (-1);
-	};
+	}
 	if (op_badval) {
 		warn0("Bad value returned by GET!");
 		return (-1);

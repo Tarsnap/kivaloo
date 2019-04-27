@@ -51,7 +51,7 @@ proto_kvlds_request_parse(const struct wire_packet * P,
 	bufpos += kvldskey_serial_size(dest);			\
 	if (bufpos > buflen)					\
 		goto invalid;					\
-} while (0);
+} while (0)
 
 	/* Parse packet. */
 	switch (R->type) {

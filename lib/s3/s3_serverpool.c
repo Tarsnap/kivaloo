@@ -148,7 +148,7 @@ s3_serverpool_pick(struct s3_serverpool * SP)
 	}
 
 	/* Pick a (non-cryptographically) random endpoint. */
-	i = rand() % serverpool_getsize(S);
+	i = (size_t)rand() % serverpool_getsize(S);
 
 	/* Make a copy of the address. */
 	if ((sa = sock_addr_dup(serverpool_get(S, i)->sa)) == NULL)

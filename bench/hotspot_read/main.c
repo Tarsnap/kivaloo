@@ -44,7 +44,7 @@ sendbatch(struct hotspotread_state * C)
 	while (C->Nip < 4096) {
 		/* Do we need to pick a new batch? */
 		if (C->Y == 65536) {
-			C->X = random() % C->Xmax;
+			C->X = (size_t)random() % C->Xmax;
 			C->Y = 0;
 		}
 

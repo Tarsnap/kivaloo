@@ -264,7 +264,7 @@ err1:
 	free(s);
 err0:
 	/* Failure! */
-	return (-1);
+	return ((uint64_t)(-1));
 }
 
 /**

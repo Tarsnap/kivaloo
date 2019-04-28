@@ -437,7 +437,7 @@ serverpool_pick(struct serverpool * P)
 	assert(serverpool_addrs_getsize(P->A) > 0);
 
 	/* Pick a (non-cryptographically) random address. */
-	i = rand() % serverpool_addrs_getsize(P->A);
+	i = (size_t)rand() % serverpool_addrs_getsize(P->A);
 
 	/* Return a copy of the address. */
 	return (sock_addr_dup(serverpool_addrs_get(P->A, i)->sa));

@@ -12,7 +12,7 @@
 #define COPYANDINCR(s, spos, s1) do {	\
 	memcpy(&s[spos], s1, strlen(s1));	\
 	spos += strlen(s1);			\
-} while (0);
+} while (0)
 
 /**
  * dynamodb_kv_put(table, key, buf, len):

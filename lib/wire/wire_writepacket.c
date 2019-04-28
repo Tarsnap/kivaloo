@@ -30,7 +30,7 @@ wire_writepacket_getbuf(struct netbuf_write * W, uint64_t ID, size_t len)
 
 	/* Construct the header in-place. */
 	be64enc(&wbuf[0], ID);
-	be32enc(&wbuf[8], len);
+	be32enc(&wbuf[8], (uint32_t)len);
 	CRC32C_Init(&ctx);
 	CRC32C_Update(&ctx, wbuf, 12);
 	CRC32C_Final(&wbuf[12], &ctx);

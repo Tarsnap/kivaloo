@@ -304,7 +304,7 @@ createmany(struct wire_requestqueue * Q, size_t N, char * prefix)
 	if (events_spin(&op_done) || op_failed) {
 		warnp("GET request failed");
 		return (-1);
-	};
+	}
 	if (op_badval) {
 		warnp("Bad value returned by GET!");
 		return (-1);

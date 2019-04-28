@@ -48,7 +48,7 @@ sendbatch(struct randommixed_state * C)
 
 	while (C->Nip < 4096) {
 		/* Generate a random key. */
-		N = random() % C->Nmax;
+		N = (size_t)random() % C->Nmax;
 		X = N >> 16;
 		Y = N - (X << 16);
 		mkkey(X, Y, C->key->buf);

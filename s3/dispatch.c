@@ -280,7 +280,7 @@ callback_response(void * cookie, struct http_response * res)
 		if ((s_clen = http_findheader(res->headers,
 		    res->nheaders, "Content-Length")) == NULL) {
 			/* We have no Content-Length header. */
-			clen = -1;
+			clen = (uint32_t)(-1);
 		} else {
 			clen = strtoull(s_clen, NULL, 0);
 		}

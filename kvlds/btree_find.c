@@ -64,7 +64,7 @@ btree_find_kvpair(struct node * N, const struct kvldskey * k)
 			/* Found it! */
 			return (&N->u.pairs[mid]);
 		}
-	};
+	}
 
 	/* We didn't find it. */
 	return (NULL);
@@ -105,7 +105,7 @@ btree_find_child(struct node * N, const struct kvldskey * k)
 			/* Found it! */
 			return (mid + 1);
 		}
-	};
+	}
 
 	/* This must be it. */
 	return (min);
@@ -143,7 +143,7 @@ findleaf(void * cookie)
 		}
 		NP = C->N;
 		C->N = C->N->v.children[i];
-	};
+	}
 
 	/* If the node is not present, fetch it; else, do the callback. */
 	if (!node_present(C->N)) {

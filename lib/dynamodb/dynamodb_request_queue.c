@@ -492,8 +492,8 @@ runqueue(struct dynamodb_request_queue * Q)
 	struct request * R;
 
 	/* Send requests as long as we have enough capacity. */
-	while ((Q->inflight * Q->mu_capperreq < Q->maxburst_cap) &&
-	    (Q->inflight * Q->mu_capperreq < Q->bucket_cap)) {
+	while (((Q->inflight + 1) * Q->mu_capperreq <= Q->maxburst_cap) &&
+	    ((Q->inflight + 1) * Q->mu_capperreq <= Q->bucket_cap)) {
 		/* Find the highest-priority request in the queue. */
 		R = ptrheap_getmin(Q->reqs);
 

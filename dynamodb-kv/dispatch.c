@@ -239,7 +239,7 @@ callback_response(void * cookie, struct http_response * res)
 	struct dispatch_state * D = R->D;
 	uint8_t * vbuf;
 	uint32_t vlen;
-	int status;
+	uint32_t status;
 
 	/* Did we succeed? */
 	status = (res->status == 200) ? 0 : 1;

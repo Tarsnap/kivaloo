@@ -177,7 +177,7 @@ callback_get(void * cookie, struct proto_lbs_request * R,
     const uint8_t * buf, size_t blklen)
 {
 	struct dispatch_state * D = cookie;
-	int status;
+	uint32_t status;
 	int rc;
 
 	/* Does the block exist? */

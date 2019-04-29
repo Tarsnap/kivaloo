@@ -519,7 +519,7 @@ runqueue(struct dynamodb_request_queue * Q)
 
 	/* Do we need to (re)start the capacity-accumulation timer? */
 	if ((Q->timer_cookie == NULL) &&
-	    (Q->bucket_cap * Q->spercap < 300.0)) {
+	    ((Q->inflight + 1) * Q->mu_capperreq > Q->bucket_cap)) {
 		if ((Q->timer_cookie = events_timer_register_double(
 		        poke_timer, Q, Q->spercap)) == NULL)
 			goto err0;

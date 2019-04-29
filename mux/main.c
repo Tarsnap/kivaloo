@@ -46,7 +46,7 @@ main(int argc, char * argv[])
 	struct dispatch_state * dstate;
 
 	/* Command-line parameters. */
-	intmax_t opt_n = 0;
+	size_t opt_n = 0;
 	char * opt_p = NULL;
 	char * opt_t = NULL;
 	ADDRLIST opt_s;

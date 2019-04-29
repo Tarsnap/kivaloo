@@ -49,7 +49,7 @@ main(int argc, char * argv[])
 	char * opt_k = NULL;
 	char * opt_l = NULL;
 	char * opt_p = NULL;
-	intmax_t opt_n = 16;
+	size_t opt_n = 16;
 	char * opt_r = NULL;
 	char * opt_s = NULL;
 	int opt_1 = 0;

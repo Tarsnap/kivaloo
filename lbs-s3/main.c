@@ -47,7 +47,7 @@ main(int argc, char * argv[])
 	/* Command-line parameters. */
 	char * opt_s = NULL;
 	char * opt_t = NULL;
-	intmax_t opt_b = -1;
+	size_t opt_b = (size_t)(-1);
 	char * opt_B = NULL;
 	char * opt_p = NULL;
 	int opt_1 = 0;
@@ -69,7 +69,7 @@ main(int argc, char * argv[])
 				OPT_EPARSE(ch, optarg);
 			break;
 		GETOPT_OPTARG("-b"):
-			if (opt_b != -1)
+			if (opt_b != (size_t)(-1))
 				usage();
 			if (PARSENUM(&opt_b, optarg, 512, 128 * 1024)) {
 				warn0("Block size must be in [2^9, 2^17]");
@@ -124,7 +124,7 @@ main(int argc, char * argv[])
 		usage();
 	if (opt_B == NULL)
 		usage();
-	if (opt_b == -1)
+	if (opt_b == (size_t)(-1))
 		usage();
 
 	/* Resolve the listening address. */

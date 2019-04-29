@@ -74,24 +74,12 @@ static int
 poke_timer(void * cookie)
 {
 	struct dynamodb_request_queue * Q = cookie;
-	struct timeval tnow;
 
 	/* There is no timer callback pending any more. */
 	Q->timer_cookie = NULL;
 
-	/* Increase burst capacity. */
-	if (monoclock_get(&tnow))
-		goto err0;
-	Q->bucket_cap += timeval_diff(Q->bucket_cap_lastbump, tnow) *
-	    Q->cappers;
-	Q->bucket_cap_lastbump = tnow;
-
 	/* Run the queue. */
 	return (runqueue(Q));
-
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /* Callback from events_immediate. */
@@ -501,6 +489,14 @@ static int
 runqueue(struct dynamodb_request_queue * Q)
 {
 	struct request * R;
+	struct timeval tnow;
+
+	/* Increase burst capacity. */
+	if (monoclock_get(&tnow))
+		goto err0;
+	Q->bucket_cap += timeval_diff(Q->bucket_cap_lastbump, tnow) *
+	    Q->cappers;
+	Q->bucket_cap_lastbump = tnow;
 
 	/* Send requests as long as we have enough capacity. */
 	while (((Q->inflight + 1) * Q->mu_capperreq <= Q->maxburst_cap) &&

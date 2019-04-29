@@ -577,7 +577,7 @@ domergenode(struct balance_cookie * B, struct node * N)
 	N->nkeys = j - 1;
 
 	/* The size of this node has changed. */
-	N->pagesize = -1;
+	N->pagesize = (uint32_t)(-1);
 
 	/* Did we fail? */
 	if (failed)
@@ -608,7 +608,7 @@ deroot(struct balance_cookie * B)
 		/* Promote its child to roothood. */
 		T->root_dirty = R->v.children[0];
 		T->root_dirty->root = 1;
-		T->root_dirty->pagesize = -1;
+		T->root_dirty->pagesize = (uint32_t)(-1);
 		btree_node_lock(T, T->root_dirty);
 		T->root_dirty->p_dirty = NULL;
 

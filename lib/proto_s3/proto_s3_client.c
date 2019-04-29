@@ -91,7 +91,7 @@ proto_s3_request_put(struct wire_requestqueue * Q, const char * bucket,
 	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 	p += strlen(object);
-	be32enc(p, buflen);
+	be32enc(p, (uint32_t)buflen);
 	p += 4;
 	memcpy(p, buf, buflen);
 
@@ -197,7 +197,7 @@ proto_s3_request_get(struct wire_requestqueue * Q, const char * bucket,
 	*p++ = (uint8_t)strlen(object);
 	memcpy(p, object, strlen(object));
 	p += strlen(object);
-	be32enc(p, maxlen);
+	be32enc(p, (uint32_t)maxlen);
 
 	/* Finish writing request. */
 	if (wire_requestqueue_add_done(Q, rbuf, rlen))

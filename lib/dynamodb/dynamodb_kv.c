@@ -260,7 +260,7 @@ dynamodb_kv_extractv(const uint8_t * inbuf, size_t inlen,
 	/* Record the size of the returned value. */
 	if (vlen >= (uint32_t)(-1))
 		goto novalue1;
-	*outlen = vlen;
+	*outlen = (uint32_t)vlen;
 
 	/* Success! */
 	return (0);

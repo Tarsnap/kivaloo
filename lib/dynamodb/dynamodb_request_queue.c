@@ -52,8 +52,10 @@ struct dynamodb_request_queue {
 	char * region;
 	struct serverpool * SP;
 	double mu_capperreq;
+	double cappers;
 	double spercap;
 	double bucket_cap;
+	struct timeval bucket_cap_lastbump;
 	double maxburst_cap;
 	void * timer_cookie;
 	void * immediate_cookie;
@@ -72,15 +74,24 @@ static int
 poke_timer(void * cookie)
 {
 	struct dynamodb_request_queue * Q = cookie;
+	struct timeval tnow;
 
 	/* There is no timer callback pending any more. */
 	Q->timer_cookie = NULL;
 
 	/* Increase burst capacity. */
-	Q->bucket_cap += 1.0;
+	if (monoclock_get(&tnow))
+		goto err0;
+	Q->bucket_cap += timeval_diff(Q->bucket_cap_lastbump, tnow) *
+	    Q->cappers;
+	Q->bucket_cap_lastbump = tnow;
 
 	/* Run the queue. */
 	return (runqueue(Q));
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 /* Callback from events_immediate. */
@@ -598,6 +609,8 @@ dynamodb_request_queue_init(const char * key_id, const char * key_secret,
 	Q->mu_capperreq = 1.0;
 	Q->bucket_cap = 300.0 * 50000.0;
 	dynamodb_request_queue_setcapacity(Q, 0);
+	if (monoclock_get(&Q->bucket_cap_lastbump))
+		goto err4;
 
 	/* Initialize request timeout statistics to conservative values. */
 	Q->tmu = 1.0;
@@ -657,6 +670,12 @@ void
 dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
     int capacity)
 {
+
+	/* Record rate at which new capacity arrives. */
+	if (capacity > 0)
+		Q->cappers = capacity;
+	else
+		Q->cappers = 1000000.0;
 
 	/* How long does it take for one capacity unit to arrive? */
 	if (capacity > 0)

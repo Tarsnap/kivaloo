@@ -127,7 +127,7 @@ void proto_s3_request_free(struct proto_s3_request *);
  * Send a response with ID ${ID} to the write queue ${Q} indicating that
  * the S3 request completed with HTTP status code ${status}.
  */
-int proto_s3_response_status(struct netbuf_write *, uint64_t, int);
+int proto_s3_response_status(struct netbuf_write *, uint64_t, uint32_t);
 
 #define proto_s3_response_put(Q, ID, status)		\
 	proto_s3_response_status(Q, ID, status)
@@ -141,7 +141,7 @@ int proto_s3_response_status(struct netbuf_write *, uint64_t, int);
  * data was ${len} bytes from ${buf}.  If ${buf} is NULL, send the length
  * ${len} but no data.
  */
-int proto_s3_response_data(struct netbuf_write *, uint64_t, int,
+int proto_s3_response_data(struct netbuf_write *, uint64_t, uint32_t,
     uint32_t, const uint8_t *);
 
 #define proto_s3_response_get(Q, ID, status, len, buf)		\

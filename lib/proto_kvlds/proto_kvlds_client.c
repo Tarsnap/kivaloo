@@ -155,7 +155,7 @@ callback_donep(void * cookie, uint8_t * buf, size_t buflen)
 			BAD(C->type, "bogus length");
 		if (be32dec(&buf[0]) > 1)
 			BAD(C->type, "bogus status code");
-		status = be32dec(&buf[0]);
+		status = (int)be32dec(&buf[0]);
 
 		/* We successfully parsed this response. */
 		failed = 0;
@@ -190,7 +190,7 @@ callback_get(void * cookie, uint8_t * buf, size_t buflen)
 			BAD("GET", "bogus length");
 		if (be32dec(&buf[0]) > 1)
 			BAD("GET", "bogus status code");
-		status = be32dec(&buf[0]);
+		status = (int)be32dec(&buf[0]);
 
 		/* Parse a value if one exists. */
 		if (status == 0) {

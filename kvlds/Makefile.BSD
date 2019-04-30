@@ -33,7 +33,7 @@ SRCS	+=	cpusupport_x86_crc32.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
 
 # Debugging code
-#SRCS	+=	btree_sanity.c
+SRCS	+=	btree_sanity.c
 #CFLAGS	+=	-DSANITY_CHECKS
 CLEANFILES+=	btree_sanity.o
 

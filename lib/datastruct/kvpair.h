@@ -1,6 +1,8 @@
 #ifndef _KVPAIR_H_
 #define _KVPAIR_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct kvldskey;
 

@@ -52,8 +52,10 @@ struct dynamodb_request_queue {
 	char * region;
 	struct serverpool * SP;
 	double mu_capperreq;
+	double cappers;
 	double spercap;
 	double bucket_cap;
+	struct timeval bucket_cap_lastbump;
 	double maxburst_cap;
 	void * timer_cookie;
 	void * immediate_cookie;
@@ -75,9 +77,6 @@ poke_timer(void * cookie)
 
 	/* There is no timer callback pending any more. */
 	Q->timer_cookie = NULL;
-
-	/* Increase burst capacity. */
-	Q->bucket_cap += 1.0;
 
 	/* Run the queue. */
 	return (runqueue(Q));
@@ -490,10 +489,18 @@ static int
 runqueue(struct dynamodb_request_queue * Q)
 {
 	struct request * R;
+	struct timeval tnow;
+
+	/* Increase burst capacity. */
+	if (monoclock_get(&tnow))
+		goto err0;
+	Q->bucket_cap += timeval_diff(Q->bucket_cap_lastbump, tnow) *
+	    Q->cappers;
+	Q->bucket_cap_lastbump = tnow;
 
 	/* Send requests as long as we have enough capacity. */
-	while ((Q->inflight * Q->mu_capperreq < Q->maxburst_cap) &&
-	    (Q->inflight * Q->mu_capperreq < Q->bucket_cap)) {
+	while (((Q->inflight + 1) * Q->mu_capperreq <= Q->maxburst_cap) &&
+	    ((Q->inflight + 1) * Q->mu_capperreq <= Q->bucket_cap)) {
 		/* Find the highest-priority request in the queue. */
 		R = ptrheap_getmin(Q->reqs);
 
@@ -508,7 +515,7 @@ runqueue(struct dynamodb_request_queue * Q)
 
 	/* Do we need to (re)start the capacity-accumulation timer? */
 	if ((Q->timer_cookie == NULL) &&
-	    (Q->bucket_cap * Q->spercap < 300.0)) {
+	    ((Q->inflight + 1) * Q->mu_capperreq > Q->bucket_cap)) {
 		if ((Q->timer_cookie = events_timer_register_double(
 		        poke_timer, Q, Q->spercap)) == NULL)
 			goto err0;
@@ -598,6 +605,8 @@ dynamodb_request_queue_init(const char * key_id, const char * key_secret,
 	Q->mu_capperreq = 1.0;
 	Q->bucket_cap = 300.0 * 50000.0;
 	dynamodb_request_queue_setcapacity(Q, 0);
+	if (monoclock_get(&Q->bucket_cap_lastbump))
+		goto err4;
 
 	/* Initialize request timeout statistics to conservative values. */
 	Q->tmu = 1.0;
@@ -657,6 +666,12 @@ void
 dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
     int capacity)
 {
+
+	/* Record rate at which new capacity arrives. */
+	if (capacity > 0)
+		Q->cappers = capacity;
+	else
+		Q->cappers = 1000000.0;
 
 	/* How long does it take for one capacity unit to arrive? */
 	if (capacity > 0)

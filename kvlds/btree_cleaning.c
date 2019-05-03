@@ -170,6 +170,7 @@ callback_find(void * cookie, struct node * N)
 	struct cleaning_group * CG = cookie;
 	struct cleaner * C = CG->C;
 	size_t i;
+	int repoke = 1;
 
 	/*
 	 * We're no longer trying to find a group to clean (unless we decide
@@ -189,6 +190,12 @@ callback_find(void * cookie, struct node * N)
 	if (N->oldestncleaf >= C->T->nextblk - C->T->nnodes / 2) {
 		/* Release the cleaner group. */
 		free_cg(CG);
+
+		/*
+		 * No need to poke the cleaner again quite yet; there isn't
+		 * any useful cleaning to be done right now.
+		 */
+		repoke = 0;
 
 		/* That's all. */
 		goto done;
@@ -263,7 +270,7 @@ done:
 	btree_node_unlock(C->T, N);
 
 	/* Launch cleaning if possible and appropriate. */
-	if (poke(C))
+	if (repoke && poke(C))
 		goto err0;
 
 	/* Success! */

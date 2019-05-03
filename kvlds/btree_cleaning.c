@@ -291,6 +291,13 @@ poke(struct cleaner * C)
 		goto done;
 
 	/*
+	 * If we're using more than 1/16 of our memory to hold pages which
+	 * are being cleaned, stop there; that's plenty.
+	 */
+	if (C->pending_cleans > C->T->poolsz / 16)
+		goto done;
+
+	/*
 	 * If the number of nodes we have waiting to be fetched or dirtied
 	 * is more than the cleaning debt, we don't need to look for any more
 	 * pages to clean yet.

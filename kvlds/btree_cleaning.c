@@ -181,10 +181,12 @@ callback_find(void * cookie, struct node * N)
 	CG->pending_fetches--;
 
 	/*
-	 * If all the leaves under this node are being cleaned, we have
-	 * nothing to do except free the cleaner group.
+	 * If there aren't any old leaves under this node which aren't
+	 * already being cleaned, we have nothing to do except free the
+	 * cleaner group.  This can happen if we have a small tree and are
+	 * cleaning it very aggressively.
 	 */
-	if (N->oldestncleaf == (uint64_t)(-1)) {
+	if (N->oldestncleaf >= C->T->nextblk - C->T->nnodes / 2) {
 		/* Release the cleaner group. */
 		free_cg(CG);
 
@@ -237,10 +239,7 @@ callback_find(void * cookie, struct node * N)
 		}
 
 		/* We should have found at least one child to clean. */
-		if (CG->pending_fetches == 0) {
-			warn0("Node has no cleanable children!");
-			goto err1;
-		}
+		assert(CG->pending_fetches);
 
 		/* Recompute oldestncleaf upwards. */
 		recompute_oncl(N);

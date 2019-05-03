@@ -132,6 +132,7 @@ callback_clean(void * cookie, struct node * N)
 	/* If this node is not CLEAN, we don't need to clean it any more. */
 	if (N->state != NODE_STATE_CLEAN) {
 		CG->C->pending_cleans--;
+		btree_node_unlock(CG->C->T, N);
 		goto done;
 	}
 

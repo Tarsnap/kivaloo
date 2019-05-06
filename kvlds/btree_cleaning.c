@@ -132,6 +132,7 @@ callback_clean(void * cookie, struct node * N)
 	/* If this node is not CLEAN, we don't need to clean it any more. */
 	if (N->state != NODE_STATE_CLEAN) {
 		CG->C->pending_cleans--;
+		btree_node_unlock(CG->C->T, N);
 		goto done;
 	}
 
@@ -169,6 +170,7 @@ callback_find(void * cookie, struct node * N)
 	struct cleaning_group * CG = cookie;
 	struct cleaner * C = CG->C;
 	size_t i;
+	int repoke = 1;
 
 	/*
 	 * We're no longer trying to find a group to clean (unless we decide
@@ -180,12 +182,20 @@ callback_find(void * cookie, struct node * N)
 	CG->pending_fetches--;
 
 	/*
-	 * If all the leaves under this node are being cleaned, we have
-	 * nothing to do except free the cleaner group.
+	 * If there aren't any old leaves under this node which aren't
+	 * already being cleaned, we have nothing to do except free the
+	 * cleaner group.  This can happen if we have a small tree and are
+	 * cleaning it very aggressively.
 	 */
-	if (N->oldestncleaf == (uint64_t)(-1)) {
+	if (N->oldestncleaf >= C->T->nextblk - C->T->nnodes / 2) {
 		/* Release the cleaner group. */
 		free_cg(CG);
+
+		/*
+		 * No need to poke the cleaner again quite yet; there isn't
+		 * any useful cleaning to be done right now.
+		 */
+		repoke = 0;
 
 		/* That's all. */
 		goto done;
@@ -236,10 +246,7 @@ callback_find(void * cookie, struct node * N)
 		}
 
 		/* We should have found at least one child to clean. */
-		if (CG->pending_fetches == 0) {
-			warn0("Node has no cleanable children!");
-			goto err1;
-		}
+		assert(CG->pending_fetches);
 
 		/* Recompute oldestncleaf upwards. */
 		recompute_oncl(N);
@@ -263,7 +270,7 @@ done:
 	btree_node_unlock(C->T, N);
 
 	/* Launch cleaning if possible and appropriate. */
-	if (poke(C))
+	if (repoke && poke(C))
 		goto err0;
 
 	/* Success! */
@@ -287,6 +294,13 @@ poke(struct cleaner * C)
 	 * that is done before we can look for another group.
 	 */
 	if (C->group_pending)
+		goto done;
+
+	/*
+	 * If we're using more than 1/16 of our memory to hold pages which
+	 * are being cleaned, stop there; that's plenty.
+	 */
+	if (C->pending_cleans > C->T->poolsz / 16)
 		goto done;
 
 	/*

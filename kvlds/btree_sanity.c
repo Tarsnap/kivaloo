@@ -1,3 +1,4 @@
+#ifdef SANITY_CHECKS
 #include <assert.h>
 
 #include "kvpair.h"
@@ -146,3 +147,4 @@ btree_sanity(struct btree * T)
 	    (T->root_shadow->state != NODE_STATE_CLEAN) ||
 	    (T->root_shadow == T->root_dirty));
 }
+#endif /* SANITY_CHECKS */

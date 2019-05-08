@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "events.h"
@@ -126,6 +127,8 @@ main(int argc, char * argv[])
 	int s;
 	struct wire_requestqueue * Q;
 	size_t i;
+	time_t t_now;
+	char datetime[20];
 
 	WARNP_INIT;
 
@@ -154,7 +157,9 @@ main(int argc, char * argv[])
 	}
 
 	/* 10 stages of writing new keys followed by existing keys. */
-	warn0("Writing and modifying...");
+	time(&t_now);
+	strftime(datetime, 20, "%F %T", gmtime(&t_now));
+	warn0("%s: Writing and modifying...", datetime);
 	for (i = 0; i < 10; i++) {
 		/* Write 1k new keys. */
 		if (batch_set(Q, i * 1000, 1000)) {
@@ -169,27 +174,40 @@ main(int argc, char * argv[])
 		}
 	}
 
-	/* Sleep 180 seconds so that we can watch the cleaner kick in. */
-	sleep(180);
+	/* Sleep 1800 seconds so that we can watch the cleaner kick in. */
+	time(&t_now);
+	strftime(datetime, 20, "%F %T", gmtime(&t_now));
+	warn0("%s: ... done", datetime);
+	sleep(1800);
 
 	/* Delete the 100k repeatedly modified keys. */
-	warn0("Deleting repeatedly modified keys...");
+	time(&t_now);
+	strftime(datetime, 20, "%F %T", gmtime(&t_now));
+	warn0("%s: Deleting repeatedly modified keys...", datetime);
 	if (batch_delete(Q, 1000000, 100000)) {
 		warnp("Failure deleting old keys");
 		exit(1);
 	}
 
-	/* Sleep 90 seconds so that we can watch the cleaner do more work. */
-	sleep(90);
+	/* Sleep 1200 seconds so that we can watch the cleaner do more work. */
+	time(&t_now);
+	strftime(datetime, 20, "%F %T", gmtime(&t_now));
+	warn0("%s: ... done", datetime);
+	sleep(1200);
 
 	/* Delete the 10 x 1k once-written keys. */
-	warn0("Deleting once-written keys...");
+	time(&t_now);
+	strftime(datetime, 20, "%F %T", gmtime(&t_now));
+	warn0("%s: Deleting once-written keys...", datetime);
 	if (batch_delete(Q, 0, 10000)) {
 		warnp("Failure deleting new keys");
 		exit(1);
 	}
 
 	/* Sleep 10 seconds so that we can see an empty tree. */
+	time(&t_now);
+	strftime(datetime, 20, "%F %T", gmtime(&t_now));
+	warn0("%s: ... done", datetime);
 	sleep(10);
 
 	/* Free the request queue. */

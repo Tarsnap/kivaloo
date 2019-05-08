@@ -2,7 +2,7 @@
 
 set -e
 
-LIST=$( awk -v E=330 'BEGIN {for (i = 0; i < E; i++) print i}')
+LIST=$( awk -v E=3300 'BEGIN {for (i = 0; i < E; i++) print i}')
 
 rm -rf stor
 mkdir stor

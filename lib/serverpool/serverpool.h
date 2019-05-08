@@ -13,7 +13,7 @@ struct sock_addr;
  * in the past ${ttl} seconds).  Return a cookie which can be passed to
  * serverpool_pick().
  */
-struct serverpool * serverpool_create(const char *, int, time_t);
+struct serverpool * serverpool_create(const char *, unsigned int, time_t);
 
 /**
  * serverpool_pick(P):

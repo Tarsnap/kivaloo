@@ -261,7 +261,7 @@ err0:
 
 /* Fork off a child process to perform DNS lookups. */
 static pid_t
-forkdns(const char * target, int readfd, int writefd, int freq)
+forkdns(const char * target, int readfd, int writefd, unsigned int freq)
 {
 	pid_t pid;
 	struct sock_addr ** sas;
@@ -335,7 +335,7 @@ die:
  * serverpool_pick().
  */
 struct serverpool *
-serverpool_create(const char * target, int freq, time_t ttl)
+serverpool_create(const char * target, unsigned int freq, time_t ttl)
 {
 	struct serverpool * P;
 	struct sock_addr ** sas;

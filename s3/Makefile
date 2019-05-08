@@ -38,7 +38,7 @@ clean:
 ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
-main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../lib/logging/logging.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h dns.h
+main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/insecure_memzero.h ../lib/logging/logging.h ../libcperciva/util/parsenum.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h dns.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dns.o: dns.c ../libcperciva/network/network.h ../libcperciva/util/noeintr.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../libcperciva/util/warnp.h dns.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dns.c -o dns.o
@@ -122,7 +122,7 @@ http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h 
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/http/http.c -o http.o
 s3_request.o: ../lib/s3/s3_request.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_sign.h ../lib/http/http.h ../libcperciva/util/warnp.h ../lib/s3/s3_request.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_request.c -o s3_request.o
-s3_request_queue.o: ../lib/s3/s3_request_queue.c ../lib/http/http.h ../lib/logging/logging.h ../libcperciva/util/monoclock.h ../lib/s3/s3_request.h ../lib/s3/s3_serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../lib/s3/s3_request_queue.h
+s3_request_queue.o: ../lib/s3/s3_request_queue.c ../lib/http/http.h ../libcperciva/util/insecure_memzero.h ../lib/logging/logging.h ../libcperciva/util/monoclock.h ../lib/s3/s3_request.h ../lib/s3/s3_serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../lib/s3/s3_request_queue.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_request_queue.c -o s3_request_queue.o
 s3_serverpool.o: ../lib/s3/s3_serverpool.c ../libcperciva/datastruct/elasticarray.h ../libcperciva/util/monoclock.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../lib/s3/s3_serverpool.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_serverpool.c -o s3_serverpool.o

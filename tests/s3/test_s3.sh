@@ -6,7 +6,7 @@ TESTS3=./test_s3
 TMPDIR=`pwd`/tmp
 SOCKS3=$TMPDIR/sock_s3
 REGION=us-west-2
-BUCKET=kivaloo-test
+BUCKET=${BUCKET:-kivaloo-test}
 LOGFILE=s3.log
 AWSKEY=~/.s3/aws.key
 

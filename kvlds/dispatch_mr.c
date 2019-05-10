@@ -505,17 +505,17 @@ callback_synced(void * cookie)
 			break;
 		case PROTO_KVLDS_CAS:
 			if (proto_kvlds_response_cas(B->WQ, R->ID,
-			    req->opdone))
+			    req->opdone ? 0 : 1))
 				goto err0;
 			break;
 		case PROTO_KVLDS_ADD:
 			if (proto_kvlds_response_add(B->WQ, R->ID,
-			    req->opdone))
+			    req->opdone ? 0 : 1))
 				goto err0;
 			break;
 		case PROTO_KVLDS_MODIFY:
 			if (proto_kvlds_response_modify(B->WQ, R->ID,
-			    req->opdone))
+			    req->opdone ? 0 : 1))
 				goto err0;
 			break;
 		case PROTO_KVLDS_DELETE:
@@ -524,7 +524,7 @@ callback_synced(void * cookie)
 			break;
 		case PROTO_KVLDS_CAD:
 			if (proto_kvlds_response_cad(B->WQ, R->ID,
-			    req->opdone))
+			    req->opdone ? 0 : 1))
 				goto err0;
 			break;
 		}

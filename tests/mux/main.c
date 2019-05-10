@@ -40,14 +40,14 @@ callback_done(void * cookie, int failed)
 }
 
 static int
-callback_donep(void * cookie, int failed, int done)
+callback_donep(void * cookie, int failed, int status)
 {
 
 	(void)cookie; /* UNUSED */
 
 	/* We're done! */
 	op_failed = failed;
-	op_p = done;
+	op_p = status ? 0 : 1;
 	op_done = 1;
 
 	/* Success! */

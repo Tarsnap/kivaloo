@@ -228,7 +228,7 @@ err0:
  */
 int
 proto_kvlds_response_status(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status)
+    int status)
 {
 	uint8_t * wbuf;
 
@@ -259,7 +259,7 @@ err0:
  */
 int
 proto_kvlds_response_get(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, const struct kvldskey * value)
+    int status, const struct kvldskey * value)
 {
 	uint8_t * wbuf;
 	size_t len;

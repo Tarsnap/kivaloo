@@ -182,7 +182,7 @@ err0:
  */
 int
 proto_lbs_response_get(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, uint32_t blklen, const uint8_t * buf)
+    int status, uint32_t blklen, const uint8_t * buf)
 {
 	uint8_t * wbuf;
 	size_t len;
@@ -218,7 +218,7 @@ err0:
  */
 int
 proto_lbs_response_append(struct netbuf_write * Q, uint64_t ID,
-    uint32_t status, uint64_t blkno)
+    int status, uint64_t blkno)
 {
 	uint8_t * wbuf;
 	size_t len;

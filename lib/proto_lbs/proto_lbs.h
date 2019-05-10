@@ -149,7 +149,7 @@ int proto_lbs_response_params2(struct netbuf_write *, uint64_t,
  * ${status} and ${blklen} bytes of data from ${buf} if ${status} is zero.
  */
 int proto_lbs_response_get(struct netbuf_write *, uint64_t,
-    uint32_t, uint32_t, const uint8_t *);
+    int, uint32_t, const uint8_t *);
 
 /**
  * proto_lbs_response_append(Q, ID, status, blkno):
@@ -157,7 +157,7 @@ int proto_lbs_response_get(struct netbuf_write *, uint64_t,
  * code ${status} and next block number ${blkno} if ${status} is zero.
  */
 int proto_lbs_response_append(struct netbuf_write *, uint64_t,
-    uint32_t, uint64_t);
+    int, uint64_t);
 
 /**
  * proto_lbs_response_free(Q, ID):

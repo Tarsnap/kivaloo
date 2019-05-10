@@ -191,7 +191,7 @@ int proto_kvlds_response_params(struct netbuf_write *, uint64_t, uint32_t,
  * ${status} to the write queue ${Q} indicating that the request has been
  * completed with the specified status.
  */
-int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t);
+int proto_kvlds_response_status(struct netbuf_write *, uint64_t, int);
 
 #define proto_kvlds_response_set(Q, ID)		\
 	proto_kvlds_response_status(Q, ID, 0)
@@ -212,7 +212,7 @@ int proto_kvlds_response_status(struct netbuf_write *, uint64_t, uint32_t);
  * (if ${status} == 0) to the write queue ${Q} indicating that the provided
  * key is associated with the specified data (or not).
  */
-int proto_kvlds_response_get(struct netbuf_write *, uint64_t, uint32_t,
+int proto_kvlds_response_get(struct netbuf_write *, uint64_t, int,
     const struct kvldskey *);
 
 /**

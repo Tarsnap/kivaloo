@@ -481,7 +481,7 @@ btree_node_dirty(struct btree * T, struct node * N)
 	btree_node_lock(T, N);
 
 	/* The new node is dirty. */
-	N_dirty->oldestncleaf = -1;
+	N_dirty->oldestncleaf = (uint64_t)(-1);
 	N_dirty->p_shadow = NULL;
 
 	/* Leaf or parent? */

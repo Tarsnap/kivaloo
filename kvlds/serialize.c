@@ -440,8 +440,11 @@ serialize_size(struct node * N)
 		size += SERIALIZE_PERCHILD;
 	}
 
+	/* Sanity check: we can't store more than this in the node. */
+	assert(size <= UINT32_MAX);
+
 	/* Cache the page size. */
-	N->pagesize = size;
+	N->pagesize = (uint32_t)size;
 
 	/* Return the computed size. */
 	return (size);

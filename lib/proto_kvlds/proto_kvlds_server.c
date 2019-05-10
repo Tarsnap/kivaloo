@@ -323,7 +323,7 @@ proto_kvlds_response_range(struct netbuf_write * Q, uint64_t ID,
 
 	/* Write the packet data. */
 	be32enc(&wbuf[0], 0);
-	be32enc(&wbuf[4], nkeys);
+	be32enc(&wbuf[4], (uint32_t)nkeys);
 	bufpos = 8;
 	kvldskey_serialize(next, &wbuf[bufpos]);
 	bufpos += kvldskey_serial_size(next);

@@ -154,7 +154,7 @@ proto_dynamodb_kv_request_free(struct proto_ddbkv_request * req)
  */
 int
 proto_dynamodb_kv_response_status(struct netbuf_write * Q, uint64_t ID,
-    int status)
+    uint32_t status)
 {
 	uint8_t * wbuf;
 
@@ -186,7 +186,7 @@ err0:
  */
 int
 proto_dynamodb_kv_response_data(struct netbuf_write * Q, uint64_t ID,
-    int status, uint32_t len, const uint8_t * buf)
+    uint32_t status, uint32_t len, const uint8_t * buf)
 {
 	uint8_t * wbuf;
 	size_t rlen;

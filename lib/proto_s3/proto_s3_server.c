@@ -180,7 +180,7 @@ proto_s3_request_free(struct proto_s3_request * req)
  * the S3 request completed with HTTP status code ${status}.
  */
 int
-proto_s3_response_status(struct netbuf_write * Q, uint64_t ID, int status)
+proto_s3_response_status(struct netbuf_write * Q, uint64_t ID, uint32_t status)
 {
 	uint8_t * wbuf;
 
@@ -212,7 +212,7 @@ err0:
  * ${len} but no data.
  */
 int
-proto_s3_response_data(struct netbuf_write * Q, uint64_t ID, int status,
+proto_s3_response_data(struct netbuf_write * Q, uint64_t ID, uint32_t status,
     uint32_t len, const uint8_t * buf)
 {
 	uint8_t * wbuf;

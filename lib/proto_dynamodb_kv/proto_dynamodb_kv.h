@@ -92,7 +92,8 @@ void proto_dynamodb_kv_request_free(struct proto_ddbkv_request *);
  * the DynamoDB request completed successfully (${status} = 0) or failed
  * (${status} = 1).
  */
-int proto_dynamodb_kv_response_status(struct netbuf_write *, uint64_t, int);
+int proto_dynamodb_kv_response_status(struct netbuf_write *, uint64_t,
+    uint32_t);
 
 #define proto_dynamodb_kv_response_put(Q, ID, status)		\
 	proto_dynamodb_kv_response_status(Q, ID, status)
@@ -105,7 +106,7 @@ int proto_dynamodb_kv_response_status(struct netbuf_write *, uint64_t, int);
  * the DynamoDB request completed successfully (${status} = 0) with the
  * provided data, failed (${status} = 1), or returned no data (${status} = 2).
  */
-int proto_dynamodb_kv_response_data(struct netbuf_write *, uint64_t, int,
+int proto_dynamodb_kv_response_data(struct netbuf_write *, uint64_t, uint32_t,
     uint32_t, const uint8_t *);
 
 #define proto_dynamodb_kv_response_get(Q, ID, status, len, buf)		\

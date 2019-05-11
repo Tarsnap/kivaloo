@@ -22,7 +22,7 @@ dispatch_response_send(struct dispatch_state * dstate, struct workctl * thread)
 	size_t nblks;
 	uint8_t * buf;
 	uint64_t reqID;
-	uint32_t status;
+	int status;
 
 	/* Figure out what work was completed. */
 	if (worker_getdone(thread, &op, &blkno, &nblks, &buf, &reqID))

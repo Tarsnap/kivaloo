@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -187,6 +188,9 @@ proto_lbs_response_get(struct netbuf_write * Q, uint64_t ID,
 	uint8_t * wbuf;
 	size_t len;
 
+	/* Sanity check. */
+	assert((status == 0) || (status == 1));
+
 	/* Compute the response length. */
 	len = 4 + ((status == 0) ? blklen : 0);
 
@@ -195,7 +199,7 @@ proto_lbs_response_get(struct netbuf_write * Q, uint64_t ID,
 		goto err0;
 
 	/* Write the packet data. */
-	be32enc(&wbuf[0], status);
+	be32enc(&wbuf[0], (uint32_t)status);
 	if (status == 0)
 		memcpy(&wbuf[4], buf, blklen);
 
@@ -223,6 +227,9 @@ proto_lbs_response_append(struct netbuf_write * Q, uint64_t ID,
 	uint8_t * wbuf;
 	size_t len;
 
+	/* Sanity check. */
+	assert((status == 0) || (status == 1));
+
 	/* Compute the response length. */
 	len = (status == 0) ? 12 : 4;
 
@@ -231,7 +238,7 @@ proto_lbs_response_append(struct netbuf_write * Q, uint64_t ID,
 		goto err0;
 
 	/* Write the packet data. */
-	be32enc(&wbuf[0], status);
+	be32enc(&wbuf[0], (uint32_t)status);
 	if (status == 0)
 		be64enc(&wbuf[4], blkno);
 

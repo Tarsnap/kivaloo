@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "proto_lbs.h"
@@ -19,6 +20,9 @@ dispatch_request_params(struct dispatch_state * dstate,
 {
 	uint64_t blkno;
 
+	/* Sanity check. */
+	assert(dstate->blocklen <= UINT32_MAX);
+
 	/* Figure out what the first available block number is. */
 	if ((blkno = storage_nextblock(dstate->sstate)) == (uint64_t)(-1))
 		goto err1;
@@ -26,7 +30,7 @@ dispatch_request_params(struct dispatch_state * dstate,
 	/* Send the response packet back. */
 	dstate->npending--;
 	if (proto_lbs_response_params(dstate->writeq, R->ID,
-	    dstate->blocklen, blkno))
+	    (uint32_t)dstate->blocklen, blkno))
 		goto err1;
 
 	/* Free the request structure. */
@@ -53,6 +57,9 @@ dispatch_request_params2(struct dispatch_state * dstate,
 	uint64_t blkno;
 	uint64_t lastblk;
 
+	/* Sanity check. */
+	assert(dstate->blocklen <= UINT32_MAX);
+
 	/* Figure out what the first available block number is. */
 	if ((blkno = storage_nextblock(dstate->sstate)) == (uint64_t)(-1))
 		goto err1;
@@ -70,7 +77,7 @@ dispatch_request_params2(struct dispatch_state * dstate,
 	/* Send the response packet back. */
 	dstate->npending--;
 	if (proto_lbs_response_params2(dstate->writeq, R->ID,
-	    dstate->blocklen, blkno, lastblk))
+	    (uint32_t)dstate->blocklen, blkno, lastblk))
 		goto err1;
 
 	/* Free the request structure. */

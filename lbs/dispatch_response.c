@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "proto_lbs.h"
@@ -31,6 +32,9 @@ dispatch_response_send(struct dispatch_state * dstate, struct workctl * thread)
 	/* Different types of work get handled differently. */
 	switch (op) {
 	case 0:	/* read operation. */
+		/* Sanity check. */
+		assert(dstate->blocklen <= UINT32_MAX);
+
 		/* If we read a block, our status is 0; otherwise, 1. */
 		if (nblks == 1)
 			status = 0;
@@ -40,7 +44,7 @@ dispatch_response_send(struct dispatch_state * dstate, struct workctl * thread)
 		/* Send a response. */
 		dstate->npending--;
 		if (proto_lbs_response_get(dstate->writeq, reqID, status,
-		    dstate->blocklen, buf))
+		    (uint32_t)dstate->blocklen, buf))
 			goto err1;
 
 		/* Free the buffer holding read data. */

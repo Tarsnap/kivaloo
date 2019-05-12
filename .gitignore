@@ -39,3 +39,6 @@ tests/s3/test_s3
 tests/*/.depend
 tests/*/*.debug
 tests/*/*.full
+# python tests
+tests/python/__pycache__
+tests/python/kivaloo/__pycache__

@@ -1,0 +1,11 @@
+KVLDS-DUMP design
+=================
+
+The kvlds-dump utility is invoked as
+# kivaloo-kvlds-dump -t <kvlds socket> [--fs <dir>]
+
+It opens a connection to the specified KVLDS daemon and retrieves all of the
+key-value pairs.  By default the key-value pairs are written to stdout; if
+the --fs <dir> option is specified, numbered directories will be created
+under that directory containing files named "k" and "v" with the keys and
+values respectively.

@@ -12,6 +12,8 @@ bench/random_read/random_read
 bench/tokyo/tokyo
 dynamodb-kv/dynamodb-kv
 kvlds/kvlds
+kvlds-dump/kvlds-dump
+kvlds-undump/kvlds-undump
 lbs-dynamodb/lbs-dynamodb
 lbs-s3/lbs-s3
 lbs/lbs

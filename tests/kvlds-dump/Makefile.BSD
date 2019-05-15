@@ -1,0 +1,7 @@
+PROG=	dummy
+SRCS=	dummy.c
+
+test:
+	@./test_kvlds_dump.sh
+
+.include <bsd.prog.mk>

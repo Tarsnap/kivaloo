@@ -55,6 +55,15 @@ wire_writepacket_done(struct netbuf_write * W, uint8_t * wbuf, size_t len)
 	CRC32C_CTX ctx;
 	uint8_t cbuf[4];
 	size_t i;
+	uint8_t * header_crc;
+
+	/*
+	 * This is safe due to the requirement that ${wbuf} be the pointer
+	 * returned by wire_writepacket_getbuf -- that function returns
+	 * &wbuf[16], so position [-4] in the new buffer is still within
+	 * the allocated memory.
+	 */
+	header_crc = &wbuf[-4];
 
 	/* Compute the CRC32C of the packet data. */
 	CRC32C_Init(&ctx);
@@ -63,7 +72,7 @@ wire_writepacket_done(struct netbuf_write * W, uint8_t * wbuf, size_t len)
 
 	/* Write the trailer. */
 	for (i = 0; i < 4; i++)
-		wbuf[len + i] = cbuf[i] ^ wbuf[-4 + i];
+		wbuf[len + i] = cbuf[i] ^ header_crc[i];
 
 	/* We've finished constructing the packet. */
 	if (netbuf_write_consume(W, len + 20))

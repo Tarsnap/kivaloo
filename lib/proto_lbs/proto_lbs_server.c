@@ -16,6 +16,9 @@ proto_lbs_request_parse(const struct wire_packet * P,
     struct proto_lbs_request * R)
 {
 
+	/* Sanity check. */
+	assert(P->len <= UINT32_MAX);
+
 	/* Store request ID. */
 	R->ID = P->ID;
 
@@ -48,7 +51,8 @@ proto_lbs_request_parse(const struct wire_packet * P,
 			goto err0;
 		if ((P->len - 16) % R->r.append.nblks)
 			goto err0;
-		R->r.append.blklen = (P->len - 16) / R->r.append.nblks;
+		R->r.append.blklen = (uint32_t)((P->len - 16) /
+		    R->r.append.nblks);
 		if ((R->r.append.buf = malloc(P->len - 16)) == NULL)
 			goto err0;
 		memcpy(R->r.append.buf, &P->buf[16], P->len - 16);

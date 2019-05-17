@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 #include "events.h"
-#include "proto_lbs.h"
 #include "pool.h"
+#include "proto_lbs.h"
 #include "warnp.h"
 #include "wire.h"
 

@@ -5,9 +5,9 @@
 #include "imalloc.h"
 #include "kvldskey.h"
 #include "kvpair.h"
-#include "ptrheap.h"
 #include "netbuf.h"
 #include "proto_kvlds.h"
+#include "ptrheap.h"
 
 #include "btree.h"
 #include "btree_find.h"

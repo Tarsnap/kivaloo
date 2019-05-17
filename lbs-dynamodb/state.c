@@ -5,8 +5,8 @@
 
 #include "events.h"
 #include "metadata.h"
-#include "proto_lbs.h"
 #include "proto_dynamodb_kv.h"
+#include "proto_lbs.h"
 #include "warnp.h"
 #include "wire.h"
 

@@ -1,6 +1,8 @@
 #ifndef _S3_REQUEST_QUEUE_H_
 #define _S3_REQUEST_QUEUE_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct http_response;
 struct logging_file;

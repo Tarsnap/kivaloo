@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>

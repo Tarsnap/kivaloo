@@ -1,6 +1,7 @@
 #ifndef _STORAGE_H_
 #define _STORAGE_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque structure holding back-end storage state. */

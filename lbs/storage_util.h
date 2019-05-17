@@ -1,6 +1,8 @@
 #ifndef _STORAGE_UTIL_H_
 #define _STORAGE_UTIL_H_
 
+#include <stdint.h>
+
 /* Opaque types. */
 struct storage_state;
 

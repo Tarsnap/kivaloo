@@ -1,6 +1,7 @@
 #ifndef _WORKER_H_
 #define _WORKER_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */

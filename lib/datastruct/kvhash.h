@@ -1,6 +1,7 @@
 #ifndef _KVHASH_H_
 #define _KVHASH_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */

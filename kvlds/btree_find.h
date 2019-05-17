@@ -1,6 +1,8 @@
 #ifndef _BTREE_FIND_H_
 #define _BTREE_FIND_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct btree;
 struct kvldskey;

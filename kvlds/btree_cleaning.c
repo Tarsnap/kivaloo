@@ -1,3 +1,7 @@
+#include <sys/time.h>
+
+#include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "events.h"

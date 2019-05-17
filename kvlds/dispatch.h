@@ -1,6 +1,8 @@
 #ifndef _DISPATCH_H_
 #define _DISPATCH_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct btree;
 struct dispatch_state;

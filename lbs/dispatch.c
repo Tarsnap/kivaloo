@@ -11,8 +11,8 @@
 #include "netbuf.h"
 #include "network.h"
 #include "proto_lbs.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 #include "worker.h"
 

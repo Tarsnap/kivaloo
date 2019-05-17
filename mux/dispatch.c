@@ -6,8 +6,8 @@
 #include "mpool.h"
 #include "netbuf.h"
 #include "network.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 #include "dispatch.h"
 

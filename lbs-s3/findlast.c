@@ -17,7 +17,8 @@ struct headdata {
 };
 
 /* Callback for HEAD requests. */
-static int callback_head(void * cookie, int status, size_t len)
+static int
+callback_head(void * cookie, int status, size_t len)
 {
 	struct headdata * hd = cookie;
 

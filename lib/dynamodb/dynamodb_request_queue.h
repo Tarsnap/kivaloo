@@ -44,20 +44,20 @@ void dynamodb_request_queue_setcapacity(struct dynamodb_request_queue *, int);
  * invoked or the queue is flushed.  For accurate rate limiting, on tables
  * with "provisioned" capacity requests must elicit ConsumedCapacity fields
  * in their responses.
- * 
+ *
  * HTTP 5xx errors and HTTP 400 "Throughput Exceeded" errors will be
  * automatically retried; other errors are passed back.
  *
  * Requests will be served starting with the lowest ${prio}, breaking ties
  * according to the queue arrival time.
- * 
+ *
  * If dynamodb_request_queue_log has been called, ${logstr} will be included
  * when this request is logged.  (This could be used to identify the target
  * of the ${op} operation, for example.)
  */
 int dynamodb_request_queue(struct dynamodb_request_queue *, int, const char *,
     const char *, size_t, const char *,
-    int (*)(void *, struct http_response *), void *); 
+    int (*)(void *, struct http_response *), void *);
 
 /**
  * dynamodb_request_queue_flush(Q):

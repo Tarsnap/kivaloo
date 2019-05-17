@@ -180,7 +180,7 @@ callback_timer(void * cookie)
  * DescribeTable requests to the DynamoDB table ${tname} in AWS region
  * ${rname}, using endpoints returned by the server pool ${SP}.  Update the
  * capacity of the write queue ${QW} and read queue ${QR}.
- * 
+ *
  * Issue one request immediately, and wait for it to complete before
  * returning; issue subsequent requests every 15 seconds.
  *

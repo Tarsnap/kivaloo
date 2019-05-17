@@ -1,6 +1,8 @@
 #ifndef _DISPATCH_H_
 #define _DISPATCH_H_
 
+#include <stddef.h>
+
 /* Opaque types. */
 struct dispatch_state;
 struct wire_requestqueue;

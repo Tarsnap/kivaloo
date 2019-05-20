@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "imalloc.h"
 #include "kvldskey.h"
 #include "kvpair.h"
-#include "imalloc.h"
 
 #include "btree.h"
 #include "node.h"

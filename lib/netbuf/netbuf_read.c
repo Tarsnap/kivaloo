@@ -35,8 +35,8 @@ static int callback_read(void *, ssize_t);
  * is responsible for ensuring that no attempts are made to read from said
  * socket except via the returned reader.
  */
-struct
-netbuf_read * netbuf_read_init(int s)
+struct netbuf_read *
+netbuf_read_init(int s)
 {
 	struct netbuf_read * R;
 

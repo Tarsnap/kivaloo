@@ -5,8 +5,8 @@
 
 #include "events.h"
 #include "metadata.h"
-#include "proto_lbs.h"
 #include "proto_dynamodb_kv.h"
+#include "proto_lbs.h"
 #include "warnp.h"
 #include "wire.h"
 
@@ -218,7 +218,7 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	C->cookie = cookie;
 	C->nblks_left = R->r.append.nblks;
 	C->nextblk_old = S->nextblk;
-	
+
 	/* Update nextblk. */
 	S->nextblk += R->r.append.nblks;
 	if (metadata_nextblk_write(S->M, S->nextblk,

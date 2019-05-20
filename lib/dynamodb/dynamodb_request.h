@@ -13,7 +13,7 @@ struct sock_addr;
  * Using the AWS Key ID ${key_id} and Secret Access Key ${key_secret}, send
  * the DynamoDB request contained in ${body} (of length ${bodylen}) for the
  * operation ${op} to region ${region} located at ${addrs}.
- * 
+ *
  * Read a response with a body of up to ${maxrlen} bytes and invoke the
  * provided callback as ${callback}(${cookie}, ${response}), with a response
  * of NULL if no response was read (e.g., on connection error).  Return a
@@ -21,7 +21,7 @@ struct sock_addr;
  * (Note however that such a cancellation does not guarantee that the actual
  * DynamoDB operation will not occur and have results which are visible at a
  * later time.)
- * 
+ *
  * If the HTTP response has no body, the response structure will have bodylen
  * == 0 and body == NULL; if there is a body larger than ${maxrlen} bytes,
  * the response structure will have bodylen == (size_t)(-1) and body == NULL.

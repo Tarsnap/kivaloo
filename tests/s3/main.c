@@ -6,8 +6,8 @@
 #include "proto_s3.h"
 #include "sock.h"
 #include "sysendian.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 static int opdone;
 

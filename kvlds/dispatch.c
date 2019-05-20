@@ -17,8 +17,8 @@
 #include "network.h"
 #include "proto_kvlds.h"
 #include "serialize.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 #include "btree.h"
 #include "btree_cleaning.h"

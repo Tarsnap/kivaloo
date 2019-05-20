@@ -5,8 +5,8 @@
 #include "events.h"
 #include "proto_lbs.h"
 #include "sock.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 /* Total of 256 pages. */
 static size_t npages[] = {

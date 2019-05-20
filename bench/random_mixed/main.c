@@ -14,8 +14,8 @@
 #include "proto_kvlds.h"
 #include "sock.h"
 #include "sysendian.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 struct randommixed_state {
 	/* State used for spewing requests. */

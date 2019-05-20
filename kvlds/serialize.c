@@ -5,9 +5,9 @@
 #include <string.h>
 
 #include "btree.h"
+#include "imalloc.h"
 #include "kvldskey.h"
 #include "kvpair.h"
-#include "imalloc.h"
 #include "sysendian.h"
 #include "warnp.h"
 

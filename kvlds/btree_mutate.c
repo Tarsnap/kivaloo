@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "imalloc.h"
 #include "kvhash.h"
 #include "kvldskey.h"
 #include "kvpair.h"
-#include "imalloc.h"
 
 #include "btree_find.h"
 #include "node.h"

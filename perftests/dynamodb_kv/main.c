@@ -6,8 +6,8 @@
 #include "events.h"
 #include "proto_dynamodb_kv.h"
 #include "sock.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 struct status {
 	int done;

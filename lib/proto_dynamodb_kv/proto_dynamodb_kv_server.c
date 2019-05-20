@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "wire.h"
 #include "sysendian.h"
+#include "wire.h"
 
 #include "proto_dynamodb_kv.h"
 

@@ -6,8 +6,8 @@
 #include "events.h"
 #include "proto_s3.h"
 #include "sock.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 struct put_state {
 	int done;

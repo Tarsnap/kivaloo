@@ -10,8 +10,8 @@
 #include "monoclock.h"
 #include "proto_kvlds.h"
 #include "sock.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 struct bulkupdate_state {
 	/* State used for spewing requests. */

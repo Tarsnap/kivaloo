@@ -8,8 +8,8 @@
 #include "proto_kvlds.h"
 #include "sock.h"
 #include "sysendian.h"
-#include "wire.h"
 #include "warnp.h"
+#include "wire.h"
 
 struct many_state {
 	size_t Nip;

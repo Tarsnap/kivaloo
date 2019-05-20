@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 #include "events.h"
-#include "kvpair.h"
 #include "kvldskey.h"
+#include "kvpair.h"
 #include "mpool.h"
 
 #include "btree.h"

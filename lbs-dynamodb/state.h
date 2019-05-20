@@ -1,6 +1,9 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 /* Opaque types. */
 struct metadata;
 struct proto_lbs_request;

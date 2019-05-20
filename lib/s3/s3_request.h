@@ -1,6 +1,9 @@
 #ifndef _S3_REQUEST_H_
 #define _S3_REQUEST_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 /* Opaque types. */
 struct http_header;
 struct http_response;

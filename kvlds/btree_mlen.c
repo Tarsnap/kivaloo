@@ -1,3 +1,6 @@
+#include <stddef.h>
+#include <stdint.h>
+
 #include "kvldskey.h"
 
 #include "node.h"

@@ -1,6 +1,7 @@
 #ifndef _BTREE_NODE_H_
 #define _BTREE_NODE_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "pool.h"

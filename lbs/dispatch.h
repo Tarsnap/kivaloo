@@ -1,9 +1,11 @@
 #ifndef _DISPATCH_H_
 #define _DISPATCH_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */
+struct dispatch_state;
 struct storage_state;
 
 /**

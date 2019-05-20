@@ -1,5 +1,6 @@
 #include <sys/stat.h>
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 

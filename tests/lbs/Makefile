@@ -38,7 +38,7 @@ clean:
 ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
-main.o: main.c ../../libcperciva/events/events.h ../../lib/proto_lbs/proto_lbs.h ../../libcperciva/util/sock.h ../../lib/wire/wire.h ../../libcperciva/util/warnp.h
+main.o: main.c ../../libcperciva/events/events.h ../../lib/proto_lbs/proto_lbs.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/wire/wire.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 cpusupport_x86_crc32.o: ../../libcperciva/cpusupport/cpusupport_x86_crc32.c ../../libcperciva/cpusupport/cpusupport.h ../../cpusupport-config.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/cpusupport/cpusupport_x86_crc32.c -o cpusupport_x86_crc32.o

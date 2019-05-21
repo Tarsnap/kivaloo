@@ -63,6 +63,11 @@ SRCS	+=	wire_writepacket.c
 SRCS	+=	wire_requestqueue.c
 IDIRS	+=	-I ${LIB_DIR}/wire
 
+# Utility functions
+.PATH.c	:	${LIB_DIR}/util
+SRCS	+=	kivaloo.c
+IDIRS	+=	-I ${LIB_DIR}/util
+
 # S3 request/response packets
 .PATH.c	:	${LIB_DIR}/proto_s3
 SRCS	+=	proto_s3_client.c

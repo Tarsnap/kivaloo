@@ -6,11 +6,10 @@
 #include <string.h>
 
 #include "events.h"
+#include "kivaloo.h"
 #include "proto_s3.h"
-#include "sock.h"
 #include "sysendian.h"
 #include "warnp.h"
-#include "wire.h"
 
 static int opdone;
 
@@ -174,9 +173,8 @@ deletefile(struct wire_requestqueue * Q, const char * bucket)
 int
 main(int argc, char * argv[])
 {
-	struct sock_addr ** sas;
-	int s;
 	struct wire_requestqueue * Q;
+	struct kivaloo_cookie * K;
 
 	WARNP_INIT;
 
@@ -187,21 +185,9 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 
-	/* Resolve the socket address and connect. */
-	if ((sas = sock_resolve(argv[1])) == NULL) {
-		warnp("Error resolving socket address: %s", argv[1]);
-		exit(1);
-	}
-	if (sas[0] == NULL) {
-		warn0("No addresses found for %s", argv[1]);
-		exit(1);
-	}
-	if ((s = sock_connect(sas)) == -1)
-		exit(1);
-
-	/* Create a request queue. */
-	if ((Q = wire_requestqueue_init(s)) == NULL) {
-		warnp("Cannot create packet write queue");
+	/* Open a connection to S3. */
+	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
+		warnp("Could not connect to S3 daemon.");
 		exit(1);
 	}
 
@@ -217,12 +203,8 @@ main(int argc, char * argv[])
 	/* DELETE the file. */
 	deletefile(Q, argv[2]);
 
-	/* Free the request queue. */
-	wire_requestqueue_destroy(Q);
-	wire_requestqueue_free(Q);
-
-	/* Free socket addresses. */
-	sock_addr_freelist(sas);
+	/* Free the request queue and network connection. */
+	kivaloo_close(K);
 
 	/* Shut down the event subsystem. */
 	events_shutdown();

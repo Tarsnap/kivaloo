@@ -1,6 +1,9 @@
 #ifndef _S3STATE_H_
 #define _S3STATE_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 /* Opaque types. */
 struct deleteto;
 struct proto_lbs_request;

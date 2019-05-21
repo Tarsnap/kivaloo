@@ -1,6 +1,7 @@
 #ifndef _FINDLAST_H_
 #define _FINDLAST_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */

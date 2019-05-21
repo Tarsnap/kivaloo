@@ -40,7 +40,7 @@ ${PROG}:${SRCS:.c=.o}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h storage.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
-dispatch.o: dispatch.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../lib/wire/wire.h ../libcperciva/util/warnp.h worker.h dispatch.h dispatch_internal.h
+dispatch.o: dispatch.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h worker.h dispatch.h dispatch_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 dispatch_request.o: dispatch_request.c ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch_request.c -o dispatch_request.o
@@ -114,5 +114,5 @@ wire_readpacket.o: ../lib/wire/wire_readpacket.c ../libcperciva/alg/crc32c.h ../
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_readpacket.c -o wire_readpacket.o
 wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h ../lib/netbuf/netbuf.h ../libcperciva/util/sysendian.h ../lib/wire/wire.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
-proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
+proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../libcperciva/util/sysendian.h ../lib/wire/wire.h ../lib/proto_lbs/proto_lbs.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/proto_lbs/proto_lbs_server.c -o proto_lbs_server.o

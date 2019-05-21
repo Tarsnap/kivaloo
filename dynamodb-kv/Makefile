@@ -124,7 +124,7 @@ dynamodb_request_queue.o: ../lib/dynamodb/dynamodb_request_queue.c ../lib/dynamo
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/dynamodb/dynamodb_request_queue.c -o dynamodb_request_queue.o
 http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/http/http.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/http/http.c -o http.o
-proto_dynamodb_kv_server.o: ../lib/proto_dynamodb_kv/proto_dynamodb_kv_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h
+proto_dynamodb_kv_server.o: ../lib/proto_dynamodb_kv/proto_dynamodb_kv_server.c ../libcperciva/util/sysendian.h ../lib/wire/wire.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/proto_dynamodb_kv/proto_dynamodb_kv_server.c -o proto_dynamodb_kv_server.o
 wire_packet.o: ../lib/wire/wire_packet.c ../libcperciva/datastruct/mpool.h ../lib/wire/wire.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_packet.c -o wire_packet.o

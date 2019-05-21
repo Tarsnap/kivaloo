@@ -40,7 +40,7 @@ ${PROG}:${SRCS:.c=.o}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/datastruct/elasticarray.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
-dispatch.o: dispatch.c ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/wire/wire.h ../libcperciva/util/warnp.h dispatch.h
+dispatch.o: dispatch.c ../libcperciva/datastruct/mpool.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 cpusupport_x86_crc32.o: ../libcperciva/cpusupport/cpusupport_x86_crc32.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/cpusupport/cpusupport_x86_crc32.c -o cpusupport_x86_crc32.o

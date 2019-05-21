@@ -42,7 +42,7 @@ main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ..
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dispatch.o: dispatch.c ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h state.h dispatch.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
-state.o: state.c ../libcperciva/events/events.h metadata.h ../lib/proto_lbs/proto_lbs.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/warnp.h ../lib/wire/wire.h objmap.h state.h
+state.o: state.c ../libcperciva/events/events.h metadata.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h objmap.h state.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c state.c -o state.o
 deleteto.o: deleteto.c ../libcperciva/events/events.h metadata.h objmap.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/warnp.h deleteto.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c deleteto.c -o deleteto.o
@@ -110,5 +110,5 @@ wire_writepacket.o: ../lib/wire/wire_writepacket.c ../libcperciva/alg/crc32c.h .
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/wire/wire_writepacket.c -o wire_writepacket.o
 proto_dynamodb_kv_client.o: ../lib/proto_dynamodb_kv/proto_dynamodb_kv_client.c ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/proto_dynamodb_kv/proto_dynamodb_kv_client.c -o proto_dynamodb_kv_client.o
-proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../lib/wire/wire.h ../libcperciva/util/sysendian.h ../lib/proto_lbs/proto_lbs.h
+proto_lbs_server.o: ../lib/proto_lbs/proto_lbs_server.c ../libcperciva/util/sysendian.h ../lib/wire/wire.h ../lib/proto_lbs/proto_lbs.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/proto_lbs/proto_lbs_server.c -o proto_lbs_server.o

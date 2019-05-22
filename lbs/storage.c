@@ -283,6 +283,10 @@ storage_write(struct storage_state * S,
 	uint64_t fnum;
 	char * s = NULL;	/* free(NULL) simplifies error path. */
 
+	/* Sanity checks.  We must have nblks * S->blocklen <= SIZE_MAX. */
+	assert((nblks != 0) && (S->blocklen != 0));
+	assert(nblks <= SIZE_MAX / S->blocklen);
+
 	/* Pick up a write lock. */
 	if (storage_util_writelock(S))
 		goto err0;
@@ -335,7 +339,8 @@ storage_write(struct storage_state * S,
 	/* Write the block(s) to the end of the file. */
 	if ((s = storage_util_mkpath(S, fnum)) == NULL)
 		goto err0;
-	if (disk_write(s, newfile, S->blocklen * nblks, buf, S->nosync)) {
+	if (disk_write(s, newfile, (size_t)(S->blocklen * nblks), buf,
+	    S->nosync)) {
 		goto err1;
 	}
 	free(s);

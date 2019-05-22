@@ -226,7 +226,7 @@ storage_read(struct storage_state * S, uint64_t blkno, uint8_t * buf)
 	/* Read the block. */
 	if ((s = storage_util_mkpath(S, fs->start)) == NULL)
 		goto err0;
-	if (disk_read(s, (blkno - fs->start) * S->blocklen,
+	if (disk_read(s, (off_t)((blkno - fs->start) * S->blocklen),
 	    S->blocklen, buf)) {
 		/*
 		 * If errno is ENOENT, we lost a race against the deleter

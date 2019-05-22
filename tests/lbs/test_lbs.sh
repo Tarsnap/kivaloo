@@ -3,7 +3,7 @@
 # Paths
 LBS=../../lbs/lbs
 TESTLBS=./test_lbs
-STOR=`pwd`/stor
+STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCK=$STOR/sock
 
 # Clean up any old tests

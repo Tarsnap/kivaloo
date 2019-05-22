@@ -4,7 +4,7 @@
 LBS=../../lbs/lbs
 KVLDS=../../kvlds/kvlds
 TESTKVLDS=./test_kvlds
-STOR=`pwd`/stor
+STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCKL=$STOR/sock_lbs
 SOCKK=$STOR/sock_kvlds
 

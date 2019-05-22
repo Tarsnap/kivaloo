@@ -67,6 +67,11 @@ SRCS	+=	wire_writepacket.c
 SRCS	+=	wire_requestqueue.c
 IDIRS	+=	-I ${LIB_DIR}/wire
 
+# Utility functions
+.PATH.c	:	${LIB_DIR}/util
+SRCS	+=	kivaloo.c
+IDIRS	+=	-I ${LIB_DIR}/util
+
 # LBS request/response packets
 .PATH.c	:	${LIB_DIR}/proto_kvlds
 SRCS	+=	proto_kvlds_client.c

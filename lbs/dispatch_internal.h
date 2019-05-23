@@ -1,6 +1,7 @@
 #ifndef _DISPATCH_INTERNAL_H_
 #define _DISPATCH_INTERNAL_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */

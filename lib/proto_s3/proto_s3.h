@@ -1,6 +1,7 @@
 #ifndef _PROTO_S3_H_
 #define _PROTO_S3_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */

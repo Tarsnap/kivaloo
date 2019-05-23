@@ -1,6 +1,9 @@
 #ifndef _PROTO_KVLDS_H_
 #define _PROTO_KVLDS_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
 /* Opaque types. */
 struct kvldskey;
 struct netbuf_read;

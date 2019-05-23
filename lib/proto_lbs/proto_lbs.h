@@ -1,6 +1,7 @@
 #ifndef _PROTO_LBS_H_
 #define _PROTO_LBS_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 /* Opaque types. */

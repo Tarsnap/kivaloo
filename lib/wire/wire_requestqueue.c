@@ -73,7 +73,7 @@ readpackets(void * cookie, int status)
 			break;
 
 		/* Look up the request associated with this response. */
-		if ((R = seqptrmap_get(Q->reqs, P.ID)) == NULL) {
+		if ((R = seqptrmap_get(Q->reqs, (int64_t)P.ID)) == NULL) {
 			/* Is this response ID reasonable? */
 			warn0("Received bogus response ID: %016" PRIx64, P.ID);
 
@@ -82,7 +82,7 @@ readpackets(void * cookie, int status)
 		}
 
 		/* Delete the request from the pending request map. */
-		seqptrmap_delete(Q->reqs, P.ID);
+		seqptrmap_delete(Q->reqs, (int64_t)P.ID);
 
 		/* Invoke the upstream callback. */
 		if ((R->callback)(R->cookie, P.buf, P.len))
@@ -243,7 +243,7 @@ wire_requestqueue_add_getbuf(struct wire_requestqueue * Q, size_t len,
 	}
 
 	/* Insert the cookie into the pending request map. */
-	if ((ID = seqptrmap_add(Q->reqs, R)) == (uint64_t)(-1))
+	if ((ID = (uint64_t)seqptrmap_add(Q->reqs, R)) == (uint64_t)(-1))
 		goto err1;
 
 	/* Start writing a packet. */
@@ -254,7 +254,7 @@ wire_requestqueue_add_getbuf(struct wire_requestqueue * Q, size_t len,
 	return (wbuf);
 
 err2:
-	seqptrmap_delete(Q->reqs, ID);
+	seqptrmap_delete(Q->reqs, (int64_t)ID);
 err1:
 	mpool_request_free(R);
 err0:

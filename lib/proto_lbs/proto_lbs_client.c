@@ -258,7 +258,7 @@ callback_get(void * cookie, uint8_t * buf, size_t buflen)
 			BAD("GET", "bogus length");
 		if (be32dec(&buf[0]) > 1)
 			BAD("GET", "bogus status code");
-		status = be32dec(&buf[0]);
+		status = (int)be32dec(&buf[0]);
 
 		/* Do we have the right packet length? */
 		if ((status == 0) && (buflen != 4 + C->blklen))
@@ -400,7 +400,7 @@ callback_append(void * cookie, uint8_t * buf, size_t buflen)
 			BAD("APPEND", "bogus length");
 		if (be32dec(&buf[0]) > 1)
 			BAD("APPEND", "bogus status code");
-		status = be32dec(&buf[0]);
+		status = (int)be32dec(&buf[0]);
 
 		/* Do we have the right packet length? */
 		if ((status == 0) && (buflen != 12))

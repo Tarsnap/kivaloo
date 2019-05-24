@@ -192,9 +192,9 @@ err0:
  * storage_read(S, blkno, buf):
  * Using storage state ${S}, read block number ${blkno} into the buffer
  * ${buf}.  Return 1 on success; 0 if the block does not exist; or
- * (uint64_t)(-1) on error.
+ * -1 on error.
  */
-uint64_t
+int
 storage_read(struct storage_state * S, uint64_t blkno, uint8_t * buf)
 {
 	struct file_state * fs;
@@ -264,7 +264,7 @@ err1:
 	free(s);
 err0:
 	/* Failure! */
-	return ((uint64_t)(-1));
+	return (-1);
 }
 
 /**

@@ -26,9 +26,9 @@ uint64_t storage_nextblock(struct storage_state *);
  * storage_read(S, blkno, buf):
  * Using storage state ${S}, read block number ${blkno} into the buffer
  * ${buf}.  Return 1 on success; 0 if the block does not exist; or
- * (uint64_t)(-1) on error.
+ * -1 on error.
  */
-uint64_t storage_read(struct storage_state *, uint64_t, uint8_t *);
+int storage_read(struct storage_state *, uint64_t, uint8_t *);
 
 /**
  * storage_write(S, blkno, nblks, buf):

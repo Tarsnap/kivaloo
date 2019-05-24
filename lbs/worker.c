@@ -73,7 +73,7 @@ workthread(void * cookie)
 		/* Do the work. */
 		switch (ctl->op) {
 		case 0:	/* Read */
-			if ((ctl->nblks = storage_read(ctl->sstate,
+			if ((ctl->nblks = (size_t)storage_read(ctl->sstate,
 			    ctl->blkno, ctl->buf)) == (size_t)(-1)) {
 				warnp("Failure reading block");
 				exit(1);

@@ -1,6 +1,6 @@
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 
 #include <assert.h>
 #include <errno.h>

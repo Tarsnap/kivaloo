@@ -99,8 +99,8 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 			goto err3;
 		}
 
-		/* Does it have an integer number of blocks? */
-		if (sf->len % S->blocklen) {
+		/* Does it have a non-integer number of blocks? */
+		if ((sf->len % S->blocklen) != 0) {
 			/* Not permitted for files in the middle. */
 			if (elasticqueue_getlen(files) > 1) {
 				warn0("Block storage file has non-integer"

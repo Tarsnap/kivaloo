@@ -34,4 +34,22 @@ int kvlds_range(struct wire_requestqueue *,
     int (*)(void *, const struct kvldskey *, const struct kvldskey *),
     void *);
 
+/**
+ * kvlds_set(Q, key, value):
+ * Store a key-value pair.
+ *
+ * This function may call events_run internally.
+ */
+int kvlds_set(struct wire_requestqueue *, const struct kvldskey *,
+    const struct kvldskey *);
+
+/**
+ * kvlds_get(Q, key, value):
+ * Get the value associated with ${key} and store it in ${value}.
+ *
+ * This function may call events_run internally.
+ */
+int kvlds_get(struct wire_requestqueue *, const struct kvldskey *,
+    struct kvldskey **);
+
 #endif /* !_KVLDS_H_ */

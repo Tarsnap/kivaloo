@@ -223,3 +223,103 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * kvlds_set(Q, key, value):
+ * Store a key-value pair.
+ *
+ * This function may call events_run internally.
+ */
+int
+kvlds_set(struct wire_requestqueue * Q, const struct kvldskey * key,
+    const struct kvldskey * value)
+{
+	struct donecookie C = {
+		.done = 0,
+		.failed = 0
+	};
+
+	/* Initiate the request. */
+	if (proto_kvlds_request_set(Q, key, value, callback_done, &C)) {
+		warnp("proto_kvlds_request_set");
+		goto err0;
+	}
+
+	/* Wait until we've finished. */
+	if (events_spin(&C.done)) {
+		warnp("Error running event loop");
+		goto err0;
+	}
+
+	/* Interpret results. */
+	if (C.failed)
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+struct getcookie {
+	int failed;
+	int done;
+	struct kvldskey * value;
+};
+
+static int
+callback_get(void * cookie, int failed, struct kvldskey * value)
+{
+	struct getcookie * C = cookie;
+
+	C->failed = failed;
+	C->done = 1;
+
+	/* Save the value passed by the GET request. */
+	C->value = value;
+
+	return (0);
+}
+
+/**
+ * kvlds_get(Q, key, value):
+ * Get the value associated with ${key} and store it in ${value}.
+ *
+ * This function may call events_run internally.
+ */
+int
+kvlds_get(struct wire_requestqueue * Q, const struct kvldskey * key,
+    struct kvldskey ** value)
+{
+	struct getcookie C = {
+		.done = 0,
+		.failed = 0,
+		.value = NULL
+	};
+
+	/* Initiate the request. */
+	if (proto_kvlds_request_get(Q, key, callback_get, &C)) {
+		warnp("proto_kvlds_request_get");
+		goto err0;
+	}
+
+	/* Wait until we've finished. */
+	if (events_spin(&C.done)) {
+		warnp("Error running event loop");
+		goto err0;
+	}
+
+	/* Interpret results. */
+	if (C.failed)
+		goto err0;
+	*value = C.value;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}

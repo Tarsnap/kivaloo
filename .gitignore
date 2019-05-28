@@ -29,6 +29,7 @@ perftests/serverpool/test_serverpool
 s3/s3
 tests/crc32/test_crc32
 tests/heap/test_heap
+tests/kvlds-blocking/test_kvlds_blocking
 tests/kvlds-ddbkv/test_kvlds
 tests/kvlds-s3/test_kvlds
 tests/kvlds/test_kvlds

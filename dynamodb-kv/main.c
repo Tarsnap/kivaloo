@@ -128,6 +128,7 @@ main(int argc, char * argv[])
 	/* We should have processed all the arguments. */
 	if (argc != 0)
 		usage();
+	(void)argv; /* argv is not used beyond this point. */
 
 	/* Verify that we have mandatory options. */
 	if (opt_k == NULL)

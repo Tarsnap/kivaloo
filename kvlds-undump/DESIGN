@@ -1,0 +1,10 @@
+KVLDS-UNDUMP design
+===================
+
+The kvlds-undump utility is invoked as
+# kivaloo-kvlds-undump -t <kvlds socket> [--fs <dir>]
+
+It opens a connection to the specified KVLDS daemon and writes a series of
+key-value pairs.  By default the key-value pairs are read from stdin; if the
+--fs <dir> option is specified, subdirectories of <dir> will be processed,
+with keys and values read from files named "k" and "v".

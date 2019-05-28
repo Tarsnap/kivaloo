@@ -69,7 +69,7 @@ err1:
 	warnp("Error issuing HEAD request");
 
 	/* Failure! */
-	return (0);
+	return (-1);
 }
 
 /**

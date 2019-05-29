@@ -39,9 +39,15 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 	struct file_state fs;
 	char * s;
 	int rc;
+	off_t num_blocks;
 
 	/* Sanity-check the block size. */
 	assert(blocklen > 0);
+#ifdef OFF_MAX
+	assert(blocklen <= OFF_MAX);
+#else
+	assert(blocklen <= INT32_MAX);
+#endif
 
 	/* Allocate structure and fill in static data. */
 	if ((S = malloc(sizeof(struct storage_state))) == NULL)
@@ -100,7 +106,7 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 		}
 
 		/* Does it have a non-integer number of blocks? */
-		if ((sf->len % S->blocklen) != 0) {
+		if ((sf->len % (off_t)S->blocklen) != 0) {
 			/* Not permitted for files in the middle. */
 			if (elasticqueue_getlen(files) > 1) {
 				warn0("Block storage file has non-integer"
@@ -116,13 +122,19 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 			 */
 			if ((s = storage_util_mkpath(S, sf->fileno)) == NULL)
 				goto err3;
-			if (truncate(s, sf->len - (sf->len % S->blocklen)))
+			if (truncate(s, sf->len - (sf->len %
+			    (off_t)S->blocklen)))
 				goto err4;
 			free(s);
 		}
 
 		/* Compute number of blocks. */
-		fs.len = sf->len / S->blocklen;
+		num_blocks = sf->len / (off_t)S->blocklen;
+#if UINTMAX_MAX > UINT64_MAX
+		if ((uintmax_t)num_blocks > (uintmax_t)UINT64_MAX)
+			goto err3;
+#endif
+		fs.len = (uint64_t)num_blocks;
 
 		/* Add to the queue of block file state structures. */
 		if (elasticqueue_add(S->files, &fs))

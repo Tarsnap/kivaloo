@@ -39,6 +39,7 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 	struct file_state fs;
 	char * s;
 	int rc;
+	off_t num_blocks;
 
 	/* Sanity-check the block size. */
 	assert(blocklen > 0);
@@ -128,7 +129,12 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 		}
 
 		/* Compute number of blocks. */
-		fs.len = sf->len / (off_t)S->blocklen;
+		num_blocks = sf->len / (off_t)S->blocklen;
+#if UINTMAX_MAX > UINT64_MAX
+		if ((uintmax_t)num_blocks > (uintmax_t)UINT64_MAX)
+			goto err3;
+#endif
+		fs.len = (uint64_t)num_blocks;
 
 		/* Add to the queue of block file state structures. */
 		if (elasticqueue_add(S->files, &fs))

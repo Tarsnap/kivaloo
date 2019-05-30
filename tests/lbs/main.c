@@ -170,11 +170,12 @@ main(int argc, char * argv[])
 	for (i = k = 0; npages[i] != 0; i++) {
 		for (j = 0; j < npages[i]; j++)
 			memset(&buf[j * params_blklen],
-			    k + j, params_blklen);
+			    (int)(k + j), params_blklen);
 		k += npages[i];
 		append_done = append_failed = 0;
-		if (proto_lbs_request_append(Q, npages[i], params_nextblk,
-		    params_blklen, buf, callback_append, NULL)) {
+		if (proto_lbs_request_append(Q, (uint32_t)npages[i],
+		    params_nextblk, params_blklen, buf, callback_append,
+		    NULL)) {
 			warnp("Failed to send APPEND request");
 			exit(1);
 		}

@@ -249,7 +249,8 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		 * Create a node.  If we keep this node, we will fill in the
 		 * oldestleaf and pagesize values later.
 		 */
-		if ((T->root_dirty = node_alloc(rootblk, -1, -1)) == NULL) {
+		if ((T->root_dirty = node_alloc(rootblk, (uint64_t)(-1),
+		    (uint32_t)(-1))) == NULL) {
 			warnp("Failed to allocate node");
 			goto err2;
 		}

@@ -147,4 +147,6 @@ btree_sanity(struct btree * T)
 	    (T->root_shadow->state != NODE_STATE_CLEAN) ||
 	    (T->root_shadow == T->root_dirty));
 }
+#else
+typedef int btree_sanity_avoid_empty_translation_unit_dummy;
 #endif /* SANITY_CHECKS */

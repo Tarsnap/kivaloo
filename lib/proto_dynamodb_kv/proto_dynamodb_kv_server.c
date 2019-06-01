@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -159,12 +160,15 @@ proto_dynamodb_kv_response_status(struct netbuf_write * Q, uint64_t ID,
 {
 	uint8_t * wbuf;
 
+	/* Sanity check. */
+	assert((status == 0) || (status == 1));
+
 	/* Get a packet data buffer. */
 	if ((wbuf = wire_writepacket_getbuf(Q, ID, 4)) == NULL)
 		goto err0;
 
 	/* Write the packet data. */
-	be32enc(&wbuf[0], status);
+	be32enc(&wbuf[0], (uint32_t)status);
 
 	/* Finish the packet. */
 	if (wire_writepacket_done(Q, wbuf, 4))
@@ -192,6 +196,9 @@ proto_dynamodb_kv_response_data(struct netbuf_write * Q, uint64_t ID,
 	uint8_t * wbuf;
 	size_t rlen;
 
+	/* Sanity check. */
+	assert((status == 0) || (status == 1) || (status == 2));
+
 	/* Compute the response length. */
 	rlen = 4 + ((status == 0) ? len + 4 : 0);
 
@@ -200,7 +207,7 @@ proto_dynamodb_kv_response_data(struct netbuf_write * Q, uint64_t ID,
 		goto err0;
 
 	/* Write the packet data. */
-	be32enc(&wbuf[0], status);
+	be32enc(&wbuf[0], (uint32_t)status);
 	if (status == 0) {
 		be32enc(&wbuf[4], len);
 		memcpy(&wbuf[8], buf, len);

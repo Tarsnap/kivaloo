@@ -92,7 +92,7 @@ callback_data(void * cookie, uint8_t * buf, size_t buflen)
 		case 2:
 			if (buflen != 4)
 				BAD("GET", "bogus length");
-			failed = status;
+			failed = (int)status;
 			goto failed;
 		default:
 			BAD("GET", "invalid status");

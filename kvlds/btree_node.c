@@ -142,7 +142,8 @@ btree_node_mknode(struct btree * T, int type, int height, size_t nkeys,
 	assert((height <= INT8_MAX) && (height >= -1));
 
 	/* Allocate node. */
-	if ((N = node_alloc(-1, -1, -1)) == NULL)
+	if ((N = node_alloc((uint64_t)(-1), (uint64_t)(-1), (uint32_t)(-1)))
+	    == NULL)
 		goto err0;
 
 	/* Make the node present. */

@@ -65,12 +65,15 @@ state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
 {
 	struct state * S;
 
+	/* Sanity check. */
+	assert(itemsz - KVOVERHEAD <= UINT32_MAX);
+
 	/* Allocate a structure and initialize. */
 	if ((S = malloc(sizeof(struct state))) == NULL)
 		goto err0;
 	S->Q = Q_DDBKV;
 	S->M = M;
-	S->blklen = itemsz - KVOVERHEAD;
+	S->blklen = (uint32_t)(itemsz - KVOVERHEAD);
 	S->npending = 0;
 
 	/* Read "nextblk"; we *might* have written anything prior to here. */

@@ -479,7 +479,7 @@ gotrequest(void * cookie, int status)
 		case PROTO_KVLDS_PARAMS:
 			/* Send the response immediately. */
 			if (proto_kvlds_response_params(D->writeq, RQ->R->ID,
-			    D->kmax, D->vmax))
+			    (uint32_t)D->kmax, (uint32_t)D->vmax))
 				goto err2;
 
 			/* Free the linked list node. */

@@ -55,12 +55,15 @@ s3state_init(struct wire_requestqueue * Q_S3, const char * bucket,
 	size_t olen;
 	int putdone;
 
+	/* Sanity check. */
+	assert(blklen <= UINT32_MAX);
+
 	/* Allocate a structure and initialize. */
 	if ((S = malloc(sizeof(struct s3state))) == NULL)
 		goto err0;
 	S->Q_S3 = Q_S3;
 	S->D = D;
-	S->blklen = blklen;
+	S->blklen = (uint32_t)blklen;
 	S->npending = 0;
 
 	/* Duplicate bucket name string. */

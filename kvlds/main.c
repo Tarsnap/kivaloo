@@ -247,7 +247,8 @@ main(int argc, char * argv[])
 	do {
 		/* Accept a connection. */
 		if ((dstate = dispatch_accept(s, T,
-		    opt_k, opt_v, opt_w, opt_g)) == NULL)
+		    (size_t)opt_k, (size_t)opt_v, opt_w, (size_t)opt_g))
+		    == NULL)
 			exit(1);
 
 		/* Loop until the connection is dead. */

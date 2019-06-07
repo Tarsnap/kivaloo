@@ -79,6 +79,9 @@ serialize(struct btree * T, struct node * N, size_t buflen)
 	assert(N->state == NODE_STATE_DIRTY);
 	assert(N->pagebuf == NULL);
 
+	/* Sanity check: The node must have a height (incl. 0). */
+	assert(N->height != -1);
+
 	/* Sanity check: We can only store 2 bytes of nkeys. */
 	assert(N->nkeys <= UINT16_MAX);
 

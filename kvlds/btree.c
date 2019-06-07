@@ -288,7 +288,7 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 	if (T->root_dirty != NULL) {
 		/* Record the size of the serialized node. */
 		T->root_dirty->pagesize =
-		    serialize_size(T->root_dirty);
+		    (uint32_t)serialize_size(T->root_dirty);
 
 		/* Figure out the oldestleaf. */
 		if (T->root_dirty->type == NODE_TYPE_PARENT) {

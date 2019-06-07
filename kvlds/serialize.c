@@ -106,9 +106,9 @@ serialize(struct btree * T, struct node * N, size_t buflen)
 
 	/* Write height and rootedness. */
 	if (N->root)
-		*p = 0x80 + N->height;
+		*p = (uint8_t)(0x80 + N->height);
 	else
-		*p = N->height;
+		*p = (uint8_t)N->height;
 	p += 1;
 
 	/* Write the matching prefix length. */

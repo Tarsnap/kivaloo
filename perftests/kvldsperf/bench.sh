@@ -8,5 +8,5 @@ done |				\
     rs -T |			\
     perl -pe 'chomp;
 	@_ = sort {$a <=> $b} split;
-	$_ = join " ", @_, "\n";' | 	\
+	$_ = join " ", @_, "\n";' |	\
     rs -T

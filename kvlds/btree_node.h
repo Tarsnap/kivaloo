@@ -20,7 +20,7 @@ struct node;
  * then the keys are in ${keys} and children are in ${children}; if a leaf
  * then the key-value pairs are in ${pairs}.
  */
-struct node * btree_node_mknode(struct btree *, int, int, size_t,
+struct node * btree_node_mknode(struct btree *, unsigned int, int, size_t,
     const struct kvldskey **, struct node **, struct kvpair_const *);
 #define btree_node_mkleaf(T, nkeys, pairs)			\
 	btree_node_mknode(T, NODE_TYPE_LEAF, 0, nkeys, NULL, NULL, pairs)

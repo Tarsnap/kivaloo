@@ -162,7 +162,7 @@ poke_nmr(struct dispatch_state * D)
 	while ((RQ = D->nmr_head) != NULL) {
 		/* How many pages would this request need to touch? */
 		if (RQ->R->type == PROTO_KVLDS_GET)
-			RQ->npages = D->T->root_shadow->height + 1;
+			RQ->npages = (size_t)(D->T->root_shadow->height + 1);
 		else
 			RQ->npages = D->T->root_shadow->height +
 			    D->T->pagelen / SERIALIZE_PERCHILD;
@@ -228,7 +228,7 @@ static int
 poke_mr(struct dispatch_state * D)
 {
 	size_t concurrency = D->mr_concurrency;
-	size_t pagesperop = D->T->root_dirty->height + 1;
+	size_t pagesperop = (size_t)(D->T->root_dirty->height + 1);
 	struct proto_kvlds_request ** reqs;
 	struct requestq * RQ;
 	size_t i;

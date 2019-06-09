@@ -216,7 +216,7 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 			goto err1;
 		}
 	}
-	T->poolsz = npages;
+	T->poolsz = (size_t)npages;
 
 	/* Set default key/value lengths if necessary. */
 	if (*keylen == (uint64_t)(-1)) {

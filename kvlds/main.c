@@ -168,6 +168,15 @@ main(int argc, char * argv[])
 		warn0("Cache size in pages must be in [2^10, 2^30]");
 		exit(1);
 	}
+	if ((opt_C != (uint64_t)(-1)) && (opt_C > SIZE_MAX)) {
+		warn0("Maximum cache size in pages on this system is %zu",
+		    SIZE_MAX);
+		exit(1);
+	}
+	if ((opt_c != (uint64_t)(-1)) && (opt_c > SIZE_MAX)) {
+		warn0("Maximum cache size on this system is %zu", SIZE_MAX);
+		exit(1);
+	}
 	if ((opt_k != (uint64_t)(-1)) && (opt_k > 255)) {
 		warn0("Keys longer than 255 bytes are not supported");
 		exit(1);

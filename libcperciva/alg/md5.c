@@ -291,8 +291,7 @@ MD5_Buf(const void * in, size_t len, uint8_t digest[16])
 
 /**
  * HMAC_MD5_Init(ctx, K, Klen):
- * Initialize the HMAC-MD5 context ${ctx} with ${Klen} bytes of key from
- * ${K}.
+ * Initialize the HMAC-MD5 context ${ctx} with ${Klen} bytes of key from ${K}.
  */
 void
 HMAC_MD5_Init(HMAC_MD5_CTX * ctx, const void * _K, size_t Klen)

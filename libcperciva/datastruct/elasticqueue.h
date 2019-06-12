@@ -30,7 +30,8 @@ int elasticqueue_add(struct elasticqueue *, const void *);
 
 /**
  * elasticqueue_delete(EQ):
- * Delete the record at the front of the elastic queue ${EQ}.
+ * Delete the record at the front of the elastic queue ${EQ}.  If the queue
+ * is empty, this function will have no effect.
  *
  * As an exception to the normal rule, an elastic queue may use more memory
  * than the standard bound immediately following an elasticqueue_delete call;

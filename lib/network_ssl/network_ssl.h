@@ -50,4 +50,4 @@ void network_ssl_write_cancel(void *);
  */
 void network_ssl_close(struct network_ssl_ctx *);
 
-#endif /* _NETWORK_SSL_H_ */
+#endif /* !_NETWORK_SSL_H_ */

@@ -17,7 +17,7 @@
 #include "network_ssl.h"
 
 /* SSL context in which to create connections. */
-SSL_CTX * ctx = NULL;
+static SSL_CTX * ctx = NULL;
 
 /* Internal state. */
 struct network_ssl_ctx {

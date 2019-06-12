@@ -16,6 +16,15 @@
 
 #define WBUFLEN	4096
 
+/*
+ * Set to NULL here; initialized by netbuf_ssl if SSL is being used.  This
+ * allows us to avoid needing to link libssl into binaries which aren't
+ * going to be using SSL.
+ */
+void * (* netbuf_write_ssl_func)(struct network_ssl_ctx *, const uint8_t *,
+    size_t, size_t, int (*)(void *, ssize_t), void *) = NULL;
+void (* netbuf_write_ssl_cancel_func)(void *) = NULL;
+
 /* Linked list of write buffers. */
 struct writebuf {
 	uint8_t * buf;			/* The buffer to be written. */
@@ -26,7 +35,8 @@ struct writebuf {
 
 /* Buffered writer structure. */
 struct netbuf_write {
-	int s;				/* Destination for writes. */
+	int s;				/* Destination for writes... */
+	struct network_ssl_ctx * ssl;	/* ... unless we're using this. */
 	int reserved;			/* Some buffer space is reserved. */
 
 	/* Failure handling. */
@@ -106,10 +116,16 @@ poke(struct netbuf_write * W)
 
 	/* Start writing a buffer. */
 	WB = W->head;
-	if ((W->write_cookie = network_write(W->s, WB->buf,
-	    WB->datalen, WB->datalen, writbuf, W)) == NULL)
-		goto err0;
-
+	if (W->ssl) {
+		if ((W->write_cookie = (netbuf_write_ssl_func)(W->ssl,
+		    WB->buf, WB->datalen, WB->datalen, writbuf, W)) == NULL)
+			goto err0;
+	} else {
+		if ((W->write_cookie = network_write(W->s, WB->buf,
+		    WB->datalen, WB->datalen, writbuf, W)) == NULL)
+			goto err0;
+	}
+	
 	/* Remove the buffer from the queue. */
 	W->curr = WB;
 	W->head = WB->next;
@@ -144,7 +160,8 @@ dummyfail(void * cookie)
  * with the parameter ${fail_cookie}.
  */
 struct netbuf_write *
-netbuf_write_init(int s, int (* fail_callback)(void *), void * fail_cookie)
+netbuf_write_init2(int s, struct network_ssl_ctx * ssl,
+    int (* fail_callback)(void *), void * fail_cookie)
 {
 	struct netbuf_write * W;
 	int val;
@@ -153,6 +170,7 @@ netbuf_write_init(int s, int (* fail_callback)(void *), void * fail_cookie)
 	if ((W = malloc(sizeof(struct netbuf_write))) == NULL)
 		goto err0;
 	W->s = s;
+	W->ssl = ssl;
 	W->reserved = 0;
 	W->failed = 0;
 	W->fail_callback = (fail_callback != NULL) ? fail_callback : dummyfail;
@@ -315,7 +333,10 @@ netbuf_write_free(struct netbuf_write * W)
 
 	/* Cancel any in-progress write. */
 	if (W->write_cookie != NULL) {
-		network_write_cancel(W->write_cookie);
+		if (W->ssl)
+			(netbuf_write_ssl_cancel_func)(W->write_cookie);
+		else
+			network_write_cancel(W->write_cookie);
 		free(W->curr->buf);
 		free(W->curr);
 	}

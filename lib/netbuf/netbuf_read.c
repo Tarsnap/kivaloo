@@ -10,10 +10,20 @@
 
 #include "netbuf.h"
 
+/*
+ * Set to NULL here; initialized by netbuf_ssl if SSL is being used.  This
+ * allows us to avoid needing to link libssl into binaries which aren't
+ * going to be using SSL.
+ */
+void * (* netbuf_read_ssl_func)(struct network_ssl_ctx *, uint8_t *, size_t,
+    size_t, int (*)(void *, ssize_t), void *) = NULL;
+void (* netbuf_read_ssl_cancel_func)(void *) = NULL;
+
 /* Buffered reader structure. */
 struct netbuf_read {
 	/* Reader state. */
-	int s;				/* Source for reads. */
+	int s;				/* Source socket for reads... */
+	struct network_ssl_ctx * ssl;	/* ... unless we're using this. */
 	int (* callback)(void *, int);	/* Callback for _wait. */
 	void * cookie;			/* Cookie for _wait. */
 	void * read_cookie;		/* From network_read. */
@@ -36,7 +46,7 @@ static int callback_read(void *, ssize_t);
  * socket except via the returned reader.
  */
 struct netbuf_read *
-netbuf_read_init(int s)
+netbuf_read_init2(int s, struct network_ssl_ctx * ssl)
 {
 	struct netbuf_read * R;
 
@@ -44,6 +54,7 @@ netbuf_read_init(int s)
 	if ((R = malloc(sizeof(struct netbuf_read))) == NULL)
 		goto err0;
 	R->s = s;
+	R->ssl = ssl;
 	R->read_cookie = NULL;
 	R->immediate_cookie = NULL;
 
@@ -138,10 +149,17 @@ netbuf_read_wait(struct netbuf_read * R, size_t len,
 	}
 
 	/* Read data into the buffer. */
-	if ((R->read_cookie = network_read(R->s, &R->buf[R->datalen],
-	    R->buflen - R->datalen, R->bufpos + len - R->datalen,
-	    callback_read, R)) == NULL)
-		goto err0;
+	if (R->ssl) {
+		if ((R->read_cookie = (netbuf_read_ssl_func)(R->ssl,
+		    &R->buf[R->datalen], R->buflen - R->datalen,
+		    R->bufpos + len - R->datalen, callback_read, R)) == NULL)
+			goto err0;
+	} else {
+		if ((R->read_cookie = network_read(R->s, &R->buf[R->datalen],
+		    R->buflen - R->datalen, R->bufpos + len - R->datalen,
+		    callback_read, R)) == NULL)
+			goto err0;
+	}
 
 done:
 	/* Success! */
@@ -214,7 +232,10 @@ netbuf_read_wait_cancel(struct netbuf_read * R)
 
 	/* If we have an in-progress read, cancel it. */
 	if (R->read_cookie != NULL) {
-		network_read_cancel(R->read_cookie);
+		if (R->ssl)
+			(netbuf_read_ssl_cancel_func)(R->read_cookie);
+		else
+			network_read_cancel(R->read_cookie);
 		R->read_cookie = NULL;
 	}
 

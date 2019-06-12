@@ -45,8 +45,20 @@ struct http_response {
  * returns.  The provided request body buffer (if any) must remain valid until
  * the callback is invoked.
  */
-void * http_request(struct sock_addr * const *, struct http_request *, size_t,
-    int (*)(void *, struct http_response *), void *);
+#define http_request(a, b, c, d, e) \
+    http_request2((a), (b), (c), (d), (e), NULL)
+
+/* Internal API: Takes extra SSL hostname parameter. */
+void * http_request2(struct sock_addr * const *, struct http_request *,
+    size_t, int (*)(void *, struct http_response *), void *, char *);
+
+/**
+ * https_request(addrs, request, maxrlen, callback, cookie, hostname):
+ * Behave as http_request, but use HTTPS and verify that the target host is
+ * ${hostname}.
+ */
+void * https_request(struct sock_addr * const *, struct http_request *,
+    size_t, int (*)(void *, struct http_response *), void *, const char *);
 
 /**
  * http_request_cancel(cookie):

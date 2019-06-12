@@ -66,7 +66,7 @@ main(int argc, char * argv[])
 	}
 
 	/* Resolve target addresses. */
-	if ((sas = sock_resolve("dynamodb.us-east-1.amazonaws.com:80")) == NULL) {
+	if ((sas = sock_resolve("dynamodb.us-east-1.amazonaws.com:443")) == NULL) {
 		warnp("Cannot resolve DynamoDB DNS");
 		exit(1);
 	}

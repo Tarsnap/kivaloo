@@ -141,7 +141,7 @@ main(int argc, char * argv[])
 		usage();
 
 	/* Construct the DynamoDB endpoint host name. */
-	if (asprintf(&dynamodb_host, "dynamodb.%s.amazonaws.com:80",
+	if (asprintf(&dynamodb_host, "dynamodb.%s.amazonaws.com:443",
 	    opt_r) == -1) {
 		warnp("asprintf");
 		exit(1);

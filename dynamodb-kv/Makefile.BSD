@@ -9,6 +9,9 @@ LDADD	=	-lrt
 LIBCPERCIVA_DIR	=	../libcperciva
 LIB_DIR	=	../lib
 
+# Library code required
+LDADD_REQ	= -lssl -lcrypto
+
 # dynamodb-kv code
 SRCS	=	main.c
 SRCS	+=	capacity.c
@@ -74,6 +77,12 @@ SRCS	+=	network_read.c
 SRCS	+=	network_write.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
+# SSL layer
+.PATH.c	:	${LIB_DIR}/network_ssl
+SRCS	+=	network_ssl.c
+SRCS	+=	network_ssl_compat.c
+IDIRS	+=	-I ${LIB_DIR}/network_ssl
+
 # AWS request signing
 .PATH.c	:	${LIBCPERCIVA_DIR}/aws
 SRCS	+=	aws_readkeys.c
@@ -84,6 +93,7 @@ IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 .PATH.c	:	${LIB_DIR}/netbuf
 SRCS	+=	netbuf_read.c
 SRCS	+=	netbuf_write.c
+SRCS	+=	netbuf_ssl.c
 IDIRS	+=	-I ${LIB_DIR}/netbuf
 
 # DynamoDB protocol
@@ -96,6 +106,7 @@ IDIRS	+=	-I ${LIB_DIR}/dynamodb
 # HTTP client protocol
 .PATH.c	:	${LIB_DIR}/http
 SRCS	+=	http.c
+SRCS	+=	https.c
 IDIRS	+=	-I ${LIB_DIR}/http
 
 # DynamoDB-KV request/response packets

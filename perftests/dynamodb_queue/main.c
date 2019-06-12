@@ -61,7 +61,7 @@ main(int argc, char * argv[])
 	}
 
 	/* Resolve target addresses. */
-	if ((SP = serverpool_create("dynamodb.us-east-1.amazonaws.com:80",
+	if ((SP = serverpool_create("dynamodb.us-east-1.amazonaws.com:443",
 	    30, 120)) == NULL) {
 		warnp("Error launching DNS lookups");
 		exit(1);

@@ -87,8 +87,8 @@ dynamodb_request(struct sock_addr * const * addrs, const char * key_id,
 	RHH[6].value = "application/x-amz-json-1.0";
 
 	/* Send the request. */
-	if ((http_cookie = http_request(addrs, &RH, maxrlen,
-	    callback, cookie)) == NULL)
+	if ((http_cookie = https_request(addrs, &RH, maxrlen,
+	    callback, cookie, host)) == NULL)
 		goto err4;
 
 	/* Free strings allocated by asprintf. */

@@ -15,6 +15,7 @@ TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 	perftests/dynamodb_sign perftests/dynamodb_request	\
 	perftests/dynamodb_queue perftests/dynamodb_kv		\
 	perftests/kvldsclean-ddbkv perftests/network-ssl	\
+	perftests/https						\
 	${BENCHES}
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2

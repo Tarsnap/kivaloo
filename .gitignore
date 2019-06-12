@@ -26,6 +26,7 @@ perftests/http/test_http
 perftests/kvldsclean/test_kvldsclean
 perftests/kvldsclean-ddbkv/test_kvldsclean
 perftests/kvldsperf/test_kvldsperf
+perftests/network-ssl/test_network_ssl
 perftests/s3/test_s3
 perftests/s3_put/s3_put
 perftests/serverpool/test_serverpool

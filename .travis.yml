@@ -1,6 +1,10 @@
 language: C
 sudo: false
 dist: trusty
+addons:
+  apt:
+    packages:
+      - libssl-dev
 env:
   global:
     # Some projects need -std=c99 to specify library support for ./configure

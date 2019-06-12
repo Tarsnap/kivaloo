@@ -12,6 +12,19 @@
 #include "warnp.h"
 
 #include "http.h"
+#include "https_internal.h"
+
+/*
+ * Set to NULL here; initialized by https_request if SSL is being used.  This
+ * allows us to avoid needing to link libssl into binaries which aren't
+ * going to be using SSL.
+ */
+struct network_ssl_ctx * (* network_ssl_open_func)(int, const char *) = NULL;
+void (* network_ssl_close_func)(struct network_ssl_ctx *) = NULL;
+struct netbuf_read *
+    (* netbuf_ssl_read_init_func)(struct network_ssl_ctx *) = NULL;
+struct netbuf_write * (* netbuf_ssl_write_init_func)(struct network_ssl_ctx *,
+    int (*)(void *), void *) = NULL;
 
 /* We reject any response with more than 64 kB of headers. */
 #define MAXHDR 65536
@@ -24,6 +37,7 @@ struct http_cookie {
 	/* Connection parameters. */
 	struct sock_addr * const * sas;	/* Addresses to attempt. */
 	int s;				/* Network socket. */
+	struct network_ssl_ctx * ssl;	/* SSL context. */
 	void * connect_cookie;		/* Cookie from network_connect. */
 	struct netbuf_write * W;	/* Buffered writer. */
 	struct netbuf_read * R;		/* Buffered reader. */
@@ -34,6 +48,7 @@ struct http_cookie {
 	uint8_t * req_head;		/* Request header. */
 	size_t req_bodylen;		/* Length of req_body. */
 	const uint8_t * req_body;	/* Request body, if any. */
+	char * sslhost;			/* Hostname, if SSL is being used. */
 
 	/* Callback. */
 	int (* callback)(void *, struct http_response *);
@@ -226,6 +241,20 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
     size_t maxrlen, int (* callback)(void *, struct http_response *),
     void * cookie)
 {
+
+    return (http_request2(addrs, request, maxrlen, callback, cookie, NULL));
+}
+
+/**
+ * http_request2(addrs, request, maxrlen, callback, cookie, sslhost):
+ * Behave like http_request if ${sslhost} is NULL.  If ${sslhost} is not NULL,
+ * send the request via HTTPS.
+ */
+void *
+http_request2(struct sock_addr * const * addrs, struct http_request * request,
+    size_t maxrlen, int (* callback)(void *, struct http_response *),
+    void * cookie, char * sslhost)
+{
 	struct http_cookie * H;
 	char * s;
 	size_t i;
@@ -235,11 +264,13 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
 		goto err0;
 	H->sas = addrs;
 	H->s = -1;
+	H->ssl = NULL;
 	H->connect_cookie = NULL;
 	H->W = NULL;
 	H->R = NULL;
 	H->callback = callback;
 	H->cookie = cookie;
+	H->sslhost = sslhost;
 	H->hepos = 0;
 	H->res_head = NULL;
 	H->res_bodylen_max = maxrlen;
@@ -331,10 +362,22 @@ callback_connected(void * cookie, int s)
 	H->s = s;
 
 	/* Create a reader and a writer. */
-	if ((H->R = netbuf_read_init(H->s)) == NULL)
-		return (die(H));
-	if ((H->W = netbuf_write_init(H->s, fail, H)) == NULL)
-		return (die(H));
+	if (H->sslhost != NULL) {
+		if ((H->ssl =
+		    (network_ssl_open_func)(H->s, H->sslhost)) == NULL)
+			return (die(H));
+		if ((H->R =
+		    (netbuf_ssl_read_init_func)(H->ssl)) == NULL)
+			return (die(H));
+		if ((H->W =
+		    (netbuf_ssl_write_init_func)(H->ssl, fail, H)) == NULL)
+			return (die(H));
+	} else {
+		if ((H->R = netbuf_read_init(H->s)) == NULL)
+			return (die(H));
+		if ((H->W = netbuf_write_init(H->s, fail, H)) == NULL)
+			return (die(H));
+	}
 
 	/* Send the request. */
 	if (netbuf_write_write(H->W, H->req_head, H->req_headlen))
@@ -726,9 +769,16 @@ http_request_cancel(void * cookie)
 	if (H->R != NULL)
 		netbuf_read_free(H->R);
 
+	/* Close SSL context if we have one. */
+	if (H->ssl != NULL)
+		(network_ssl_close_func)(H->ssl);
+
 	/* Close the socket if we are connected. */
 	if (H->s != -1)
 		close(H->s);
+
+	/* Free duplicated SSL target hostname if we have one. */
+	free(H->sslhost);
 
 	/*
 	 * Free internal buffers.  (req_body does not need to be freed since

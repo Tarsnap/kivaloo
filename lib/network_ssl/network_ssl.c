@@ -261,7 +261,7 @@ doread(struct network_ssl_ctx * ssl)
 		/* Do we have enough? */
 		if (ssl->read_bufpos >= ssl->read_minlen)
 			return (docallback(ssl->read_callback,
-			    ssl->read_cookie, ssl->read_bufpos,
+			    ssl->read_cookie, (ssize_t)ssl->read_bufpos,
 			    &ssl->read_callback));
 	}
 
@@ -327,7 +327,7 @@ dowrite(struct network_ssl_ctx * ssl)
 		/* Have we written enough? */
 		if (ssl->write_bufpos >= ssl->write_minlen)
 			return (docallback(ssl->write_callback,
-			    ssl->write_cookie, ssl->write_bufpos,
+			    ssl->write_cookie, (ssize_t)ssl->write_bufpos,
 			    &ssl->write_callback));
 	}
 

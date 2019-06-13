@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <unistd.h>
 
+/* Opaque type. */
+struct network_ssl_ctx;
+
 /**
  * network_ssl_open(s, hostname):
  * Prepare to communicate using TLS over the socket ${s} to a host named

@@ -21,10 +21,10 @@ The other options are:
 	specified if -c <pagemem> is specified.
   -c <pagemem>
 	Hold <pagemem> / <page size> B+Tree nodes in RAM at once.  May not be
-	specified if -C <npages> is specified.  Defaults to -c 128M.  Note
-	that the total RAM used may exceed the -c option by as much as a
-	factor of 2 depending on the memory allocator used and the average
-	key and value lengths.
+	specified if -C <npages> is specified.  Defaults to -c 128M or
+	SIZE_MAX, whichever is lower.  Note that the total RAM used may exceed
+	the -c option by as much as a factor of 2 depending on the memory
+	allocator used and the average key and value lengths.
   -k <max key length>
 	Reject an attempt to write keys longer than <max key length> bytes.
 	Defaults to -k 64, -k 128, or -k 255 for block sizes of 512+,

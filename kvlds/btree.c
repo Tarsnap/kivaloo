@@ -159,6 +159,15 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 	uint64_t rootblk;
 	size_t i;
 
+	/* Sanity check: at least one of {npages, npagebytes} must be unset. */
+	assert((npages == (uint64_t)(-1)) || (npagebytes == (uint64_t)(-1)));
+
+	/* Sanity check: must be able to fit npagebytes in memory. */
+	assert((npagebytes == (uint64_t)(-1)) || (npagebytes <= SIZE_MAX));
+
+	/* Sanity check: must be able to fit npages in memory. */
+	assert((npages == (uint64_t)(-1)) || (npages <= SIZE_MAX));
+
 	/* Allocate space for the B+Tree. */
 	if ((T = malloc(sizeof(struct btree))) == NULL)
 		goto err0;
@@ -189,9 +198,15 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 	if (PC.lastblk + 1 != T->nextblk)
 		Scost = 0.0;
 
-	/* If we have neither npages nor npagebytes, default to 128 MB. */
-	if ((npages == (uint64_t)(-1)) && (npagebytes == (uint64_t)(-1)))
+	/* If we have neither npages nor npagebytes, set a default. */
+	if ((npages == (uint64_t)(-1)) && (npagebytes == (uint64_t)(-1))) {
+		/* Normal default is 128 MB. */
 		npagebytes = 128 * 1024 * 1024;
+
+		/* Set a smaller default size for systems with a tiny size_t. */
+		if (npagebytes > SIZE_MAX)
+			npagebytes = SIZE_MAX;
+	}
 
 	/* Figure out how many pages to use and sanity-check. */
 	if (npagebytes != (uint64_t)(-1)) {
@@ -201,7 +216,7 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 			goto err1;
 		}
 	}
-	T->poolsz = npages;
+	T->poolsz = (size_t)npages;
 
 	/* Set default key/value lengths if necessary. */
 	if (*keylen == (uint64_t)(-1)) {

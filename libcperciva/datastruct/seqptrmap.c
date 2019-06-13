@@ -45,8 +45,8 @@ err0:
 
 /**
  * seqptrmap_add(M, ptr):
- * Add the pointer ${ptr} to the map ${M}.  Return the associated integer;
- * or -1 on error.
+ * Add the pointer ${ptr} to the map ${M}.  Return the associated integer.
+ * On error, the map will be unmodified and -1 will be returned.
  */
 int64_t
 seqptrmap_add(struct seqptrmap * M, void * ptr)

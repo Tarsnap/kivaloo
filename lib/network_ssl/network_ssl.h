@@ -15,7 +15,8 @@ struct network_ssl_ctx * network_ssl_open(int, const char *);
 /**
  * network_ssl_read(ssl, buf, buflen, minread, callback, cookie):
  * Behave as network_read, but take a network SSL context instead of a
- * file descriptor.
+ * file descriptor.  Return a cookie which can be passed to
+ * network_ssl_read_cancel.
  */
 void * network_ssl_read(struct network_ssl_ctx *, uint8_t *, size_t, size_t,
     int (*)(void *, ssize_t), void *);
@@ -30,7 +31,8 @@ void network_ssl_read_cancel(void *);
 /**
  * network_ssl_write(ssl, buf, buflen, minwrite, callback, cookie):
  * Behave as network_write, but take a network SSL context instead of a
- * file descriptor.
+ * file descriptor.  Return a cookie which can be passed to
+ * network_ssl_write_cancel.
  */
 void * network_ssl_write(struct network_ssl_ctx *, const uint8_t *, size_t,
     size_t, int (*)(void *, ssize_t), void *);

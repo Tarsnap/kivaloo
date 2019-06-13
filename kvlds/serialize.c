@@ -79,6 +79,9 @@ serialize(struct btree * T, struct node * N, size_t buflen)
 	assert(N->state == NODE_STATE_DIRTY);
 	assert(N->pagebuf == NULL);
 
+	/* Sanity check: The node must have a height (incl. 0). */
+	assert(N->height != -1);
+
 	/* Sanity check: We can only store 2 bytes of nkeys. */
 	assert(N->nkeys <= UINT16_MAX);
 
@@ -103,9 +106,9 @@ serialize(struct btree * T, struct node * N, size_t buflen)
 
 	/* Write height and rootedness. */
 	if (N->root)
-		*p = 0x80 + N->height;
+		*p = (uint8_t)(0x80 + N->height);
 	else
-		*p = N->height;
+		*p = (uint8_t)N->height;
 	p += 1;
 
 	/* Write the matching prefix length. */

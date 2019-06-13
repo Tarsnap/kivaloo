@@ -227,4 +227,4 @@ int proto_kvlds_response_get(struct netbuf_write *, uint64_t, int,
 int proto_kvlds_response_range(struct netbuf_write *, uint64_t, size_t,
     const struct kvldskey *, struct kvldskey **, struct kvldskey **);
 
-#endif /* !_PROTO_LBS_H_ */
+#endif /* !_PROTO_KVLDS_H_ */

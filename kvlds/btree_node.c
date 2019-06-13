@@ -132,7 +132,7 @@ err0:
  * then the key-value pairs are in ${pairs}.
  */
 struct node *
-btree_node_mknode(struct btree * T, int type, int height, size_t nkeys,
+btree_node_mknode(struct btree * T, unsigned int type, int height, size_t nkeys,
     const struct kvldskey ** keys, struct node ** children,
     struct kvpair_const * pairs)
 {

@@ -612,6 +612,9 @@ void
 network_ssl_close(struct network_ssl_ctx * ssl)
 {
 
+	/* Sanity check. */
+	assert(ssl != NULL);
+
 	/* Must not have operations in progress. */
 	assert(ssl->read_callback == NULL);
 	assert(ssl->write_callback == NULL);

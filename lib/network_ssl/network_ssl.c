@@ -12,6 +12,7 @@
 #include <openssl/x509v3.h>
 
 #include "events.h"
+#include "ssl_compat.h"
 #include "warnp.h"
 
 #include "network_ssl.h"

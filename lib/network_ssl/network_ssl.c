@@ -112,7 +112,7 @@ network_ssl_loadroot(const char * certfile)
 	}
 
 	/* We want to use TLS. */
-	if ((meth = TLS_client_method()) == NULL) {
+	if ((meth = ssl_compat_TLS_client_method()) == NULL) {
 		warn0("TLS_client_method");
 		goto err0;
 	}
@@ -124,7 +124,7 @@ network_ssl_loadroot(const char * certfile)
 	}
 
 	/* Insist on a minimum of TLS 1.2. */
-	if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION)) {
+	if (ssl_compat_ctx_min_TLS_1_2(ctx)) {
 		warn0("Could not set minimum TLS version");
 		goto err1;
 	}

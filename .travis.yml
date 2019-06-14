@@ -1,6 +1,6 @@
 language: C
 sudo: false
-dist: trusty
+dist: xenial
 env:
   global:
     # Some projects need -std=c99 to specify library support for ./configure

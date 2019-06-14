@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
@@ -58,6 +60,34 @@ freectx(void)
 	assert(ctx != NULL);
 	SSL_CTX_free(ctx);
 	ctx = NULL;
+}
+
+static const char * common_certfiles[] = {
+	"/usr/local/share/certs/ca-root-nss.crt",
+	"/etc/ssl/certs/ca-certificates.crt"
+};
+static const size_t num_common_certfiles = sizeof(common_certfiles) /
+    sizeof(common_certfiles[0]);
+
+/**
+ * network_ssl_default_certfile():
+ * Look for root certificates in a few common places in the filesystem.  If
+ * a non-NULL value is returned, it can probably be used with
+ * network_ssl_loadroot.
+ */
+const char *
+network_ssl_default_certfile()
+{
+	struct stat sb;
+	size_t i;
+
+	for (i = 0; i < num_common_certfiles; i++) {
+		if (stat(common_certfiles[i], &sb) == 0)
+			return (common_certfiles[i]);
+	}
+
+	/* Failed to find a certfile. */
+	return (NULL);
 }
 
 /**

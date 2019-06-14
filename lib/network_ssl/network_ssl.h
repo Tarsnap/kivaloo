@@ -8,6 +8,14 @@
 struct network_ssl_ctx;
 
 /**
+ * network_ssl_default_certfile():
+ * Look for root certificates in a few common places in the filesystem.  If
+ * a non-NULL value is returned, it can probably be used with
+ * network_ssl_loadroot.
+ */
+const char * network_ssl_default_certfile(void);
+
+/**
  * network_ssl_loadroot(certfile)
  * Initialize the SSL library and load the root certificate(s) in ${certfile}.
  * This function must be called before attempting to open any SSL connections.

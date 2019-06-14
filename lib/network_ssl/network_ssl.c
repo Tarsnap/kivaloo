@@ -450,6 +450,8 @@ network_ssl_open(int s, const char * hostname)
 	/* ... and ask it to make sure that this is what is happening. */
 	SSL_set_hostflags(ssl->ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
 	SSL_set_verify(ssl->ssl, SSL_VERIFY_PEER, NULL);
+
+	/* Set ssl to work in client mode. */
 	SSL_set_connect_state(ssl->ssl);
 
 	/* Success! */

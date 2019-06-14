@@ -265,6 +265,7 @@ doread(struct network_ssl_ctx * ssl)
 {
 	size_t len;
 	int sslerr;
+	int ret;
 
 	/*
 	 * We need to zero errno in order to distinguish socket EOF from
@@ -280,8 +281,8 @@ doread(struct network_ssl_ctx * ssl)
 	ERR_clear_error();
 
 	/* Ask the SSL stack to read some data. */
-	while (SSL_read_ex(ssl->ssl, &ssl->read_buf[ssl->read_bufpos],
-	    ssl->read_buflen - ssl->read_bufpos, &len)) {
+	while ((ret = SSL_read_ex(ssl->ssl, &ssl->read_buf[ssl->read_bufpos],
+	    ssl->read_buflen - ssl->read_bufpos, &len)) > 0) {
 		/* Got some data. */
 		ssl->read_bufpos += len;
 
@@ -296,7 +297,7 @@ doread(struct network_ssl_ctx * ssl)
 	}
 
 	/* SSL_read_ex couldn't give us any data... why? */
-	switch ((sslerr = SSL_get_error(ssl->ssl, 0))) {
+	switch ((sslerr = SSL_get_error(ssl->ssl, ret))) {
 	case SSL_ERROR_WANT_READ:
 		/* Nothing to do until the socket is readable. */
 		ssl->read_needs_r = 1;
@@ -337,6 +338,7 @@ dowrite(struct network_ssl_ctx * ssl)
 {
 	size_t len;
 	int sslerr;
+	int ret;
 
 	/*
 	 * Flush any errors internal to the SSL stack; otherwise if we
@@ -346,8 +348,8 @@ dowrite(struct network_ssl_ctx * ssl)
 	ERR_clear_error();
 
 	/* Ask the SSL stack to write some data. */
-	while (SSL_write_ex(ssl->ssl, &ssl->write_buf[ssl->write_bufpos],
-	    ssl->write_buflen - ssl->write_bufpos, &len)) {
+	while ((ret = SSL_write_ex(ssl->ssl, &ssl->write_buf[ssl->write_bufpos],
+	    ssl->write_buflen - ssl->write_bufpos, &len)) > 0) {
 		/* We wrote some data. */
 		ssl->write_bufpos += len;
 
@@ -362,7 +364,7 @@ dowrite(struct network_ssl_ctx * ssl)
 	}
 
 	/* SSL_write_ex couldn't send any data... why? */
-	switch ((sslerr = SSL_get_error(ssl->ssl, 0))) {
+	switch ((sslerr = SSL_get_error(ssl->ssl, ret))) {
 	case SSL_ERROR_WANT_READ:
 		/* Nothing to do until the socket is readable. */
 		ssl->write_needs_r = 1;

@@ -14,10 +14,6 @@
 
 #include "network_ssl.h"
 
-#ifndef CERTFILE
-#define CERTFILE "/usr/local/share/certs/ca-root-nss.crt"
-#endif
-
 /* SSL context in which to create connections. */
 SSL_CTX * ctx = NULL;
 
@@ -64,9 +60,13 @@ freectx(void)
 	ctx = NULL;
 }
 
-/* Initialize SSL library. */
-static int
-init(void)
+/**
+ * network_ssl_loadroot(certfile)
+ * Initialize the SSL library and load the root certificate(s) in ${certfile}.
+ * This function must be called before attempting to open any SSL connections.
+ */
+int
+network_ssl_loadroot(const char * certfile)
 {
 	const SSL_METHOD * meth;
 
@@ -102,8 +102,8 @@ init(void)
 	SSL_CTX_set_mode(ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
 
 	/* Load root certificates. */
-	if (!SSL_CTX_load_verify_locations(ctx, CERTFILE, NULL)) {
-		warn0("Could not load root certificates: %s", CERTFILE);
+	if (!SSL_CTX_load_verify_locations(ctx, certfile, NULL)) {
+		warn0("Could not load root certificates: %s", certfile);
 		goto err1;
 	}
 
@@ -402,9 +402,8 @@ network_ssl_open(int s, const char * hostname)
 {
 	struct network_ssl_ctx * ssl;
 
-	/* Make sure we've initialized properly. */
-	if (init())
-		goto err0;
+	/* We must have a root certificate set up. */
+	assert(ctx != NULL);
 
 	/* Allocate a state structure. */
 	if ((ssl = malloc(sizeof(struct network_ssl_ctx))) == NULL)
@@ -478,6 +477,9 @@ network_ssl_read(struct network_ssl_ctx * ssl, uint8_t * buf,
     int (* callback)(void *, ssize_t), void * cookie)
 {
 
+	/* We must have a root certificate set up. */
+	assert(ctx != NULL);
+
 	/* Make sure buflen is non-zero. */
 	assert(buflen != 0);
 
@@ -547,6 +549,9 @@ network_ssl_write(struct network_ssl_ctx * ssl, const uint8_t * buf,
     size_t buflen, size_t minwrite,
     int (* callback)(void *, ssize_t), void * cookie)
 {
+
+	/* We must have a root certificate set up. */
+	assert(ctx != NULL);
 
 	/* Make sure buflen is non-zero. */
 	assert(buflen != 0);

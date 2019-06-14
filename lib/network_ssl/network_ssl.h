@@ -8,6 +8,13 @@
 struct network_ssl_ctx;
 
 /**
+ * network_ssl_loadroot(certfile)
+ * Initialize the SSL library and load the root certificate(s) in ${certfile}.
+ * This function must be called before attempting to open any SSL connections.
+ */
+int network_ssl_loadroot(const char *);
+
+/**
  * network_ssl_open(s, hostname):
  * Prepare to communicate using TLS over the socket ${s} to a host named
  * ${hostname}.  Return a context which can be passed to network_ssl_read,

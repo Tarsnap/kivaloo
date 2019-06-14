@@ -41,9 +41,15 @@ SRCS	+=	network_read.c
 SRCS	+=	network_write.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 
+# SSL layer
 .PATH.c	:	${LIB_DIR}/network_ssl
 SRCS	+=	network_ssl.c
 IDIRS	+=	-I ${LIB_DIR}/network_ssl
+
+# SSL compatibility
+.PATH.c	:	${LIB_DIR}/ssl_compat
+SRCS	+=	ssl_compat.c
+IDIRS	+=	-I ${LIB_DIR}/ssl_compat
 
 test:	all
 	@./test_network_ssl.sh

@@ -473,15 +473,11 @@ network_ssl_open(int s, const char * hostname)
 		goto err2;
 	}
 
-	/* Tell OpenSSL which host we're trying to talk to... */
-	if (!SSL_set1_host(ssl->ssl, hostname)) {
+	/* Tell OpenSSL which host we're trying to talk to. */
+	if (ssl_compat_enable_hostname_validation(ssl->ssl, hostname)) {
 		warn0("SSL_set1_host");
 		goto err2;
 	}
-
-	/* ... and ask it to make sure that this is what is happening. */
-	SSL_set_hostflags(ssl->ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
-	SSL_set_verify(ssl->ssl, SSL_VERIFY_PEER, NULL);
 
 	/* Set ssl to work in client mode. */
 	SSL_set_connect_state(ssl->ssl);

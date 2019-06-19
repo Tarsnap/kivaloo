@@ -44,6 +44,7 @@ IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 # SSL layer
 .PATH.c	:	${LIB_DIR}/network_ssl
 SRCS	+=	network_ssl.c
+SRCS	+=	network_ssl_compat.c
 IDIRS	+=	-I ${LIB_DIR}/network_ssl
 
 test:	all

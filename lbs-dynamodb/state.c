@@ -203,7 +203,7 @@ err0:
 /**
  * state_append(S, R, callback, cookie):
  * Perform the APPEND operation specified by the LBS protocol request ${R} on
- * the state ${S}.  Invoke ${callback}(${cookie}, ${R}) when done.
+ * the state ${S}.  Invoke ${callback}(${cookie}, ${R}, nextblk) when done.
  */
 int
 state_append(struct state * S, struct proto_lbs_request * R,

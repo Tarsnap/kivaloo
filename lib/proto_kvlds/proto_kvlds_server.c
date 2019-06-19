@@ -179,7 +179,7 @@ err0:
 }
 
 /**
- * proto_kvlds_request_free():
+ * proto_kvlds_request_free(req):
  * Free the struct proto_kvlds_request ${req}.
  */
 void

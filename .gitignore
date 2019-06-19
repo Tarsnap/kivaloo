@@ -26,6 +26,7 @@ perftests/http/test_http
 perftests/kvldsclean/test_kvldsclean
 perftests/kvldsclean-ddbkv/test_kvldsclean
 perftests/kvldsperf/test_kvldsperf
+perftests/network-ssl/test_network_ssl
 perftests/s3/test_s3
 perftests/s3_put/s3_put
 perftests/serverpool/test_serverpool
@@ -39,6 +40,8 @@ tests/kvlds/test_kvlds
 tests/lbs/test_lbs
 tests/mux/test_mux
 tests/s3/test_s3
+# test output
+perftests/network-ssl/test_network_ssl_stderr.log
 # test output on FreeBSD
 tests/*/.depend
 tests/*/*.debug

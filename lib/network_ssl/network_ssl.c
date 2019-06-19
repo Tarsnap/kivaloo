@@ -13,6 +13,13 @@
 #include "warnp.h"
 
 #include "network_ssl.h"
+#include "network_ssl_compat.h"
+
+/* Compatibility for OpenSSL versions. */
+#ifdef NETWORK_SSL_COMPAT_READ_WRITE_EX
+#define SSL_read_ex network_ssl_compat_read_ex
+#define SSL_write_ex network_ssl_compat_write_ex
+#endif
 
 /* SSL context in which to create connections. */
 static SSL_CTX * ctx = NULL;

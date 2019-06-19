@@ -174,7 +174,8 @@ err0:
 
 /**
  * storage_nextblock(S):
- * Return the next writable block number, or (uint64_t)(-1) on error.
+ * Return the next writable block number for storage state ${S}, or
+ * (uint64_t)(-1) on error.
  */
 uint64_t
 storage_nextblock(struct storage_state * S)

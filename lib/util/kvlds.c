@@ -323,3 +323,41 @@ err0:
 	/* Failure! */
 	return (-1);
 }
+
+/**
+ * kvlds_delete(Q, key):
+ * Delete the value associated with ${key}.
+ *
+ * This function may call events_run internally.
+ */
+int
+kvlds_delete(struct wire_requestqueue * Q, const struct kvldskey * key)
+{
+	struct donecookie C = {
+		.done = 0,
+		.failed = 0
+	};
+
+	/* Initiate the request. */
+	if (proto_kvlds_request_delete(Q, key, callback_done, &C)) {
+		warnp("proto_kvlds_request_delete");
+		goto err0;
+	}
+
+	/* Wait until we've finished. */
+	if (events_spin(&C.done)) {
+		warnp("Error running event loop");
+		goto err0;
+	}
+
+	/* Interpret results. */
+	if (C.failed)
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}

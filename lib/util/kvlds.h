@@ -52,4 +52,12 @@ int kvlds_set(struct wire_requestqueue *, const struct kvldskey *,
 int kvlds_get(struct wire_requestqueue *, const struct kvldskey *,
     struct kvldskey **);
 
+/**
+ * kvlds_delete(Q, key):
+ * Delete the value associated with ${key}.
+ *
+ * This function may call events_run internally.
+ */
+int kvlds_delete(struct wire_requestqueue *, const struct kvldskey *);
+
 #endif /* !_KVLDS_H_ */

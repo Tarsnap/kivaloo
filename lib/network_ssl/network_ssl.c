@@ -16,6 +16,16 @@
 #include "network_ssl_compat.h"
 
 /* Compatibility for OpenSSL versions. */
+#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#define TLS_client_method network_ssl_compat_TLS_client_method
+#define SSL_CTX_set_min_proto_version network_ssl_compat_CTL_set_min_proto_version
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+#define SSL_set1_host network_ssl_compat_set1_host
+#define SSL_set_hostflags network_ssl_compat_set_hostflags
+#endif
+
 #ifdef NETWORK_SSL_COMPAT_READ_WRITE_EX
 #define SSL_read_ex network_ssl_compat_read_ex
 #define SSL_write_ex network_ssl_compat_write_ex

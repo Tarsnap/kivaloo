@@ -6,6 +6,55 @@
 
 #include "network_ssl_compat.h"
 
+#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+/**
+ * network_ssl_compat_TLS_client_method():
+ * Create a SSL_METHOD.
+ *
+ * COMPATIBILITY: Behave like TLS_client_method().
+ */
+const SSL_METHOD *
+network_ssl_compat_TLS_client_method()
+{
+
+	return (SSLv23_client_method());
+}
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+/**
+ * network_ssl_compat_CTL_set_min_proto_version(ctx, version):
+ * Set the minimum protocol version to ${version}.
+ *
+ * COMPATIBILITY: Behave like SSL_CTX_set_min_proto_version(), provided
+ * that ${version} is TLS1_2_VERSION.
+ */
+int
+network_ssl_compat_CTL_set_min_proto_version(SSL_CTX * ctx, int version)
+{
+	long options;
+
+	/* This the only version currently supported in this file. */
+	assert(version == TLS1_2_VERSION);
+
+	/* Disable all protocols lower than TLS1_2_VERSION. */
+	options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 |
+	    SSL_OP_NO_TLSv1_1;
+
+	/*
+	 * Unfortunately the _set_options() function doesn't return success or
+	 * failure; instead, it returns the new bitmask after setting the
+	 * options.  So we need to AND it with the constant to verify that
+	 * it's been set.
+	 */
+	if ((SSL_CTX_set_options(ctx, options) & options) != options)
+		return (0);
+
+	/* Success! */
+	return (1);
+}
+#endif
+
 #ifdef NETWORK_SSL_COMPAT_READ_WRITE_EX
 /**
  * network_ssl_compat_write_ex(ssl, buf, num, written):

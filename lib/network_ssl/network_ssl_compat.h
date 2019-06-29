@@ -18,9 +18,35 @@
 #define OPENSSL_VERSION_NUMBER 0x1000107fL
 #endif
 
+/* Compatibility for OpenSSL pre-1.1.0 */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define NETWORK_SSL_COMPAT_TLS_VERSION
+#endif
+
 /* Compatibility for OpenSSL pre-1.1.1. */
 #if OPENSSL_VERSION_NUMBER < 0x10101000L
 #define NETWORK_SSL_COMPAT_READ_WRITE_EX
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+/**
+ * network_ssl_compat_TLS_client_method():
+ * Create a SSL_METHOD.
+ *
+ * COMPATIBILITY: Behave like TLS_client_method().
+ */
+const SSL_METHOD * network_ssl_compat_TLS_client_method(void);
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+/**
+ * network_ssl_compat_CTL_set_min_proto_version(ctx, version):
+ * Set the minimum protocol version to ${version}.
+ *
+ * COMPATIBILITY: Behave like SSL_CTX_set_min_proto_version(), provided
+ * that ${version} is TLS1_2_VERSION.
+ */
+int network_ssl_compat_CTL_set_min_proto_version(SSL_CTX *, int);
 #endif
 
 #ifdef NETWORK_SSL_COMPAT_READ_WRITE_EX

@@ -21,6 +21,7 @@
 /* Compatibility for OpenSSL pre-1.1.0 */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define NETWORK_SSL_COMPAT_TLS_VERSION
+#define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
 #endif
 
 /* Compatibility for OpenSSL pre-1.1.1. */
@@ -47,6 +48,26 @@ const SSL_METHOD * network_ssl_compat_TLS_client_method(void);
  * that ${version} is TLS1_2_VERSION.
  */
 int network_ssl_compat_CTL_set_min_proto_version(SSL_CTX *, int);
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+/**
+ * network_ssl_compat_set1_host(ssl, hostname):
+ * Set expected name for hostname verification.
+ *
+ * COMPATIBILITY: Behave like SSL_set1_host().
+ */
+int network_ssl_compat_set1_host(SSL *, const char *);
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+/**
+ * network_ssl_compat_set_hostflags(ssl, flags):
+ * Set flags for hostname verification.
+ *
+ * COMPATIBILITY: Behave like SSL_set_hostflags().
+ */
+void network_ssl_compat_set_hostflags(SSL *, unsigned int);
 #endif
 
 #ifdef NETWORK_SSL_COMPAT_READ_WRITE_EX

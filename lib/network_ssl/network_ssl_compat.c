@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <stddef.h>
+#include <string.h>
 
 #include <openssl/ssl.h>
 
@@ -52,6 +53,40 @@ network_ssl_compat_CTL_set_min_proto_version(SSL_CTX * ctx, int version)
 
 	/* Success! */
 	return (1);
+}
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+/**
+ * network_ssl_compat_set1_host(ssl, hostname):
+ * Set expected name for hostname verification.
+ *
+ * COMPATIBILITY: Behave like SSL_set1_host().
+ */
+int
+network_ssl_compat_set1_host(SSL * ssl, const char * hostname)
+{
+	X509_VERIFY_PARAM * param;
+
+	param = SSL_get0_param(ssl);
+	return (X509_VERIFY_PARAM_set1_host(param, hostname, strlen(hostname)));
+}
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+/**
+ * network_ssl_compat_set_hostflags(ssl, flags):
+ * Set flags for hostname verification.
+ *
+ * COMPATIBILITY: Behave like SSL_set_hostflags().
+ */
+void
+network_ssl_compat_set_hostflags(SSL * ssl, unsigned int flags)
+{
+	X509_VERIFY_PARAM * param;
+
+	param = SSL_get0_param(ssl);
+	X509_VERIFY_PARAM_set_hostflags(param, flags);
 }
 #endif
 

@@ -831,11 +831,13 @@ err0:
  * proto_kvlds_request_range(Q, start, end, max, callback, cookie):
  * Send a RANGE request to list key-value pairs which are >= ${start} and
  * < ${end} via the request queue ${Q}.  Invoke
- *     ${callback}(${cookie}, failed, nkeys, keys, values)
+ *     ${callback}(${cookie}, failed, nkeys, next, keys, values)
  * upon request completion, where failed is 0 on success and 1 on failure,
- * nkeys is the number of key-value pairs returned, and keys and values are
- * arrays of keys and values respectively.  The callback is responsible for
- * freeing the arrays and their members.
+ * nkeys is the number of key-value pairs returned, next is a key such that
+ * issuing another request with it as the starting point will result in the
+ * subsequent key being the first one returned, and keys and values are arrays
+ * of keys and values respectively.  The callback is responsible for freeing
+ * the arrays and their members.
  */
 int
 proto_kvlds_request_range(struct wire_requestqueue * Q,

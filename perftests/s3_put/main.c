@@ -52,7 +52,8 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 	if (!S_ISREG(sb.st_mode) ||
-	    sb.st_size > PROTO_S3_MAXLEN || sb.st_size == 0) {
+	    sb.st_size > (off_t)PROTO_S3_MAXLEN ||
+	    sb.st_size == 0) {
 		warn0("Bad file: %s", argv[2]);
 		exit(1);
 	}

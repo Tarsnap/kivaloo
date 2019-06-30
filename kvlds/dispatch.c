@@ -164,7 +164,7 @@ poke_nmr(struct dispatch_state * D)
 		if (RQ->R->type == PROTO_KVLDS_GET)
 			RQ->npages = (size_t)(D->T->root_shadow->height + 1);
 		else
-			RQ->npages = D->T->root_shadow->height +
+			RQ->npages = (size_t)D->T->root_shadow->height +
 			    D->T->pagelen / SERIALIZE_PERCHILD;
 
 		/* Can we handle this request? */

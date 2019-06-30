@@ -215,7 +215,8 @@ callback_read_addr(void * cookie, ssize_t readlen)
 	struct sock_addr * sa = NULL;
 
 	/* We should get -1 (error), 0 (EOF), or a complete address. */
-	assert((readlen == -1) || (readlen == 0) || (readlen == P->addrlen));
+	assert((readlen == -1) || (readlen == 0) ||
+	    ((readlen > 0) && ((size_t)readlen == P->addrlen)));
 
 	/* Handle failures. */
 	if (readlen == -1)

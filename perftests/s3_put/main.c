@@ -53,11 +53,12 @@ main(int argc, char * argv[])
 	}
 	if (!S_ISREG(sb.st_mode) ||
 	    sb.st_size > (off_t)PROTO_S3_MAXLEN ||
+	    sb.st_size > (off_t)SIZE_MAX ||
 	    sb.st_size == 0) {
 		warn0("Bad file: %s", argv[2]);
 		exit(1);
 	}
-	if ((buf = malloc(sb.st_size)) == NULL) {
+	if ((buf = malloc((size_t)sb.st_size)) == NULL) {
 		warnp("malloc");
 		exit(1);
 	}
@@ -85,7 +86,7 @@ main(int argc, char * argv[])
 		warnp("fopen(%s)", argv[2]);
 		exit(1);
 	}
-	if (fread(buf, sb.st_size, 1, f) != 1) {
+	if (fread(buf, (size_t)sb.st_size, 1, f) != 1) {
 		warnp("fread(%s)", argv[2]);
 		exit(1);
 	}
@@ -96,7 +97,7 @@ main(int argc, char * argv[])
 
 	/* Send request. */
 	C.done = 0;
-	if (proto_s3_request_put(Q, argv[3], argv[4], sb.st_size, buf,
+	if (proto_s3_request_put(Q, argv[3], argv[4], (size_t)sb.st_size, buf,
 	    callback_done, &C)) {
 		warnp("proto_s3_request_put");
 		exit(1);

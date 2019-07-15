@@ -68,11 +68,11 @@ network_read.o: ../../libcperciva/network/network_read.c ../../libcperciva/event
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/network/network_read.c -o network_read.o
 network_write.o: ../../libcperciva/network/network_write.c ../../libcperciva/events/events.h ../../libcperciva/datastruct/mpool.h ../../libcperciva/util/warnp.h ../../libcperciva/network/network.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/network/network_write.c -o network_write.o
-netbuf_read.o: ../../lib/netbuf/netbuf_read.c ../../libcperciva/events/events.h ../../libcperciva/network/network.h ../../lib/netbuf/netbuf.h
+netbuf_read.o: ../../lib/netbuf/netbuf_read.c ../../libcperciva/events/events.h ../../libcperciva/network/network.h ../../lib/netbuf/netbuf.h ../../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_read.c -o netbuf_read.o
-netbuf_write.o: ../../lib/netbuf/netbuf_write.c ../../libcperciva/network/network.h ../../libcperciva/util/warnp.h ../../lib/netbuf/netbuf.h
+netbuf_write.o: ../../lib/netbuf/netbuf_write.c ../../libcperciva/network/network.h ../../libcperciva/util/warnp.h ../../lib/netbuf/netbuf.h ../../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_write.c -o netbuf_write.o
-http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h
+http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h ../../lib/http/https_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/http.c -o http.o
 
 test:	test_http

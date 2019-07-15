@@ -110,9 +110,9 @@ aws_readkeys.o: ../libcperciva/aws/aws_readkeys.c ../libcperciva/util/insecure_m
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
 aws_sign.o: ../libcperciva/aws/aws_sign.c ../libcperciva/util/asprintf.h ../libcperciva/util/hexify.h ../libcperciva/alg/sha256.h ../libcperciva/util/warnp.h ../libcperciva/aws/aws_sign.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/aws/aws_sign.c -o aws_sign.o
-netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h ../lib/netbuf/netbuf.h
+netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../libcperciva/network/network.h ../lib/netbuf/netbuf.h ../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
-netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h
+netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h ../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
 dynamodb_kv.o: ../lib/dynamodb/dynamodb_kv.c ../libcperciva/util/b64encode.h ../libcperciva/util/json.h ../lib/dynamodb/dynamodb_kv.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/dynamodb/dynamodb_kv.c -o dynamodb_kv.o
@@ -120,7 +120,7 @@ dynamodb_request.o: ../lib/dynamodb/dynamodb_request.c ../libcperciva/util/aspri
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/dynamodb/dynamodb_request.c -o dynamodb_request.o
 dynamodb_request_queue.o: ../lib/dynamodb/dynamodb_request_queue.c ../lib/dynamodb/dynamodb_request.h ../libcperciva/events/events.h ../lib/http/http.h ../libcperciva/util/insecure_memzero.h ../libcperciva/util/json.h ../lib/logging/logging.h ../libcperciva/util/monoclock.h ../libcperciva/datastruct/ptrheap.h ../lib/serverpool/serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../libcperciva/util/warnp.h ../lib/dynamodb/dynamodb_request_queue.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/dynamodb/dynamodb_request_queue.c -o dynamodb_request_queue.o
-http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/http/http.h
+http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/http/http.h ../lib/http/https_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/http/http.c -o http.o
 proto_dynamodb_kv_server.o: ../lib/proto_dynamodb_kv/proto_dynamodb_kv_server.c ../libcperciva/util/sysendian.h ../lib/wire/wire.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/proto_dynamodb_kv/proto_dynamodb_kv_server.c -o proto_dynamodb_kv_server.o

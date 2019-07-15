@@ -49,6 +49,14 @@ void * http_request(struct sock_addr * const *, struct http_request *, size_t,
     int (*)(void *, struct http_response *), void *);
 
 /**
+ * https_request(addrs, request, maxrlen, callback, cookie, hostname):
+ * Behave as http_request, but use HTTPS and verify that the target host is
+ * ${hostname}.
+ */
+void * https_request(struct sock_addr * const *, struct http_request *,
+    size_t, int (*)(void *, struct http_response *), void *, const char *);
+
+/**
  * http_request_cancel(cookie):
  * Cancel the HTTP request for which ${cookie} was returned by http_request.
  * Do not invoke the associated callback function.

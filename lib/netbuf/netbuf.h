@@ -4,6 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Opaque types. */
+struct network_ssl_ctx;
+struct netbuf_read;
+struct netbuf_write;
+
 /**
  * netbuf_read_init(s):
  * Create and return a buffered reader attached to socket ${s}.  The caller
@@ -86,5 +91,18 @@ int netbuf_write_write(struct netbuf_write *, const uint8_t *, size_t);
  * Free the writer ${W}.
  */
 void netbuf_write_free(struct netbuf_write *);
+
+/**
+ * netbuf_ssl_read_init(ssl):
+ * Behave as netbuf_read_init but take an SSL context instead.
+ */
+struct netbuf_read * netbuf_ssl_read_init(struct network_ssl_ctx *);
+
+/**
+ * netbuf_ssl_write_init(ssl, fail_callback, fail_cookie):
+ * Behave as netbuf_write_init but take an SSL context instead.
+ */
+struct netbuf_write * netbuf_ssl_write_init(struct network_ssl_ctx *,
+    int (*)(void *), void *);
 
 #endif /* !_NETBUF_H_ */

@@ -86,11 +86,11 @@ aws_readkeys.o: ../../libcperciva/aws/aws_readkeys.c ../../libcperciva/util/inse
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o
 aws_sign.o: ../../libcperciva/aws/aws_sign.c ../../libcperciva/util/asprintf.h ../../libcperciva/util/hexify.h ../../libcperciva/alg/sha256.h ../../libcperciva/util/warnp.h ../../libcperciva/aws/aws_sign.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_sign.c -o aws_sign.o
-netbuf_read.o: ../../lib/netbuf/netbuf_read.c ../../libcperciva/events/events.h ../../libcperciva/network/network.h ../../lib/netbuf/netbuf.h
+netbuf_read.o: ../../lib/netbuf/netbuf_read.c ../../libcperciva/events/events.h ../../libcperciva/network/network.h ../../lib/netbuf/netbuf.h ../../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_read.c -o netbuf_read.o
-netbuf_write.o: ../../lib/netbuf/netbuf_write.c ../../libcperciva/network/network.h ../../libcperciva/util/warnp.h ../../lib/netbuf/netbuf.h
+netbuf_write.o: ../../lib/netbuf/netbuf_write.c ../../libcperciva/network/network.h ../../libcperciva/util/warnp.h ../../lib/netbuf/netbuf.h ../../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_write.c -o netbuf_write.o
-http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h
+http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h ../../lib/http/https_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/http.c -o http.o
 s3_request.o: ../../lib/s3/s3_request.c ../../libcperciva/util/asprintf.h ../../libcperciva/aws/aws_sign.h ../../lib/http/http.h ../../libcperciva/util/warnp.h ../../lib/s3/s3_request.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/s3/s3_request.c -o s3_request.o

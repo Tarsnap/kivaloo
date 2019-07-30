@@ -23,6 +23,7 @@ perftests/dynamodb_request/test_dynamodb_request
 perftests/dynamodb_sign/dynamodb_sign
 perftests/dynamodb_queue/test_dynamodb_queue
 perftests/http/test_http
+perftests/https/test_https
 perftests/kvldsclean/test_kvldsclean
 perftests/kvldsclean-ddbkv/test_kvldsclean
 perftests/kvldsperf/test_kvldsperf

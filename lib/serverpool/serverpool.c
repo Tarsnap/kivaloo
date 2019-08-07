@@ -430,7 +430,7 @@ err0:
 struct sock_addr *
 serverpool_pick(struct serverpool * P)
 {
-	uint64_t i;
+	size_t i;
 
 	/* Get rid of any expired addresses. */
 	if (pruneaddrs(P))

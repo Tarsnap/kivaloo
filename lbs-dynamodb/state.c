@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -169,7 +170,7 @@ callback_get(void * cookie, int status, const uint8_t * buf, size_t buflen)
 	/* If we got data, verify the block size. */
 	if ((status == 0) && (buflen != S->blklen)) {
 		warn0("DynamoDB-KV GET returned wrong amount of data:"
-		    " %zu (should be %zu)", buflen, S->blklen);
+		    " %zu (should be %" PRIu32 ")", buflen, S->blklen);
 		goto err0;
 	}
 

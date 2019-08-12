@@ -51,10 +51,10 @@ main(int argc, char * argv[])
 		}
 
 		/* Sort key-value pairs. */
-		qsort(buf, Y, 80, compar);
+		qsort(buf, (size_t)Y, 80, compar);
 
 		/* Write out key-value pairs. */
-		if (fwrite(buf, 80, Y, stdout) < Y) {
+		if (fwrite(buf, 80, (size_t)Y, stdout) < Y) {
 			warnp("fwrite");
 			exit(1);
 		}

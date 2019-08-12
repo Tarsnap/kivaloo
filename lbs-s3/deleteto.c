@@ -38,7 +38,7 @@ callback_deletedmarker_head(void * cookie, int status, size_t len)
 	} else if (status == 200) {
 		/* If we have a 200, the length should be 8. */
 		if (len != 8) {
-			warn0("DeletedMarker has incorrect size: %zu");
+			warn0("DeletedMarker has incorrect size: %zu", len);
 			goto err0;
 		}
 
@@ -75,7 +75,7 @@ callback_deletedmarker_get(void * cookie, int failed,
 
 	/* We should have 8 bytes. */
 	if (len != 8) {
-		warn0("DeletedMarker has incorrect size: %zu");
+		warn0("DeletedMarker has incorrect size: %zu", len);
 		goto err0;
 	}
 

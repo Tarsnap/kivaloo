@@ -126,7 +126,7 @@ err0:
 }
 
 /**
- * proto_kvlds_request_alloc():
+ * proto_kvlds_request_alloc(void):
  * Allocate a struct proto_kvlds_request.
  */
 struct proto_kvlds_request *

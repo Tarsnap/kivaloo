@@ -9,7 +9,7 @@
 
 #ifdef NETWORK_SSL_COMPAT_TLS_VERSION
 /**
- * network_ssl_compat_TLS_client_method():
+ * network_ssl_compat_TLS_client_method(void):
  * Create a SSL_METHOD.
  *
  * COMPATIBILITY: Behave like TLS_client_method().

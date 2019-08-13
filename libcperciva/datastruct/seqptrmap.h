@@ -16,7 +16,7 @@
 struct seqptrmap;
 
 /**
- * seqptrmap_init():
+ * seqptrmap_init(void):
  * Return an empty sequential pointer map.  Return NULL on error.
  */
 struct seqptrmap * seqptrmap_init(void);

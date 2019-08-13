@@ -76,4 +76,4 @@ int aws_sign_svc_headers(const char *, const char *, const char *,
 int aws_sign_dynamodb_headers(const char *, const char *, const char *,
     const char *, const uint8_t *, size_t, char **, char **, char **);
 
-#endif /* !_AWS_SIGN_ */
+#endif /* !_AWS_SIGN_H_ */

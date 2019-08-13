@@ -21,4 +21,4 @@ void *
 http_request2(struct sock_addr * const *, struct http_request *, size_t,
     int (*)(void *, struct http_response *), void *, char *);
 
-#endif
+#endif /* !_HTTPS_INTERNAL_H_ */

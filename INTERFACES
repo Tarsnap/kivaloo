@@ -210,6 +210,9 @@ RANGE:	Request type = 0x00000131
 S3 interface
 ------------
 
+In all S3 messages, "HTTP status" indicates an integer from 100 to 599 (as per
+RFC 7231), or 0 to indicate a generic failure at the HTTP layer.
+
 PUT:	Request type = 0x00010000
 
 	Request:

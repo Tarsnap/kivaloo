@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -185,12 +186,15 @@ proto_s3_response_status(struct netbuf_write * Q, uint64_t ID, int status)
 {
 	uint8_t * wbuf;
 
+	/* Sanity check. */
+	assert((status == 0) || ((status >= 100) && (status <= 599)));
+
 	/* Get a packet data buffer. */
 	if ((wbuf = wire_writepacket_getbuf(Q, ID, 4)) == NULL)
 		goto err0;
 
 	/* Write the packet data. */
-	be32enc(&wbuf[0], status);
+	be32enc(&wbuf[0], (uint32_t)status);
 
 	/* Finish the packet. */
 	if (wire_writepacket_done(Q, wbuf, 4))
@@ -219,6 +223,9 @@ proto_s3_response_data(struct netbuf_write * Q, uint64_t ID, int status,
 	uint8_t * wbuf;
 	size_t rlen;
 
+	/* Sanity check. */
+	assert((status == 0) || ((status >= 100) && (status <= 599)));
+
 	/* Compute the response length. */
 	rlen = 8 + (((buf != NULL) && (len != (uint32_t)(-1))) ? len : 0);
 
@@ -227,7 +234,7 @@ proto_s3_response_data(struct netbuf_write * Q, uint64_t ID, int status,
 		goto err0;
 
 	/* Write the packet data. */
-	be32enc(&wbuf[0], status);
+	be32enc(&wbuf[0], (uint32_t)status);
 	be32enc(&wbuf[4], len);
 	if ((buf != NULL) && (len != (uint32_t)(-1)))
 		memcpy(&wbuf[8], buf, len);

@@ -499,7 +499,7 @@ callback_head(void * cookie, uint8_t * buf, size_t buflen)
 
 failed:
 	/* Invoke the upstream callback. */
-	rc = (C->callback)(C->cookie, status, lens);
+	rc = (C->callback)(C->cookie, (int)status, lens);
 
 	/* Free the cookie. */
 	free(C);

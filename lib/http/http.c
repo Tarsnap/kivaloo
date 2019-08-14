@@ -487,6 +487,10 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 		warn0("HTTP response with major version > 1!");
 		return (fail(H));
 	}
+	if ((H->res.status < 100) || (H->res.status > 599)) {
+		warn0("Invalid HTTP status code: %i", H->res.status);
+		return (fail(H));
+	}
 
 	/* Parse headers. */
 	for (i = 0; i < H->res.nheaders; i++) {

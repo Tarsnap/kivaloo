@@ -138,9 +138,9 @@ int proto_s3_response_status(struct netbuf_write *, uint64_t, int);
 /**
  * proto_s3_response_data(Q, ID, status, len, buf):
  * Send a response with ID ${ID} to the write queue ${Q} indicating that
- * the S3 request completed with HTTP status code ${status} and the returned
- * data was ${len} bytes from ${buf}.  If ${buf} is NULL, send the length
- * ${len} but no data.
+ * the S3 request completed with HTTP status code ${status} (or 0 on error)
+ * and the returned data was ${len} bytes from ${buf}.  If ${buf} is NULL,
+ * send the length ${len} but no data.
  */
 int proto_s3_response_data(struct netbuf_write *, uint64_t, int,
     uint32_t, const uint8_t *);

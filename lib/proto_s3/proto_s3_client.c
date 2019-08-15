@@ -127,6 +127,10 @@ callback_put(void * cookie, uint8_t * buf, size_t buflen)
 		/* Parse the packet. */
 		status = be32dec(&buf[0]);
 
+		/* Check status. */
+		if ((status != 0) && ((status < 100) || (status > 599)))
+			BAD("PUT", "Invalid HTTP status");
+
 		/* Did the operation succeed? */
 		if (status == 200)
 			failed = 0;
@@ -234,6 +238,10 @@ callback_get(void * cookie, uint8_t * buf, size_t buflen)
 		/* Parse the packet. */
 		status = be32dec(&buf[0]);
 		len = be32dec(&buf[4]);
+
+		/* Check status. */
+		if ((status != 0) && ((status < 100) || (status > 599)))
+			BAD("GET", "Invalid HTTP status");
 
 		/* Do we have the right packet length? */
 		if (len != (uint32_t)(-1)) {
@@ -361,6 +369,10 @@ callback_range(void * cookie, uint8_t * buf, size_t buflen)
 		status = be32dec(&buf[0]);
 		len = be32dec(&buf[4]);
 
+		/* Check status. */
+		if ((status != 0) && ((status < 100) || (status > 599)))
+			BAD("RANGE", "Invalid HTTP status");
+
 		/* Do we have the right packet length? */
 		if (len != (uint32_t)(-1)) {
 			if (buflen != 8 + len)
@@ -476,6 +488,10 @@ callback_head(void * cookie, uint8_t * buf, size_t buflen)
 		status = be32dec(&buf[0]);
 		len = be32dec(&buf[4]);
 
+		/* Check status. */
+		if ((status != 0) && ((status < 100) || (status > 599)))
+			BAD("HEAD", "Invalid HTTP status");
+
 		/* If status == 200 and len != -1, we have a length. */
 		if ((status == 200) && (len != (uint32_t)(-1)))
 			lens = len;
@@ -483,7 +499,7 @@ callback_head(void * cookie, uint8_t * buf, size_t buflen)
 
 failed:
 	/* Invoke the upstream callback. */
-	rc = (C->callback)(C->cookie, status, lens);
+	rc = (C->callback)(C->cookie, (int)status, lens);
 
 	/* Free the cookie. */
 	free(C);
@@ -568,6 +584,10 @@ callback_delete(void * cookie, uint8_t * buf, size_t buflen)
 
 		/* Parse the packet. */
 		status = be32dec(&buf[0]);
+
+		/* Check status. */
+		if ((status != 0) && ((status < 100) || (status > 599)))
+			BAD("DELETE", "Invalid HTTP status");
 
 		/* Did the operation succeed? */
 		if (status == 204)

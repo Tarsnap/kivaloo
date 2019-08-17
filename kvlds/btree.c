@@ -247,6 +247,12 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		goto err1;
 	}
 
+	/* Warn about unnecessarily large page lengths and exit. */
+	if (T->pagelen > 4096) {
+		warn0("Page size much larger than needed");
+		goto err1;
+	}
+
 	/* Create a page pool. */
 	if ((T->P = pool_init(T->poolsz,
 	    offsetof(struct node, pool_cookie))) == NULL)

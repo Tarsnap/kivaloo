@@ -10,6 +10,7 @@
 #include "events.h"
 #include "getopt.h"
 #include "humansize.h"
+#include "parsenum.h"
 #include "sock.h"
 #include "warnp.h"
 #include "wire.h"
@@ -113,7 +114,8 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-S"):
 			if (opt_S != 1.0)
 				usage();
-			opt_S = strtod(optarg, NULL);
+			if (PARSENUM(&opt_S, optarg, 0, INFINITY))
+				OPT_EPARSE(ch, optarg);
 			break;
 		GETOPT_OPTARG("-s"):
 			if (opt_s != NULL)
@@ -130,7 +132,8 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-w"):
 			if (opt_w != 0.0)
 				usage();
-			opt_w = strtod(optarg, NULL);
+			if (PARSENUM(&opt_w, optarg, 0, INFINITY))
+				OPT_EPARSE(ch, optarg);
 			break;
 		GETOPT_OPT("--version"):
 			fprintf(stderr, "kivaloo-kvlds @VERSION@\n");

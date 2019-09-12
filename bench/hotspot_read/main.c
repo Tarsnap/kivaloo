@@ -11,6 +11,7 @@
 #include "kvldskey.h"
 #include "mkpair.h"
 #include "monoclock.h"
+#include "parsenum.h"
 #include "proto_kvlds.h"
 #include "sock.h"
 #include "warnp.h"
@@ -188,7 +189,7 @@ main(int argc, char * argv[])
 	}
 
 	/* Parse N. */
-	if ((N = strtoumax(argv[2], NULL, 0)) == 0) {
+	if (PARSENUM(&N, argv[2])) {
 		warnp("Invalid value for N: %s", argv[2]);
 		exit(1);
 	}

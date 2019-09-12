@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "mkpair.h"
+#include "parsenum.h"
 #include "warnp.h"
 
 static int
@@ -31,7 +32,7 @@ main(int argc, char * argv[])
 	}
 
 	/* Parse N. */
-	if ((N = strtoumax(argv[1], NULL, 0)) == 0) {
+	if (PARSENUM(&N, argv[1])) {
 		warnp("Invalid value for N: %s", argv[1]);
 		exit(1);
 	}

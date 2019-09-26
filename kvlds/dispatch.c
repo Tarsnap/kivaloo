@@ -618,6 +618,24 @@ dispatch_accept(int s, struct btree * T,
 	    * 1000000);
 	D->mr_min_batch = g;
 
+	/**
+	 * Adjust maximum # of pages touched by MRs (if necessary).  In
+	 * addition to the limit of T->poolsz / 4 (as calculated above), we
+	 * have 2 more limits which arise from the wire and lbs protocols.
+	 * - The record of a wire packet must fit into 4 bytes.  The
+	 *   packet length is defined as:
+	 *       len = 16 + nblks * blklen
+	 *   and we must have:
+	 *       len <= UINT32_MAX
+	 * - The length of the wire packet (including header and trailer) must
+	 *   fit into size_t.  Using the same definition of len, we must have:
+	 *       len <= SIZE_MAX - 20
+	 */
+	if (D->mr_concurrency > ((UINT32_MAX - 16) / D->T->pagelen))
+		D->mr_concurrency = (UINT32_MAX - 16) / D->T->pagelen;
+	if (D->mr_concurrency > ((SIZE_MAX - 16 - 20) / D->T->pagelen))
+		D->mr_concurrency = (SIZE_MAX - 16 - 20) / D->T->pagelen;
+
 	/* Start the periodic cleaning timer. */
 	D->docleans = 0;
 	if ((D->mrc_timer = events_timer_register(callback_mrc_timer, D,

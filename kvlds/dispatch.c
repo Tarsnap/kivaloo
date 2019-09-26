@@ -233,6 +233,9 @@ poke_mr(struct dispatch_state * D)
 	struct requestq * RQ;
 	size_t i;
 
+	/* Sanity check. */
+	assert(D->mr_qlen <= MAXREQS);
+
 	/* Launch a batch of requests if possible. */
 	if ((D->mr_inprogress == 0) &&
 	    ((D->mr_timer_expired != 0) ||

@@ -233,6 +233,9 @@ poke_mr(struct dispatch_state * D)
 	struct requestq * RQ;
 	size_t i;
 
+	/* Sanity check. */
+	assert(D->mr_qlen <= MAXREQS);
+
 	/* Launch a batch of requests if possible. */
 	if ((D->mr_inprogress == 0) &&
 	    ((D->mr_timer_expired != 0) ||
@@ -614,6 +617,24 @@ dispatch_accept(int s, struct btree * T,
 	D->mr_timeout.tv_usec = (suseconds_t)((w - D->mr_timeout.tv_sec)
 	    * 1000000);
 	D->mr_min_batch = g;
+
+	/**
+	 * Adjust maximum # of pages touched by MRs (if necessary).  In
+	 * addition to the limit of T->poolsz / 4 (as calculated above), we
+	 * have 2 more limits which arise from the wire and lbs protocols.
+	 * - The record of a wire packet must fit into 4 bytes.  The
+	 *   packet length is defined as:
+	 *       len = 16 + nblks * blklen
+	 *   and we must have:
+	 *       len <= UINT32_MAX
+	 * - The length of the wire packet (including header and trailer) must
+	 *   fit into size_t.  Using the same definition of len, we must have:
+	 *       len <= SIZE_MAX - 20
+	 */
+	if (D->mr_concurrency > ((UINT32_MAX - 16) / D->T->pagelen))
+		D->mr_concurrency = (UINT32_MAX - 16) / D->T->pagelen;
+	if (D->mr_concurrency > ((SIZE_MAX - 16 - 20) / D->T->pagelen))
+		D->mr_concurrency = (SIZE_MAX - 16 - 20) / D->T->pagelen;
 
 	/* Start the periodic cleaning timer. */
 	D->docleans = 0;

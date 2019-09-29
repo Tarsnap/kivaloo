@@ -503,11 +503,23 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 			return (fail(H));
 		}
 
+		/* Remove trailing optional whitespace (OWS). */
+		while (s_len > 0) {
+			if ((s[s_len - 1] == ' ') || (s[s_len - 1] == '\t'))
+				s[--s_len] = '\0';
+			else
+				break;
+		}
+
 		/* Split into header and value. */
 		cpos = strcspn(s, ":");
 		H->res.headers[i].header = s;
 		H->res.headers[i].value = s[cpos] ? &s[cpos + 1] : &s[cpos];
 		s[cpos] = '\0';
+
+		/* Strip leading optional whitespace (OWS) from the value. */
+		H->res.headers[i].value += strspn(H->res.headers[i].value,
+		    " \t");
 	}
 
 	/* We should be 2 bytes (\r\n) away from the end of the buffer. */

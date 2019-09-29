@@ -442,6 +442,7 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	const char * te;
 	const char * clen;
 	size_t cpos;
+	size_t s_len;
 
 	/* Suck the headers into a separate buffer. */
 	H->res_headlen = buflen;
@@ -496,7 +497,8 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	for (i = 0; i < H->res.nheaders; i++) {
 		/* Grab a line. */
 		s = sgetline(H->res_head, H->res_headlen, &bufpos, &linelen);
-		if (strlen(s) < linelen) {
+		s_len = strlen(s);
+		if (s_len < linelen) {
 			warn0("Header contains NUL byte");
 			return (fail(H));
 		}

@@ -103,7 +103,7 @@ netbuf_write.o: ../../lib/netbuf/netbuf_write.c ../../libcperciva/network/networ
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_write.c -o netbuf_write.o
 netbuf_ssl.o: ../../lib/netbuf/netbuf_ssl.c ../../lib/network_ssl/network_ssl.h ../../lib/netbuf/netbuf.h ../../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/netbuf/netbuf_ssl.c -o netbuf_ssl.o
-http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h ../../lib/http/https_internal.h
+http.o: ../../lib/http/http.c ../../libcperciva/util/imalloc.h ../../lib/netbuf/netbuf.h ../../libcperciva/network/network.h ../../libcperciva/util/parsenum.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/http/http.h ../../lib/http/https_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/http.c -o http.o
 https.o: ../../lib/http/https.c ../../lib/netbuf/netbuf.h ../../lib/network_ssl/network_ssl.h ../../lib/http/http.h ../../lib/http/https_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../lib/http/https.c -o https.o

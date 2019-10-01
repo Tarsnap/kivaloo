@@ -10,6 +10,7 @@
 #include "http.h"
 #include "netbuf.h"
 #include "network.h"
+#include "parsenum.h"
 #include "proto_s3.h"
 #include "s3_request.h"
 #include "s3_request_queue.h"
@@ -284,7 +285,11 @@ callback_response(void * cookie, struct http_response * res)
 			/* We have no Content-Length header. */
 			clen = (uint32_t)(-1);
 		} else {
-			clen = strtoull(s_clen, NULL, 0);
+			/* Parse in base 10, no trailing characters. */
+			if (PARSENUM_EX(&clen, s_clen, 10, 0)) {
+				warnp("Invalid Content-Length: %s", s_clen);
+				clen = (uint32_t)(-1);
+			}
 		}
 
 		/* Send the response. */

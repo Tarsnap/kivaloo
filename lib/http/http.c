@@ -8,6 +8,7 @@
 #include "imalloc.h"
 #include "netbuf.h"
 #include "network.h"
+#include "parsenum.h"
 #include "sock.h"
 #include "warnp.h"
 
@@ -573,8 +574,11 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 	 */
 	if ((clen = http_findheader(H->res.headers, H->res.nheaders,
 	    "Content-Length")) != NULL) {
-		/* Parse the value (strtoull skips LWS). */
-		len = strtoull(clen, NULL, 0);
+		/* Parse in base 10, no trailing characters. */
+		if (PARSENUM_EX(&len, clen, 10, 0)) {
+			warnp("Invalid Content-Length: %s", clen);
+			return (fail(H));
+		}
 
 		/* Read the body as a single blob. */
 		return (get_body_gotclen(H, len));

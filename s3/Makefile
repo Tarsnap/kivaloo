@@ -40,7 +40,7 @@ main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h 
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dns.o: dns.c ../libcperciva/network/network.h ../libcperciva/util/noeintr.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../libcperciva/util/warnp.h dns.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dns.c -o dns.o
-dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../lib/http/http.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_s3/proto_s3.h ../lib/s3/s3_request.h ../lib/s3/s3_request_queue.h ../lib/s3/s3_verifyetag.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
+dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../lib/http/http.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/parsenum.h ../lib/proto_s3/proto_s3.h ../lib/s3/s3_request.h ../lib/s3/s3_request_queue.h ../lib/s3/s3_verifyetag.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 cpusupport_x86_crc32.o: ../libcperciva/cpusupport/cpusupport_x86_crc32.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/cpusupport/cpusupport_x86_crc32.c -o cpusupport_x86_crc32.o
@@ -116,7 +116,7 @@ netbuf_read.o: ../lib/netbuf/netbuf_read.c ../libcperciva/events/events.h ../lib
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/netbuf/netbuf_read.c -o netbuf_read.o
 netbuf_write.o: ../lib/netbuf/netbuf_write.c ../libcperciva/network/network.h ../libcperciva/util/warnp.h ../lib/netbuf/netbuf.h ../lib/netbuf/netbuf_ssl_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/netbuf/netbuf_write.c -o netbuf_write.o
-http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/http/http.h ../lib/http/https_internal.h
+http.o: ../lib/http/http.c ../libcperciva/util/imalloc.h ../lib/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/http/http.h ../lib/http/https_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/http/http.c -o http.o
 s3_request.o: ../lib/s3/s3_request.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_sign.h ../lib/http/http.h ../libcperciva/util/warnp.h ../lib/s3/s3_request.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/s3/s3_request.c -o s3_request.o

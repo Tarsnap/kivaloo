@@ -52,6 +52,7 @@ char * aws_sign_s3_querystr(const char *, const char *, const char *,
 int aws_sign_svc_headers(const char *, const char *, const char *,
     const char *, const uint8_t *, size_t, char **, char **, char **);
 
+/* Convenience functions. */
 #define aws_sign_ec2_headers(a, b, c, d, e, f, g, h) \
     aws_sign_svc_headers(a, b, c, "ec2", d, e, f, g, h)
 #define aws_sign_sns_headers(a, b, c, d, e, f, g, h) \

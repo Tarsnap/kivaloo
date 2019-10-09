@@ -268,14 +268,21 @@ callback_response(void * cookie, struct http_response * res)
 		if ((res->body == NULL) || (s3_verifyetag(res) == 0))
 			res->status = 0;
 
+		/* Sanity check. */
+		assert(res->bodylen <= UINT32_MAX);
+
 		/* Send the response. */
 		if (proto_s3_response_get(D->writeq, R->R.ID, res->status,
-		    res->bodylen, res->body))
+		    (uint32_t)res->bodylen, res->body))
 			goto err1;
 		break;
 	case PROTO_S3_RANGE:
+		/* Sanity check. */
+		assert(res->bodylen <= UINT32_MAX);
+
+		/* Send the response. */
 		if (proto_s3_response_range(D->writeq, R->R.ID, res->status,
-		    res->bodylen, res->body))
+		    (uint32_t)res->bodylen, res->body))
 			goto err1;
 		break;
 	case PROTO_S3_HEAD:

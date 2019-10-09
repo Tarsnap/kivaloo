@@ -33,7 +33,7 @@ void dynamodb_request_queue_log(struct dynamodb_request_queue *,
  * Exceeded" exception.  If passed a capacity of 0, the request rate will
  * not be limited.
  */
-void dynamodb_request_queue_setcapacity(struct dynamodb_request_queue *, int);
+void dynamodb_request_queue_setcapacity(struct dynamodb_request_queue *, long);
 
 /**
  * dynamodb_request_queue(Q, prio, op, body, maxrlen, logstr, callback, cookie):

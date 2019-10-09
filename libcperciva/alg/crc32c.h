@@ -8,6 +8,7 @@
  * CRC32C - 32-bit CRC using the Castagnoli polynomial 0x11EDC6F41.
  */
 
+/* Intermediate storage for CRC32C calculation. */
 typedef struct CRC32CContext {
 	uint32_t state;
 } CRC32C_CTX;

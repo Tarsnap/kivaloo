@@ -666,7 +666,7 @@ dynamodb_request_queue_log(struct dynamodb_request_queue * Q,
  */
 void
 dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
-    int capacity)
+    long capacity)
 {
 
 	/* Record rate at which new capacity arrives. */

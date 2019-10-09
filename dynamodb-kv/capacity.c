@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@
 #include "http.h"
 #include "insecure_memzero.h"
 #include "json.h"
+#include "parsenum.h"
 #include "serverpool.h"
 #include "sock.h"
 #include "warnp.h"
@@ -130,9 +132,17 @@ callback_readmetadata(void * cookie, struct http_response * res)
 
 		/* Get ReadCapacityUnits and WriteCapacityUnits. */
 		capstr = json_find(buf, end, "ReadCapacityUnits");
-		capr = strtol((const char *)capstr, NULL, 10);
+		if (PARSENUM_EX(&capr, (const char *)capstr, 0, LONG_MAX,
+		    10, 1)) {
+			warnp("parsenum failed on %s", capstr);
+			goto doneparse;
+		}
 		capstr = json_find(buf, end, "WriteCapacityUnits");
-		capw = strtol((const char *)capstr, NULL, 10);
+		if (PARSENUM_EX(&capw, (const char *)capstr, 0, LONG_MAX,
+		    10, 1)) {
+			warnp("parsenum failed on %s", capstr);
+			goto doneparse;
+		}
 
 		/* Set new capacities. */
 		dynamodb_request_queue_setcapacity(M->QR, capr);

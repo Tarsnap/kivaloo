@@ -188,8 +188,12 @@ callback_get(void * cookie, struct proto_lbs_request * R,
 	else
 		status = 1;
 
+	/* Sanity check. */
+	assert(blklen <= UINT32_MAX);
+
 	/* Send a response back. */
-	rc = proto_lbs_response_get(D->writeq, R->ID, status, blklen, buf);
+	rc = proto_lbs_response_get(D->writeq, R->ID, status, (uint32_t)blklen,
+	    buf);
 
 	/* Free the request. */
 	free(R);

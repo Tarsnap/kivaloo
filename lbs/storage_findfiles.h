@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 
+/* Info about block storage files. */
 struct storage_file {
 	uint64_t fileno;	/* Hex digits in "blks_<16 hex digits>". */
 	off_t len;		/* Length of the file, in bytes. */

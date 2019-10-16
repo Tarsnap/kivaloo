@@ -130,6 +130,7 @@ void proto_s3_request_free(struct proto_s3_request *);
  */
 int proto_s3_response_status(struct netbuf_write *, uint64_t, int);
 
+/* Convenience functions. */
 #define proto_s3_response_put(Q, ID, status)		\
 	proto_s3_response_status(Q, ID, status)
 #define proto_s3_response_delete(Q, ID, status)		\
@@ -145,6 +146,7 @@ int proto_s3_response_status(struct netbuf_write *, uint64_t, int);
 int proto_s3_response_data(struct netbuf_write *, uint64_t, int,
     uint32_t, const uint8_t *);
 
+/* Convenience functions. */
 #define proto_s3_response_get(Q, ID, status, len, buf)		\
 	proto_s3_response_data(Q, ID, status, len, buf)
 #define proto_s3_response_range(Q, ID, status, len, buf)	\

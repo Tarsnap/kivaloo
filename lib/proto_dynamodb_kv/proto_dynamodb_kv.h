@@ -94,6 +94,7 @@ void proto_dynamodb_kv_request_free(struct proto_ddbkv_request *);
  */
 int proto_dynamodb_kv_response_status(struct netbuf_write *, uint64_t, int);
 
+/* Convenience functions. */
 #define proto_dynamodb_kv_response_put(Q, ID, status)		\
 	proto_dynamodb_kv_response_status(Q, ID, status)
 #define proto_dynamodb_kv_response_delete(Q, ID, status)	\
@@ -108,6 +109,7 @@ int proto_dynamodb_kv_response_status(struct netbuf_write *, uint64_t, int);
 int proto_dynamodb_kv_response_data(struct netbuf_write *, uint64_t, int,
     uint32_t, const uint8_t *);
 
+/* Convenience functions. */
 #define proto_dynamodb_kv_response_get(Q, ID, status, len, buf)		\
 	proto_dynamodb_kv_response_data(Q, ID, status, len, buf)
 #define proto_dynamodb_kv_response_getc(Q, ID, status, len, buf)	\

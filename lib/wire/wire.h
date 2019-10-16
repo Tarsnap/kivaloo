@@ -8,6 +8,7 @@
 struct netbuf_read;
 struct netbuf_write;
 
+/* Wire packet data. */
 struct wire_packet {
 	uint64_t ID;
 	size_t len;

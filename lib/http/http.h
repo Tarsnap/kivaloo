@@ -7,11 +7,13 @@
 /* Opaque type. */
 struct sock_addr;
 
+/* One HTTP header. */
 struct http_header {
 	const char * header;
 	const char * value;
 };
 
+/* Request data. */
 struct http_request {
 	const char * method;
 	const char * path;
@@ -21,6 +23,7 @@ struct http_request {
 	const uint8_t * body;
 };
 
+/* Response data. */
 struct http_response {
 	int status;
 	size_t nheaders;

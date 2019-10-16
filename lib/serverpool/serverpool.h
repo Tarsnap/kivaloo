@@ -3,6 +3,7 @@
 
 #include <time.h>
 
+/* Opaque structure. */
 struct sock_addr;
 
 /**

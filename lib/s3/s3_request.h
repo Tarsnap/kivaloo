@@ -9,6 +9,7 @@ struct http_header;
 struct http_response;
 struct sock_addr;
 
+/* S3 request data. */
 struct s3_request {
 	const char * method;
 	const char * bucket;

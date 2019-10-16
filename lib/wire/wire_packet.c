@@ -25,4 +25,3 @@ wire_packet_free(struct wire_packet * P)
 
 	mpool_packet_free(P);
 }
-

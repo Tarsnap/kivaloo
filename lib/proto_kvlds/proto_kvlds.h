@@ -198,6 +198,7 @@ int proto_kvlds_response_params(struct netbuf_write *, uint64_t, uint32_t,
  */
 int proto_kvlds_response_status(struct netbuf_write *, uint64_t, int);
 
+/* Convenience functions. */
 #define proto_kvlds_response_set(Q, ID)		\
 	proto_kvlds_response_status(Q, ID, 0)
 #define proto_kvlds_response_cas(Q, ID, status)	\

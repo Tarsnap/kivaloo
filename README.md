@@ -86,5 +86,3 @@ Mailing list
 ------------
 
 The kivaloo data store is discussed on the <kivaloo@tarsnap.com> mailing list.
-
-

@@ -5,6 +5,7 @@
 
 #include <openssl/ssl.h>
 
+/* Ensure we have a version number. */
 #ifndef OPENSSL_VERSION_NUMBER
 #error "OPENSSL_VERSION_NUMBER must be defined"
 #endif

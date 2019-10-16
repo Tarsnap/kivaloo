@@ -7,6 +7,7 @@
 
 #include "ctassert.h"
 
+/* Structure for KVLDS key or value (0-255 bytes). */
 struct kvldskey {
 	uint8_t len;
 	uint8_t buf[];

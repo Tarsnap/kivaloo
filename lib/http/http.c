@@ -677,8 +677,17 @@ callback_chunkedheader(void * cookie, int status)
 
 	/* If we found one, handle the line. */
 	if (eolpos != buflen) {
-		/* Parse the chunk length. */
-		clen = strtoull((const char *)buf, NULL, 16);
+		/*
+		 * Parse the chunk length; it's always in base 16, and allow
+		 * trailing characters to accommodate the EOL.  ${buf} is not
+		 * NUL-terminated but it does contain an EOL, so the cast is
+		 * safe.
+		 */
+		if (PARSENUM_EX(&clen, (const char *)buf, 0, SIZE_MAX, 16, 1)) {
+			/* Print ${buf} carefully (it's not NUL-terminated). */
+			warnp("parsenum failed on %.*s", eolpos, buf);
+			return (fail(H));
+		}
 
 		/* Consume the line and EOL. */
 		netbuf_read_consume(H->R, eolpos + 2);

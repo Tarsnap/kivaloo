@@ -11,6 +11,7 @@
 #include "json.h"
 #include "logging.h"
 #include "monoclock.h"
+#include "parsenum.h"
 #include "ptrheap.h"
 #include "serverpool.h"
 #include "sock.h"
@@ -216,8 +217,7 @@ extractcapacity(struct http_response * res, double * pcap)
 	capacity[len] = '\0';
 
 	/* Parse the string. */
-	c = strtod(capacity, NULL);
-	if ((c < 0) || (c > 400)) {
+	if (PARSENUM(&c, capacity, 0, 400)) {
 		/*
 		 * As specified right now, DynamoDB should never return a
 		 * CapacityUnits outside [0, 400]; but just in case that

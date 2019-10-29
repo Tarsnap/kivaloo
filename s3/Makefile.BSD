@@ -16,7 +16,7 @@ SRCS	+=	dispatch.c
 
 # CPU features detection
 .PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
-SRCS	+=	cpusupport_x86_crc32.c
+SRCS	+=	cpusupport_x86_crc32_64.c
 SRCS	+=	cpusupport_x86_shani.c
 SRCS	+=	cpusupport_x86_ssse3.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
@@ -119,7 +119,7 @@ IDIRS	+=	-I ${LIB_DIR}/proto_s3
 #CFLAGS	+=	-pg
 
 cflags-crc32c_sse42.o:
-	@echo '$${CFLAGS_X86_CRC32}'
+	@echo '$${CFLAGS_X86_CRC32_64}'
 
 cflags-sha256_shani.o:
 	@echo '$${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}'

@@ -79,7 +79,7 @@ init(void)
 	assert(T0[0x80] == T_0_0x80);
 }
 
-#ifdef CPUSUPPORT_X86_CRC32
+#ifdef CPUSUPPORT_X86_CRC32_64
 static struct crc32_test {
 	const char * buf;
 	const uint8_t crc[4];
@@ -114,7 +114,7 @@ usecrc(void)
 		crcgood = 0;
 
 		/* If the CPU doesn't claim to support SSE4.2, stop here. */
-		if (!cpusupport_x86_crc32())
+		if (!cpusupport_x86_crc32_64())
 			break;
 
 		/* Calculate with hardware and compare against a test vector. */
@@ -129,7 +129,7 @@ usecrc(void)
 
 	return (crcgood);
 }
-#endif /* !CPUSUPPORT_X86_CRC32 */
+#endif /* !CPUSUPPORT_X86_CRC32_64 */
 
 /**
  * CRC32C_Init(ctx):
@@ -159,7 +159,7 @@ void
 CRC32C_Update(CRC32C_CTX * ctx, const uint8_t * buf, size_t len)
 {
 
-#ifdef CPUSUPPORT_X86_CRC32
+#ifdef CPUSUPPORT_X86_CRC32_64
 	if (usecrc() && (len >= 8)) {
 		ctx->state = CRC32C_Update_SSE42(ctx->state, buf, len);
 		return;

@@ -134,7 +134,7 @@ IDIRS	+=	-I ${LIB_DIR}/serverpool
 WARNS	=	0
 
 cflags-crc32c_sse42.o:
-	@echo '$${CFLAGS_X86_CRC32}'
+	@echo '$${CFLAGS_X86_CRC32_64}'
 
 cflags-sha256_shani.o:
 	@echo '$${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}'

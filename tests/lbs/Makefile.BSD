@@ -8,7 +8,7 @@ LIB_DIR	=	../../lib
 
 # CPU features detection
 .PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
-SRCS	+=	cpusupport_x86_crc32.c
+SRCS	+=	cpusupport_x86_crc32_64.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
 
 # Data structures

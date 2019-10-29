@@ -20,6 +20,9 @@ rehash(struct kvhash * H)
 	uint32_t * new_hashes;
 	size_t i, pos;
 
+	/* Sanity check. */
+	assert((H->nslots > 0) && (H->nslots <= SIZE_MAX / 2));
+
 	/* Double the table size. */
 	new_nslots = H->nslots * 2;
 

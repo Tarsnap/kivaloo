@@ -18,9 +18,6 @@ MAN	=
 #     make -f Makefile.BSD
 # in a subdirectory; they have no influence on the generated Makefiles.
 
-# Defaults for all kivaloo code
-WARNS	?=	3
-
 # Use POSIX standard
 CFLAGS	+=	-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 

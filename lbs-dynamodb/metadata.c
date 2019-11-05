@@ -247,7 +247,7 @@ metadata_init(struct wire_requestqueue * Q)
 
 	/* Read metadata from shard #0. */
 	if (readmetadata(Q, &R, 0))
-		goto err0;
+		goto err1;
 	M->nextblk = R.nextblk;
 	M->deletedto = R.deletedto;
 	M->generation = R.generation;
@@ -255,7 +255,7 @@ metadata_init(struct wire_requestqueue * Q)
 	/* Binary search for the latest metadata. */
 	for (k = 2048; k != 0; k >>= 1) {
 		if (readmetadata(Q, &R, M->generation + k))
-			goto err0;
+			goto err1;
 		if (R.generation > M->generation) {
 			M->nextblk = R.nextblk;
 			M->deletedto = R.deletedto;
@@ -274,6 +274,8 @@ metadata_init(struct wire_requestqueue * Q)
 	/* Success! */
 	return (M);
 
+err1:
+	free(M);
 err0:
 	/* Failure! */
 	return (NULL);

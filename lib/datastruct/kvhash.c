@@ -20,8 +20,14 @@ rehash(struct kvhash * H)
 	uint32_t * new_hashes;
 	size_t i, pos;
 
+	/* Sanity check. */
+	assert((H->nslots > 0) && (H->nslots <= SIZE_MAX / 2));
+
 	/* Double the table size. */
 	new_nslots = H->nslots * 2;
+
+	/* Sanity check; clang can't figure this out by itself. */
+	assert(new_nslots > 0);
 
 	/* Allocate new arrays. */
 	if (IMALLOC(new_pairs, new_nslots, struct kvpair_const))

@@ -73,6 +73,8 @@ init(void)
 		T1[i] = reverse(r = times256(r));
 		T2[i] = reverse(r = times256(r));
 		T3[i] = reverse(r = times256(r));
+
+		(void)r; /* r is not used beyond this point. */
 	}
 
 	/* Make sure we optimized correctly. */

@@ -1,5 +1,5 @@
-language: C
-sudo: false
+language: c
+os: linux
 dist: xenial
 env:
   global:

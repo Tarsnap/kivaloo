@@ -192,15 +192,20 @@ netbuf_write_init2(int s, struct network_ssl_ctx * ssl,
 	W->write_cookie = NULL;
 	W->curr = NULL;
 
-	/*
-	 * Request that the OS not attempt to coalesce small segments.  We
-	 * do this ourselves, and we're smarter than the OS is.  We don't
-	 * check the error code here, because POSIX does not require that
-	 * TCP_NODELAY be implemented (although it must be defined); and we
-	 * might not even be operating on a TCP socket.
-	 */
-	val = 1;
-	(void)setsockopt(W->s, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(int));
+	/* Additional configuration if we're using a socket. */
+	if (W->ssl != NULL) {
+		/*
+		 * Request that the OS not attempt to coalesce small segments.
+		 * We do this ourselves, and we're smarter than the OS is.  We
+		 * don't check the error code here, because POSIX does not
+		 * require that TCP_NODELAY be implemented (although it must
+		 * be defined); and we might not even be operating on a TCP
+		 * socket.
+		 */
+		val = 1;
+		(void)setsockopt(W->s, IPPROTO_TCP, TCP_NODELAY, &val,
+		    sizeof(int));
+	}
 
 	/* Success! */
 	return (W);

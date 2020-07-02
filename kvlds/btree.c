@@ -200,12 +200,13 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 
 	/* If we have neither npages nor npagebytes, set a default. */
 	if ((npages == (uint64_t)(-1)) && (npagebytes == (uint64_t)(-1))) {
+#if 128 * 1024 * 1024 < SIZE_MAX
 		/* Normal default is 128 MB. */
 		npagebytes = 128 * 1024 * 1024;
-
+#else
 		/* Set a smaller default size for systems with a tiny size_t. */
-		if (npagebytes > SIZE_MAX)
-			npagebytes = SIZE_MAX;
+		npagebytes = SIZE_MAX;
+#endif
 	}
 
 	/* Figure out how many pages to use and sanity-check. */

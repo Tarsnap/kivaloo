@@ -123,12 +123,17 @@ callback_pair(void * cookie, struct kvldskey ** key, struct kvldskey ** value)
 				goto nomore;
 			goto err0;
 		}
+		/*
+		 * len is uint8_t, so it will be 0..255 (inclusive).
+		 * Read that many bytes from stdin; we don't accept eof here
+		 * because that would indicate a buffer underrun in buf.
+		 */
 		if (fread(&buf, len, 1, stdin) != 1)
 			goto err0;
 		if ((*key = kvldskey_create(buf, len)) == NULL)
 			goto err0;
 
-		/* Read value from stdin. */
+		/* Read value from stdin (same security rationale as above). */
 		if (fread(&len, 1, 1, stdin) != 1)
 			goto err1;
 		if (fread(&buf, len, 1, stdin) != 1)

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -685,7 +686,11 @@ callback_chunkedheader(void * cookie, int status)
 		 */
 		if (PARSENUM_EX(&clen, (const char *)buf, 0, SIZE_MAX, 16, 1)) {
 			/* Print ${buf} carefully (it's not NUL-terminated). */
-			warnp("parsenum failed on %.*s", eolpos, buf);
+			if (eolpos <= INT_MAX)
+				warnp("parsenum failed on %.*s", (int)eolpos,
+				    buf);
+			else
+				warnp("parsenum failed on %.*s", INT_MAX, buf);
 			return (fail(H));
 		}
 

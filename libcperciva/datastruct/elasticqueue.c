@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,11 +16,15 @@ struct elasticqueue {
 /**
  * elasticqueue_init(reclen):
  * Create and return an empty elastic queue of ${reclen}-byte records.
+ * The value ${reclen} must be positive.
  */
 struct elasticqueue *
 elasticqueue_init(size_t reclen)
 {
 	struct elasticqueue * EQ;
+
+	/* Sanity check. */
+	assert(reclen > 0);
 
 	/* Allocate structure. */
 	if ((EQ = malloc(sizeof(struct elasticqueue))) == NULL)

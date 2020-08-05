@@ -19,6 +19,7 @@ struct elasticqueue;
 /**
  * elasticqueue_init(reclen):
  * Create and return an empty elastic queue of ${reclen}-byte records.
+ * The value ${reclen} must be positive.
  */
 struct elasticqueue * elasticqueue_init(size_t);
 

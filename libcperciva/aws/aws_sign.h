@@ -47,7 +47,7 @@ char * aws_sign_s3_querystr(const char *, const char *, const char *,
  *     Content-Length: ${bodylen}
  *     <${body}>
  * is a correctly signed request to the ${region} region of the ${svc}
- * service.  This is known to be useful for API calls to EC2 and SNS.
+ * service.  This is known to be useful for API calls to EC2, SNS, and SES.
  */
 int aws_sign_svc_headers(const char *, const char *, const char *,
     const char *, const uint8_t *, size_t, char **, char **, char **);
@@ -57,6 +57,8 @@ int aws_sign_svc_headers(const char *, const char *, const char *,
     aws_sign_svc_headers(a, b, c, "ec2", d, e, f, g, h)
 #define aws_sign_sns_headers(a, b, c, d, e, f, g, h) \
     aws_sign_svc_headers(a, b, c, "sns", d, e, f, g, h)
+#define aws_sign_ses_headers(a, b, c, d, e, f, g, h) \
+    aws_sign_svc_headers(a, b, c, "email", d, e, f, g, h)
 
 /**
  * aws_sign_dynamodb_headers(key_id, key_secret, region, op, body, bodylen,

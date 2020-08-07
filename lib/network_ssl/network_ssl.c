@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -249,6 +250,7 @@ doread(struct network_ssl_ctx * ssl)
 	size_t len;
 	int sslerr;
 	int ret;
+	void (*oldsig)(int);
 
 	/*
 	 * We need to zero errno in order to distinguish socket EOF from
@@ -263,6 +265,12 @@ doread(struct network_ssl_ctx * ssl)
 	 */
 	ERR_clear_error();
 
+	/* Ignore SIGPIPE. */
+	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
+	}
+
 	/* Ask the SSL stack to read some data. */
 	while ((ret = SSL_read_ex(ssl->ssl, &ssl->read_buf[ssl->read_bufpos],
 	    ssl->read_buflen - ssl->read_bufpos, &len)) > 0) {
@@ -273,10 +281,23 @@ doread(struct network_ssl_ctx * ssl)
 		assert(ssl->read_bufpos <= ssl->read_buflen);
 
 		/* Do we have enough? */
-		if (ssl->read_bufpos >= ssl->read_minlen)
+		if (ssl->read_bufpos >= ssl->read_minlen) {
+			/* Restore the old SIGPIPE handler. */
+			if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+				warnp("signal(SIGPIPE)");
+				return (-1);
+			}
+
 			return (docallback(ssl->read_callback,
 			    ssl->read_cookie, (ssize_t)ssl->read_bufpos,
 			    &ssl->read_callback));
+		}
+	}
+
+	/* Restore the old SIGPIPE handler. */
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
 	}
 
 	/* SSL_read_ex couldn't give us any data... why? */
@@ -322,6 +343,7 @@ dowrite(struct network_ssl_ctx * ssl)
 	size_t len;
 	int sslerr;
 	int ret;
+	void (*oldsig)(int);
 
 	/*
 	 * Flush any errors internal to the SSL stack; otherwise if we
@@ -329,6 +351,12 @@ dowrite(struct network_ssl_ctx * ssl)
 	 * needs to be reported.
 	 */
 	ERR_clear_error();
+
+	/* Ignore SIGPIPE. */
+	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
+	}
 
 	/* Ask the SSL stack to write some data. */
 	while ((ret = SSL_write_ex(ssl->ssl, &ssl->write_buf[ssl->write_bufpos],
@@ -340,10 +368,23 @@ dowrite(struct network_ssl_ctx * ssl)
 		assert(ssl->write_bufpos <= ssl->write_buflen);
 
 		/* Have we written enough? */
-		if (ssl->write_bufpos >= ssl->write_minlen)
+		if (ssl->write_bufpos >= ssl->write_minlen) {
+			/* Restore the old SIGPIPE handler. */
+			if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+				warnp("signal(SIGPIPE)");
+				return (-1);
+			}
+
 			return (docallback(ssl->write_callback,
 			    ssl->write_cookie, (ssize_t)ssl->write_bufpos,
 			    &ssl->write_callback));
+		}
+	}
+
+	/* Restore the old SIGPIPE handler. */
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
 	}
 
 	/* SSL_write_ex couldn't send any data... why? */

@@ -33,8 +33,8 @@ struct randommixed_state {
 	struct kvldskey * val;
 
 	/* Bits needed for measuring performance. */
-	struct timeval tv_150;
-	struct timeval tv_50;
+	struct timeval tv_end;
+	struct timeval tv_start;
 	uint64_t N;
 };
 
@@ -80,7 +80,7 @@ static int
 callback_done(void * cookie, int failed)
 {
 	struct randommixed_state * C = cookie;
-	struct timeval tv;
+	struct timeval tv_now;
 
 	/* This request is no longer in progress. */
 	C->Nip -= 1;
@@ -92,19 +92,19 @@ callback_done(void * cookie, int failed)
 	}
 
 	/* Read the current time. */
-	if (monoclock_get(&tv)) {
+	if (monoclock_get(&tv_now)) {
 		warnp("Error reading clock");
 		goto err0;
 	}
 
 	/* Are we finished?  Are we within the 50-150 second range? */
-	if ((tv.tv_sec > C->tv_150.tv_sec) ||
-	    ((tv.tv_sec == C->tv_150.tv_sec) &&
-		(tv.tv_usec > C->tv_150.tv_usec))) {
+	if ((tv_now.tv_sec > C->tv_end.tv_sec) ||
+	    ((tv_now.tv_sec == C->tv_end.tv_sec) &&
+		(tv_now.tv_usec > C->tv_end.tv_usec))) {
 		C->done = 1;
-	} else if ((tv.tv_sec > C->tv_50.tv_sec) ||
-	    ((tv.tv_sec == C->tv_50.tv_sec) &&
-		(tv.tv_usec > C->tv_50.tv_usec))) {
+	} else if ((tv_now.tv_sec > C->tv_start.tv_sec) ||
+	    ((tv_now.tv_sec == C->tv_start.tv_sec) &&
+		(tv_now.tv_usec > C->tv_start.tv_usec))) {
 		C->N += 1;
 	}
 
@@ -160,10 +160,10 @@ randommixed(struct wire_requestqueue * Q, uint64_t N)
 		warnp("Error reading clock");
 		goto err2;
 	}
-	C.tv_150.tv_sec = tv_now.tv_sec + 150;
-	C.tv_150.tv_usec = tv_now.tv_usec;
-	C.tv_50.tv_sec = tv_now.tv_sec + 50;
-	C.tv_50.tv_usec = tv_now.tv_usec;
+	C.tv_end.tv_sec = tv_now.tv_sec + 150;
+	C.tv_end.tv_usec = tv_now.tv_usec;
+	C.tv_start.tv_sec = tv_now.tv_sec + 50;
+	C.tv_start.tv_usec = tv_now.tv_usec;
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))

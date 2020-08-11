@@ -52,8 +52,10 @@ sendbatch(struct bulkupdate_state * C)
 			continue;
 		}
 
-		/* Send the request. */
+		/* Create a new (somewhat arbitrary) value to record. */
 		C->val->buf[39] += C->generation;
+
+		/* Send the request. */
 		if (proto_kvlds_request_set(C->Q, C->key, C->val,
 		    callback_done, C))
 			goto err0;

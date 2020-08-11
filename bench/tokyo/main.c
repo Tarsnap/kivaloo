@@ -34,8 +34,10 @@ sendbatch(struct tokyo_state * C)
 {
 
 	while ((C->Nip < 4096) && (C->N < 1000000)) {
-		/* Send a request. */
+		/* Generate the key (which is also used for the value). */
 		memcpy(C->key->buf, C->keys[C->N++], 8);
+
+		/* Send the request. */
 		if (proto_kvlds_request_set(C->Q, C->key, C->key,
 		    callback_done, C))
 			goto err0;

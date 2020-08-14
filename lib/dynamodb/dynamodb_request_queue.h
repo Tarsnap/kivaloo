@@ -39,7 +39,8 @@ void dynamodb_request_queue_setcapacity(struct dynamodb_request_queue *, long);
  * dynamodb_request_queue(Q, prio, op, body, maxrlen, logstr, callback, cookie):
  * Using the DynamoDB request queue ${Q}, queue the DynamoDB request
  * contained in ${body} for the operation ${op}.  Read a response with a body
- * of up to ${maxrlen} bytes and invoke the callback as per dynamodb_request.
+ * of up to ${maxrlen} bytes and invoke the callback with the provided cookie,
+ * the HTTP response, and (for HTTP 400 responses) the DynamoDB error string.
  * The strings ${op} and ${body} must remain valid until the callback is
  * invoked or the queue is flushed.  For accurate rate limiting, on tables
  * with "provisioned" capacity requests must elicit ConsumedCapacity fields
@@ -57,7 +58,7 @@ void dynamodb_request_queue_setcapacity(struct dynamodb_request_queue *, long);
  */
 int dynamodb_request_queue(struct dynamodb_request_queue *, int, const char *,
     const char *, size_t, const char *,
-    int (*)(void *, struct http_response *), void *);
+    int (*)(void *, struct http_response *, const char *), void *);
 
 /**
  * dynamodb_request_queue_flush(Q):

@@ -46,7 +46,7 @@ struct dispatch_state {
 };
 
 static int callback_accept(void *, int);
-static int callback_response(void *, struct http_response *);
+static int callback_response(void *, struct http_response *, const char *);
 
 /* Remove a request from the in-progress list. */
 static void
@@ -234,13 +234,15 @@ err0:
 
 /* We have an HTTP response. */
 static int
-callback_response(void * cookie, struct http_response * res)
+callback_response(void * cookie, struct http_response * res, const char * err)
 {
 	struct request * R = cookie;
 	struct dispatch_state * D = R->D;
 	uint8_t * vbuf;
 	uint32_t vlen;
 	int status;
+
+	(void)err; /* UNUSED */
 
 	/* Did we succeed? */
 	status = (res->status == 200) ? 0 : 1;

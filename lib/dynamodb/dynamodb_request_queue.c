@@ -196,7 +196,6 @@ extractcapacity(struct http_response * res, double * pcap)
 	const uint8_t * end = res->body + res->bodylen;
 	char * capacity;
 	size_t len;
-	double c;
 
 	/* Look for ConsumedCapacity. */
 	buf = json_find(buf, end, "ConsumedCapacity");
@@ -226,7 +225,7 @@ extractcapacity(struct http_response * res, double * pcap)
 	capacity[len] = '\0';
 
 	/* Parse the string. */
-	if (PARSENUM(&c, capacity, 0, 400)) {
+	if (PARSENUM(pcap, capacity, 0, 400)) {
 		/*
 		 * As specified right now, DynamoDB should never return a
 		 * CapacityUnits outside [0, 400]; but just in case that
@@ -235,14 +234,11 @@ extractcapacity(struct http_response * res, double * pcap)
 		 */
 		warn0("Invalid DynamoDB CapacityUnits returned: %s",
 		    capacity);
-		c = 0.0;
+		*pcap = 0.0;
 	}
 
 	/* Free the capacity string. */
 	free(capacity);
-
-	/* Return the parsed capacity. */
-	*pcap = c;
 
 	/* Success! */
 	return (0);

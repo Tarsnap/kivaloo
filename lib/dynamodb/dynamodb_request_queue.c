@@ -204,6 +204,15 @@ extractcapacity(struct http_response * res, double * pcap)
 	/* Look for CapacityUnits inside that. */
 	buf = json_find(buf, end, "CapacityUnits");
 
+	/*
+	 * If there is no ConsumedCapacity->CapacityUnits, no capacity was
+	 * consumed by the request in question.
+	 */
+	if (buf == end) {
+		*pcap = 0.0;
+		return (0);
+	}
+
 	/* Figure out how long the numeric value is. */
 	for (len = 0; &buf[len] < end; len++) {
 		if (strchr("+-0123456789.eE", buf[len]) == NULL)

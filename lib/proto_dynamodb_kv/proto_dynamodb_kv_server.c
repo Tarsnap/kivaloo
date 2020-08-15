@@ -26,6 +26,7 @@ proto_dynamodb_kv_request_parse(const struct wire_packet * P,
 	/* Initialize pointers to NULL to make cleanup easier. */
 	R->key = NULL;
 	R->buf = NULL;
+	R->buf2 = NULL;
 
 	/* Extract the request type. */
 	if (P->len < pos + 4)
@@ -52,9 +53,15 @@ proto_dynamodb_kv_request_parse(const struct wire_packet * P,
 	R->key[buflen] = '\0';
 	pos += buflen;
 
-	/* PUT requests have a value too. */
+	/*
+	 * PUT and CREATE requests have one value, while ICAS requests have two
+	 * values.  GET, GETC, and DELETE requests have no values.
+	 */
 	switch (R->type) {
 	case PROTO_DDBKV_PUT:
+	case PROTO_DDBKV_ICAS:
+	case PROTO_DDBKV_CREATE:
+		/* Parse the first (or only) value. */
 		if (P->len < pos + 4)
 			goto err1;
 		R->len = be32dec(&P->buf[pos]);
@@ -65,6 +72,20 @@ proto_dynamodb_kv_request_parse(const struct wire_packet * P,
 			goto err1;
 		memcpy(R->buf, &P->buf[pos], R->len);
 		pos += R->len;
+
+		/* ICAS requests continue and parse a second value. */
+		if (R->type != PROTO_DDBKV_ICAS)
+			break;
+		if (P->len < pos + 4)
+			goto err1;
+		R->len2 = be32dec(&P->buf[pos]);
+		pos += 4;
+		if (P->len < pos + R->len2)
+			goto err1;
+		if ((R->buf2 = malloc(R->len2)) == NULL)
+			goto err1;
+		memcpy(R->buf2, &P->buf[pos], R->len2);
+		pos += R->len2;
 		break;
 	case PROTO_DDBKV_GET:
 	case PROTO_DDBKV_GETC:
@@ -82,6 +103,7 @@ proto_dynamodb_kv_request_parse(const struct wire_packet * P,
 	return (0);
 
 err1:
+	free(R->buf2);
 	free(R->buf);
 	free(R->key);
 err0:
@@ -140,9 +162,19 @@ void
 proto_dynamodb_kv_request_free(struct proto_ddbkv_request * req)
 {
 
-	/* If this is a PUT, free the malloced data buffer. */
-	if (req->type == PROTO_DDBKV_PUT)
+	/* Free malloced data buffer(s) depending on request type. */
+	switch (req->type) {
+	case PROTO_DDBKV_ICAS:
+		free(req->buf2);
+		/* FALLTHROUGH */
+	case PROTO_DDBKV_CREATE:
+	case PROTO_DDBKV_PUT:
 		free(req->buf);
+		break;
+	default:
+		/* Nothing to free. */
+		break;
+	}
 
 	/* Free the key. */
 	free(req->key);
@@ -161,7 +193,7 @@ proto_dynamodb_kv_response_status(struct netbuf_write * Q, uint64_t ID,
 	uint8_t * wbuf;
 
 	/* Sanity check. */
-	assert((status == 0) || (status == 1));
+	assert((status == 0) || (status == 1) || (status == 2));
 
 	/* Get a packet data buffer. */
 	if ((wbuf = wire_writepacket_getbuf(Q, ID, 4)) == NULL)

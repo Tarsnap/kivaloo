@@ -21,6 +21,34 @@ int proto_dynamodb_kv_request_put(struct wire_requestqueue *, const char *,
     const uint8_t *, size_t, int (*)(void *, int), void *);
 
 /**
+ * proto_dynamodb_kv_request_icas(Q, key, buf, buflen, buf2, buflen2,
+ *     callback, cookie):
+ * Send a request to change the value ${buf} (of length ${buflen}) to the value
+ * ${buf2} (of length ${buflen2}), associated with the key ${key} via the
+ * request queue ${Q}.  Invoke
+ *     ${callback}(${cookie}, status)
+ * upon request completion, where ${status} is 0 on success, 1 on failure, and
+ * 2 if the precondition failed.
+ * The values must be of length at most 256 kiB.
+ */
+int proto_dynamodb_kv_request_icas(struct wire_requestqueue *, const char *,
+    const uint8_t *, size_t, const uint8_t *, size_t,
+    int (*)(void *, int), void *);
+
+/**
+ * proto_dynamodb_kv_request_create(Q, key, buf, buflen, callback, cookie):
+ * Send a request to associate the value ${buf} (of length ${buflen}) with
+ * the key ${key} via the request queue ${Q}, provided that no value is
+ * currently associated.  Invoke
+ *     ${callback}(${cookie}, status)
+ * upon request completion, where ${status} is 0 on success, 1 on failure, and
+ * 2 if the precondition failed.
+ * The value must be of length at most 256 kiB.
+ */
+int proto_dynamodb_kv_request_create(struct wire_requestqueue *, const char *,
+    const uint8_t *, size_t, int (*)(void *, int), void *);
+
+/**
  * proto_dynamodb_kv_request_get(Q, key, callback, cookie):
  * Send a request to read the value associated with the key ${key} via the
  * request queue ${Q}.  The value must be of length at most ${maxlen}.
@@ -53,6 +81,8 @@ int proto_dynamodb_kv_request_delete(struct wire_requestqueue *, const char *,
 
 /* Packet types. */
 #define PROTO_DDBKV_PUT		0x00010100
+#define PROTO_DDBKV_ICAS	0x00010101
+#define PROTO_DDBKV_CREATE	0x00010102
 #define PROTO_DDBKV_GET		0x00010110
 #define PROTO_DDBKV_GETC	0x00010111
 #define PROTO_DDBKV_DELETE	0x00010200
@@ -65,9 +95,13 @@ struct proto_ddbkv_request {
 	uint32_t type;
 	char * key;
 
-	/* Present for PUT requests only. */
+	/* Present for PUT/ICAS/CREATE requests only. */
 	uint32_t len;
 	uint8_t * buf;
+
+	/* Present for ICAS requests only. */
+	uint32_t len2;
+	uint8_t * buf2;
 };
 
 /**
@@ -98,6 +132,10 @@ int proto_dynamodb_kv_response_status(struct netbuf_write *, uint64_t, int);
 #define proto_dynamodb_kv_response_put(Q, ID, status)		\
 	proto_dynamodb_kv_response_status(Q, ID, status)
 #define proto_dynamodb_kv_response_delete(Q, ID, status)	\
+	proto_dynamodb_kv_response_status(Q, ID, status)
+#define proto_dynamodb_kv_response_icas(Q, ID, status)		\
+	proto_dynamodb_kv_response_status(Q, ID, status)
+#define proto_dynamodb_kv_response_create(Q, ID, status)	\
 	proto_dynamodb_kv_response_status(Q, ID, status)
 
 /**

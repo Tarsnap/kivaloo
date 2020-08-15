@@ -170,6 +170,14 @@ ProvisionedThroughputExceededException code):
 * PUT(key, len, data):
 	Associate the provided (binary) data with the provided (string) key.
 	Return 0 for success or 1 for failure.
+* ICAS(key, len, data, len2, data2):
+	Associate the provided (binary) data2 with the provided (string) key,
+	provided that the previous value was either data or data2.
+	Return 0 for success, 1 for failure, or 2 if the precondition failed.
+* CREATE(key, len, data):
+	Associate the provided (binary) data with the provided (string) key,
+	provided that the previous value was either data or not set.
+	Return 0 for success, 1 for failure, or 2 if the precondition failed.
 * GET(key):
 	Read the value associated with the provided key, using an "eventually
 	consistent" GetItem request.  Returns a status of 0 and the value; a

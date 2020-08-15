@@ -49,6 +49,9 @@ callback_status(void * cookie, uint8_t * buf, size_t buflen)
 			break;
 		case 1:
 			break;
+		case 2:
+			failed = 2;
+			break;
 		default:
 			BAD("status", "invalid status");
 		}
@@ -168,6 +171,157 @@ proto_dynamodb_kv_request_put(struct wire_requestqueue * Q, const char * key,
 
 	/* Construct request. */
 	be32enc(p, PROTO_DDBKV_PUT);
+	p += 4;
+	*p++ = (uint8_t)strlen(key);
+	memcpy(p, key, strlen(key));
+	p += strlen(key);
+	be32enc(p, (uint32_t)buflen);
+	p += 4;
+	memcpy(p, buf, buflen);
+	p += buflen;
+
+	/* Sanity check. */
+	assert(p == &rbuf[rlen]);
+
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, rbuf, rlen))
+		goto err1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(C);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * proto_dynamodb_kv_request_icas(Q, key, buf, buflen, buf2, buflen2,
+ *     callback, cookie):
+ * Send a request to change the value ${buf} (of length ${buflen}) to the value
+ * ${buf2} (of length ${buflen2}), associated with the key ${key} via the
+ * request queue ${Q}.  Invoke
+ *     ${callback}(${cookie}, status)
+ * upon request completion, where ${status} is 0 on success, 1 on failure, and
+ * 2 if the precondition failed.
+ * The values must be of length at most 256 kiB.
+ */
+int
+proto_dynamodb_kv_request_icas(struct wire_requestqueue * Q, const char * key,
+    const uint8_t * buf, size_t buflen, const uint8_t * buf2, size_t buflen2,
+    int (* callback)(void *, int), void * cookie)
+{
+	struct status_cookie * C;
+	uint8_t *rbuf, *p;
+	size_t rlen;
+
+	/* Validate key length. */
+	if (strlen(key) > 255) {
+		warn0("Key is too long");
+		goto err0;
+	}
+
+	/* Validate value lengths. */
+	if ((buflen > 256 * 1024) || (buflen2 > 256 * 1024)) {
+		warn0("Value is too long");
+		goto err0;
+	}
+
+	/* Bake a cookie. */
+	if ((C = malloc(sizeof(struct status_cookie))) == NULL)
+		goto err0;
+	C->callback = callback;
+	C->cookie = cookie;
+
+	/* Compute request packet size. */
+	rlen = 4 + 1 + strlen(key) + 4 + buflen + 4 + buflen2;
+
+	/* Start writing a request. */
+	if ((p = rbuf = wire_requestqueue_add_getbuf(Q,
+	    rlen, callback_status, C)) == NULL)
+		goto err1;
+
+	/* Construct request. */
+	be32enc(p, PROTO_DDBKV_ICAS);
+	p += 4;
+	*p++ = (uint8_t)strlen(key);
+	memcpy(p, key, strlen(key));
+	p += strlen(key);
+	be32enc(p, (uint32_t)buflen);
+	p += 4;
+	memcpy(p, buf, buflen);
+	p += buflen;
+	be32enc(p, (uint32_t)buflen2);
+	p += 4;
+	memcpy(p, buf2, buflen2);
+	p += buflen2;
+
+	/* Sanity check. */
+	assert(p == &rbuf[rlen]);
+
+	/* Finish writing request. */
+	if (wire_requestqueue_add_done(Q, rbuf, rlen))
+		goto err1;
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(C);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * proto_dynamodb_kv_request_create(Q, key, buf, buflen, callback, cookie):
+ * Send a request to associate the value ${buf} (of length ${buflen}) with
+ * the key ${key} via the request queue ${Q}, provided that no value is
+ * currently associated.  Invoke
+ *     ${callback}(${cookie}, status)
+ * upon request completion, where ${status} is 0 on success, 1 on failure, and
+ * 2 if the precondition failed.
+ * The value must be of length at most 256 kiB.
+ */
+int
+proto_dynamodb_kv_request_create(struct wire_requestqueue * Q, const char * key,
+    const uint8_t * buf, size_t buflen,
+    int (* callback)(void *, int), void * cookie)
+{
+	struct status_cookie * C;
+	uint8_t *rbuf, *p;
+	size_t rlen;
+
+	/* Validate key length. */
+	if (strlen(key) > 255) {
+		warn0("Key is too long");
+		goto err0;
+	}
+
+	/* Validate value length. */
+	if (buflen > 256 * 1024) {
+		warn0("Value is too long");
+		goto err0;
+	}
+
+	/* Bake a cookie. */
+	if ((C = malloc(sizeof(struct status_cookie))) == NULL)
+		goto err0;
+	C->callback = callback;
+	C->cookie = cookie;
+
+	/* Compute request packet size. */
+	rlen = 4 + 1 + strlen(key) + 4 + buflen;
+
+	/* Start writing a request. */
+	if ((p = rbuf = wire_requestqueue_add_getbuf(Q,
+	    rlen, callback_status, C)) == NULL)
+		goto err1;
+
+	/* Construct request. */
+	be32enc(p, PROTO_DDBKV_CREATE);
 	p += 4;
 	*p++ = (uint8_t)strlen(key);
 	memcpy(p, key, strlen(key));

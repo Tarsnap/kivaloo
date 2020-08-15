@@ -12,6 +12,23 @@
 char * dynamodb_kv_put(const char *, const char *, const uint8_t *, size_t);
 
 /**
+ * dynamodb_kv_icas(table, key, buf, len, buf2, len2):
+ * Construct a DynamoDB request body for an ICAS replacing V=${buf} (of length
+ * ${len}) with V=${buf2} (of length ${len2}), associated with K=${key} in
+ * DynamoDB table ${table}.
+ */
+char * dynamodb_kv_icas(const char *, const char *, const uint8_t *, size_t,
+    const uint8_t *, size_t);
+
+/**
+ * dynamodb_kv_create(table, key, buf, len):
+ * Construct a DynamoDB request body for a PutItem of V=${buf} (of length
+ * ${len}) associated with K=${key} in DynamoDB table ${table}, with a
+ * precondition that the value does not exist or is not changing.
+ */
+char * dynamodb_kv_create(const char *, const char *, const uint8_t *, size_t);
+
+/**
  * dynamodb_kv_get(table, key):
  * Construct a DynamoDB request body for a GetItem associated with K=${key}
  * in DynamoDB table ${table}.

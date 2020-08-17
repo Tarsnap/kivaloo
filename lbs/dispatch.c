@@ -133,10 +133,16 @@ gotrequest(void * cookie, int status)
 		/* Handle and free the request. */
 		switch (R->type) {
 		case PROTO_LBS_PARAMS:
+			/* PARAMS is not allowed while APPEND is in progress. */
+			if (D->writer_busy != 0)
+				goto drop;
 			if (dispatch_request_params(D, R))
 				goto err0;
 			break;
 		case PROTO_LBS_PARAMS2:
+			/* PARAMS is not allowed while APPEND is in progress. */
+			if (D->writer_busy != 0)
+				goto drop;
 			if (dispatch_request_params2(D, R))
 				goto err0;
 			break;

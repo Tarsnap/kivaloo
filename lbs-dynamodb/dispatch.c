@@ -100,6 +100,8 @@ gotrequest(void * cookie, int status)
 			warn0("Update to a newer version of kvlds");
 			goto drop1;
 		case PROTO_LBS_PARAMS2:
+			if (D->appendip != 0)
+				goto drop1;
 			state_params(D->S, &blklen, &nextblk);
 			if (proto_lbs_response_params2(D->writeq, R->ID,
 			    blklen, nextblk, nextblk - 1))

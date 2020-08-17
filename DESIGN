@@ -100,11 +100,13 @@ The operations required of the underlying block store are:
 * PARAMS(): [OBSOLETE]
 	Return the block size (which must be at least 512 bytes and at most
 	131072 bytes) and the first unused block number, which will be zero
-	if there are no blocks.
+	if there are no blocks.  This request  must not be made while there
+	is an APPEND request in progress.
 * PARAMS2():
 	Return the block size (in [512, 131072]), the first unused block
 	number (which will be zero if there are no blocks), and the last used
-	block number (which will be -1 if there are no blocks).
+	block number (which will be -1 if there are no blocks).  This request
+	must not be made while there is an APPEND request in progress.
 * GET(blkno):
 	Return the data for block number "blkno".
 * APPEND(blkno, nblk, data):

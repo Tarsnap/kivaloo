@@ -13,8 +13,8 @@
 struct deleteto {
 	struct wire_requestqueue * Q;
 	struct metadata * MD;
-	uint64_t N;	/* Delete objects below this number. */
-	uint64_t M;	/* We've issued deletes up to this number. */
+	uint64_t N;		/* Delete objects below this number. */
+	uint64_t M;		/* We've issued deletes up to this number. */
 	size_t npending;	/* Operations in progress. */
 	int updateDeletedTo;	/* M has changed since it was last stored. */
 	int shuttingdown;	/* Stop issuing DELETEs. */

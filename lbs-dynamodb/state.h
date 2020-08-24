@@ -21,10 +21,11 @@ struct state * state_init(struct wire_requestqueue *, size_t,
     struct metadata *);
 
 /**
- * state_params(S, blklen, nextblk):
- * Return the block size and next block # to write via the provided pointers.
+ * state_params(S, blklen, lastblk, nextblk):
+ * Return the block size, the last stored block #, and next block # to write
+ * via the provided pointers.
  */
-void state_params(struct state *, uint32_t *, uint64_t *);
+void state_params(struct state *, uint32_t *, uint64_t *, uint64_t *);
 
 /**
  * state_get(S, R, callback, cookie):

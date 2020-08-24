@@ -19,6 +19,7 @@
 /* Internal state structure. */
 struct state {
 	uint32_t blklen;	/* Block size. */
+	uint64_t lastblk;	/* Last block # written. */
 	uint64_t nextblk;	/* Next block # to write. */
 	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
 	struct metadata * M;	/* Metadata handler. */
@@ -78,6 +79,7 @@ state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
 
 	/* Read "nextblk"; we *might* have written anything prior to here. */
 	S->nextblk = metadata_nextblk_read(S->M);
+	S->lastblk = S->nextblk - 1;
 
 	/* Success! */
 	return (S);
@@ -88,15 +90,18 @@ err0:
 }
 
 /**
- * state_params(S, blklen, nextblk):
- * Return the block size and next block # to write via the provided pointers.
+ * state_params(S, blklen, lastblk, nextblk):
+ * Return the block size, the last stored block #, and next block # to write
+ * via the provided pointers.
  */
 void
-state_params(struct state * S, uint32_t * blklen, uint64_t * nextblk)
+state_params(struct state * S, uint32_t * blklen, uint64_t * lastblk,
+    uint64_t * nextblk)
 {
 
 	/* Extract the requested fields from our internal state. */
 	*blklen = S->blklen;
+	*lastblk = S->lastblk;
 	*nextblk = S->nextblk;
 }
 
@@ -221,6 +226,7 @@ state_append(struct state * S, struct proto_lbs_request * R,
 
 	/* Update nextblk. */
 	S->nextblk += R->r.append.nblks;
+	S->lastblk = S->nextblk - 1;
 	if (metadata_nextblk_write(S->M, S->nextblk,
 	    callback_append_put_nextblk, C))
 		goto err1;

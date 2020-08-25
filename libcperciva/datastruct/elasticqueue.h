@@ -35,7 +35,7 @@ int elasticqueue_add(struct elasticqueue *, const void *);
  * is empty, this function will have no effect.
  *
  * As an exception to the normal rule, an elastic queue may use more memory
- * than the standard bound immediately following an elasticqueue_delete call;
+ * than the standard bound immediately following an elasticqueue_delete() call;
  * but only if realloc(3) failed to shrink a memory allocation.
  */
 void elasticqueue_delete(struct elasticqueue *);

@@ -9,7 +9,7 @@
  * fetched or deleted.  All operations take amortized O(1) time, and the
  * memory usage is at most 8 * sizeof(void *) * (max - min + 1) + O(1) where
  * max and min are the highest and lowest numbers of non-deleted pointers,
- * except if memory (re)allocation fails in seqptrmap_delete.
+ * except if memory (re)allocation fails in seqptrmap_delete().
  */
 
 /* Opaque sequential pointer map type. */

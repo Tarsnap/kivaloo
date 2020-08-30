@@ -1,6 +1,10 @@
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -249,6 +253,9 @@ doread(struct network_ssl_ctx * ssl)
 	size_t len;
 	int sslerr;
 	int ret;
+#ifndef SO_NOSIGPIPE
+	void (*oldsig)(int);
+#endif
 
 	/*
 	 * We need to zero errno in order to distinguish socket EOF from
@@ -263,6 +270,14 @@ doread(struct network_ssl_ctx * ssl)
 	 */
 	ERR_clear_error();
 
+	/* If we don't have SO_NOSIGPIPE, ignore SIGPIPE. */
+#ifndef SO_NOSIGPIPE
+	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
+	}
+#endif
+
 	/* Ask the SSL stack to read some data. */
 	while ((ret = SSL_read_ex(ssl->ssl, &ssl->read_buf[ssl->read_bufpos],
 	    ssl->read_buflen - ssl->read_bufpos, &len)) > 0) {
@@ -273,11 +288,28 @@ doread(struct network_ssl_ctx * ssl)
 		assert(ssl->read_bufpos <= ssl->read_buflen);
 
 		/* Do we have enough? */
-		if (ssl->read_bufpos >= ssl->read_minlen)
+		if (ssl->read_bufpos >= ssl->read_minlen) {
+			/* If we ignored SIGPIPE, restore the old handler. */
+#ifndef SO_NOSIGPIPE
+			if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+				warnp("signal(SIGPIPE)");
+				return (-1);
+			}
+#endif
+
 			return (docallback(ssl->read_callback,
 			    ssl->read_cookie, (ssize_t)ssl->read_bufpos,
 			    &ssl->read_callback));
+		}
 	}
+
+	/* If we ignored SIGPIPE, restore the old handler. */
+#ifndef SO_NOSIGPIPE
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
+	}
+#endif
 
 	/* SSL_read_ex couldn't give us any data... why? */
 	switch ((sslerr = SSL_get_error(ssl->ssl, ret))) {
@@ -322,6 +354,9 @@ dowrite(struct network_ssl_ctx * ssl)
 	size_t len;
 	int sslerr;
 	int ret;
+#ifndef SO_NOSIGPIPE
+	void (*oldsig)(int);
+#endif
 
 	/*
 	 * Flush any errors internal to the SSL stack; otherwise if we
@@ -329,6 +364,14 @@ dowrite(struct network_ssl_ctx * ssl)
 	 * needs to be reported.
 	 */
 	ERR_clear_error();
+
+	/* If we don't have SO_NOSIGPIPE, ignore SIGPIPE. */
+#ifndef SO_NOSIGPIPE
+	if ((oldsig = signal(SIGPIPE, SIG_IGN)) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
+	}
+#endif
 
 	/* Ask the SSL stack to write some data. */
 	while ((ret = SSL_write_ex(ssl->ssl, &ssl->write_buf[ssl->write_bufpos],
@@ -340,11 +383,28 @@ dowrite(struct network_ssl_ctx * ssl)
 		assert(ssl->write_bufpos <= ssl->write_buflen);
 
 		/* Have we written enough? */
-		if (ssl->write_bufpos >= ssl->write_minlen)
+		if (ssl->write_bufpos >= ssl->write_minlen) {
+			/* If we ignored SIGPIPE, restore the old handler. */
+#ifndef SO_NOSIGPIPE
+			if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+				warnp("signal(SIGPIPE)");
+				return (-1);
+			}
+#endif
+
 			return (docallback(ssl->write_callback,
 			    ssl->write_cookie, (ssize_t)ssl->write_bufpos,
 			    &ssl->write_callback));
+		}
 	}
+
+	/* If we ignored SIGPIPE, restore the old handler. */
+#ifndef SO_NOSIGPIPE
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		warnp("signal(SIGPIPE)");
+		return (-1);
+	}
+#endif
 
 	/* SSL_write_ex couldn't send any data... why? */
 	switch ((sslerr = SSL_get_error(ssl->ssl, ret))) {
@@ -416,6 +476,9 @@ struct network_ssl_ctx *
 network_ssl_open(int s, const char * hostname)
 {
 	struct network_ssl_ctx * ssl;
+#ifdef SO_NOSIGPIPE
+	int val = 1;
+#endif
 
 	/* Make sure we've initialized properly. */
 	if (init())
@@ -437,6 +500,14 @@ network_ssl_open(int s, const char * hostname)
 	ssl->write_buf = NULL;
 	ssl->write_buflen = ssl->write_minlen = ssl->write_bufpos = 0;
 	ssl->write_needs_r = ssl->write_needs_w = 0;
+
+	/* If we have SO_NOSIGPIPE, apply it to the socket. */
+#ifdef SO_NOSIGPIPE
+	if (setsockopt(ssl->s, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof(val))) {
+		warnp("setsockopt(SO_NOSIGPIPE)");
+		goto err1;
+	}
+#endif
 
 	/* Create an SSL connection state within the SSL context. */
 	if ((ssl->ssl = SSL_new(ctx)) == NULL) {

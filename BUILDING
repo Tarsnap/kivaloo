@@ -4,3 +4,12 @@ To build and install kivaloo, run:
 Kivaloo should build and run on any IEEE Std 1003.1 (POSIX) compliant system
 which includes the Software Development Utilities and Threads options.  If it
 doesn't, this is a bug -- please report it!
+
+
+Platform-specific notes
+-----------------------
+
+- The performance of SSL networking can be improved if SO_NOSIGPIPE is
+  available in <sys/socket.h>.  To get this in FreeBSD, define __BSD_VISIBLE,
+  for example:
+      make CFLAGS="-O2 -g -D__BSD_VISIBLE"

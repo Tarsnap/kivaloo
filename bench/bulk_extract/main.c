@@ -22,8 +22,8 @@ struct bulkextract_state {
 	int done;
 
 	/* Bits needed for measuring performance. */
-	struct timeval tv_60;
-	struct timeval tv_50;
+	struct timeval tv_end;
+	struct timeval tv_start;
 	uint64_t N;
 };
 
@@ -49,25 +49,25 @@ callback_range(void * cookie,
     const struct kvldskey * key, const struct kvldskey * value)
 {
 	struct bulkextract_state * C = cookie;
-	struct timeval tv;
+	struct timeval tv_now;
 
 	(void)key; /* UNUSED */
 	(void)value; /* UNUSED */
 
 	/* Read the current time. */
-	if (monoclock_get(&tv)) {
+	if (monoclock_get(&tv_now)) {
 		warnp("Error reading clock");
 		goto err0;
 	}
 
 	/* Are we finished?  Are we within the 50-60 second range? */
-	if ((tv.tv_sec > C->tv_60.tv_sec) ||
-	    ((tv.tv_sec == C->tv_60.tv_sec) &&
-		(tv.tv_usec > C->tv_60.tv_usec))) {
+	if ((tv_now.tv_sec > C->tv_end.tv_sec) ||
+	    ((tv_now.tv_sec == C->tv_end.tv_sec) &&
+		(tv_now.tv_usec > C->tv_end.tv_usec))) {
 		C->done = 1;
-	} else if ((tv.tv_sec > C->tv_50.tv_sec) ||
-	    ((tv.tv_sec == C->tv_50.tv_sec) &&
-		(tv.tv_usec > C->tv_50.tv_usec))) {
+	} else if ((tv_now.tv_sec > C->tv_start.tv_sec) ||
+	    ((tv_now.tv_sec == C->tv_start.tv_sec) &&
+		(tv_now.tv_usec > C->tv_start.tv_usec))) {
 		C->N += 1;
 	}
 
@@ -108,10 +108,10 @@ bulkextract(struct wire_requestqueue * Q)
 		warnp("Error reading clock");
 		goto err1;
 	}
-	C.tv_60.tv_sec = tv_now.tv_sec + 60;
-	C.tv_60.tv_usec = tv_now.tv_usec;
-	C.tv_50.tv_sec = tv_now.tv_sec + 50;
-	C.tv_50.tv_usec = tv_now.tv_usec;
+	C.tv_end.tv_sec = tv_now.tv_sec + 60;
+	C.tv_end.tv_usec = tv_now.tv_usec;
+	C.tv_start.tv_sec = tv_now.tv_sec + 50;
+	C.tv_start.tv_usec = tv_now.tv_usec;
 
 	/* Launch the first RANGE request. */
 	if (startrange(&C))

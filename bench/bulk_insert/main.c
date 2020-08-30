@@ -63,19 +63,19 @@ err0:
 static void
 printperf(struct bulkinsert_state * C)
 {
-	struct timeval tv;
+	struct timeval tv_now;
 	double T;
 	uint64_t N;
 
 	/* Get current time. */
-	if (monoclock_get(&tv)) {
+	if (monoclock_get(&tv_now)) {
 		warnp("Error reading clock");
 		return;
 	}
 
 	/* Compute time difference. */
-	T = (tv.tv_sec - C->tv_saved.tv_sec) +
-	    (tv.tv_usec - C->tv_saved.tv_usec) * 0.000001;
+	T = (tv_now.tv_sec - C->tv_saved.tv_sec) +
+	    (tv_now.tv_usec - C->tv_saved.tv_usec) * 0.000001;
 
 	/* Compute number of requests between then and now. */
 	N = C->Ndone - C->Ndone_saved;
@@ -106,7 +106,7 @@ static int
 callback_done(void * cookie, int failed)
 {
 	struct bulkinsert_state * C = cookie;
-	struct timeval tv;
+	struct timeval tv_now;
 
 	/* This request is no longer in progress. */
 	C->Nip -= 1;
@@ -136,13 +136,13 @@ callback_done(void * cookie, int failed)
 
 	/* Has it been 1s since the stored timestamp? */
 	if (C->Ndone_saved) {
-		if (monoclock_get(&tv)) {
+		if (monoclock_get(&tv_now)) {
 			warnp("Error reading clock");
 			goto err0;
 		}
-		if ((tv.tv_sec >= C->tv_saved.tv_sec + 10) &&
-		    ((tv.tv_sec > C->tv_saved.tv_sec + 10) ||
-		     (tv.tv_usec > C->tv_saved.tv_usec)))
+		if ((tv_now.tv_sec >= C->tv_saved.tv_sec + 10) &&
+		    ((tv_now.tv_sec > C->tv_saved.tv_sec + 10) ||
+		     (tv_now.tv_usec > C->tv_saved.tv_usec)))
 			printperf(C);
 	}
 

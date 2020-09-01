@@ -270,7 +270,7 @@ err0:
  *     Content-Length: ${bodylen}
  *     <${body}>
  * is a correctly signed request to the ${region} region of the ${svc}
- * service.  This is known to be useful for API calls to EC2 and SNS.
+ * service.  This is known to be useful for API calls to EC2, SNS, and SES.
  */
 int
 aws_sign_svc_headers(const char * key_id, const char * key_secret,

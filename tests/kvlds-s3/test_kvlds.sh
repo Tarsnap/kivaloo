@@ -4,6 +4,7 @@
 S3=../../s3/s3
 LBS=../../lbs-s3/lbs-s3
 KVLDS=../../kvlds/kvlds
+MSLEEP=../msleep/msleep
 TESTKVLDS=./test_kvlds
 TMPDIR=`pwd`/tmp
 SOCKS3=$TMPDIR/sock_s3
@@ -60,15 +61,15 @@ rm $SOCKK.pid $SOCKK
 printf "Testing LBS-S3 tolerance of KVLDS crashes..."
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
-sleep 0.1 && kill `cat $SOCKK.pid`
+$MSLEEP 100 && kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
-sleep 0.1 && kill `cat $SOCKK.pid`
+$MSLEEP 100 && kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
-sleep 0.1 && kill `cat $SOCKK.pid`
+$MSLEEP 100 && kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 if $TESTKVLDS $SOCKK; then

@@ -2,6 +2,7 @@
 
 # Paths
 LBS=../../lbs/lbs
+MSLEEP=../msleep/msleep
 TESTLBS=./test_lbs
 STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCK=$STOR/sock
@@ -39,7 +40,7 @@ fi
 # Check that an unclean disconnect is handled appropriately
 printf "Testing LBS disconnection cleanup..."
 ( $TESTLBS $SOCK & ) 2>/dev/null
-sleep 0.1 && killall test_lbs
+$MSLEEP 100 && killall test_lbs
 if $TESTLBS $SOCK; then
 	echo " PASSED!"
 else
@@ -50,9 +51,9 @@ fi
 # Check that connections queue appropriately
 printf "Testing LBS connection queuing..."
 $TESTLBS $SOCK &
-sleep 0.1
+$MSLEEP 100
 $TESTLBS $SOCK &
-sleep 0.1
+$MSLEEP 100
 if $TESTLBS $SOCK; then
 	echo " PASSED!"
 else

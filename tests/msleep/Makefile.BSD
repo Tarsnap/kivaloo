@@ -1,0 +1,13 @@
+PROG=	msleep
+SRCS=	main.c
+MAN1=
+
+# Useful relative directory
+LIBCPERCIVA_DIR	=	../../libcperciva
+
+# Utility functions
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
+SRCS	+=	warnp.c
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
+
+.include <bsd.prog.mk>

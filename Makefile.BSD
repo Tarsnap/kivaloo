@@ -8,6 +8,7 @@ BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 # ${BENCHES} in the shared code, so we add it to ${TESTS}.
 TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 	tests/kvlds-blocking tests/kvlds-dump tests/kvlds-ddbkv \
+	tests/msleep						\
 	perftests/kvldsperf perftests/kvldsclean perftests/http \
 	perftests/s3 perftests/s3_put perftests/serverpool	\
 	perftests/dynamodb_sign perftests/dynamodb_request	\

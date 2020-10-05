@@ -95,6 +95,7 @@ aws_sign_s3_headers(const char * key_id, const char * key_secret,
     char ** x_amz_content_sha256, char ** x_amz_date, char ** authorization)
 {
 	time_t t_now;
+	struct tm r_result;
 	char date[9];
 	char datetime[17];
 	uint8_t hbuf[32];
@@ -109,13 +110,14 @@ aws_sign_s3_headers(const char * key_id, const char * key_secret,
 	}
 
 	/* Construct date string <yyyymmdd>. */
-	if (strftime(date, 9, "%Y%m%d", gmtime(&t_now)) == 0) {
+	if (strftime(date, 9, "%Y%m%d", gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
 
 	/* Construct date-and-time string <yyyymmddThhmmssZ>. */
-	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ", gmtime(&t_now)) == 0) {
+	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ",
+	    gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
@@ -190,6 +192,7 @@ aws_sign_s3_querystr(const char * key_id, const char * key_secret,
     const char * path, int expiry)
 {
 	time_t t_now;
+	struct tm r_result;
 	char date[9];
 	char datetime[17];
 	char * s;
@@ -202,13 +205,14 @@ aws_sign_s3_querystr(const char * key_id, const char * key_secret,
 	}
 
 	/* Construct date string <yyyymmdd>. */
-	if (strftime(date, 9, "%Y%m%d", gmtime(&t_now)) == 0) {
+	if (strftime(date, 9, "%Y%m%d", gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
 
 	/* Construct date-and-time string <yyyymmddThhmmssZ>. */
-	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ", gmtime(&t_now)) == 0) {
+	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ",
+	    gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
@@ -279,6 +283,7 @@ aws_sign_svc_headers(const char * key_id, const char * key_secret,
     char ** x_amz_content_sha256, char ** x_amz_date, char ** authorization)
 {
 	time_t t_now;
+	struct tm r_result;
 	char date[9];
 	char datetime[17];
 	uint8_t hbuf[32];
@@ -293,13 +298,14 @@ aws_sign_svc_headers(const char * key_id, const char * key_secret,
 	}
 
 	/* Construct date string <yyyymmdd>. */
-	if (strftime(date, 9, "%Y%m%d", gmtime(&t_now)) == 0) {
+	if (strftime(date, 9, "%Y%m%d", gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
 
 	/* Construct date-and-time string <yyyymmddThhmmssZ>. */
-	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ", gmtime(&t_now)) == 0) {
+	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ",
+	    gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
@@ -382,6 +388,7 @@ aws_sign_dynamodb_headers(const char * key_id, const char * key_secret,
     char ** x_amz_content_sha256, char ** x_amz_date, char ** authorization)
 {
 	time_t t_now;
+	struct tm r_result;
 	char date[9];
 	char datetime[17];
 	uint8_t hbuf[32];
@@ -396,13 +403,14 @@ aws_sign_dynamodb_headers(const char * key_id, const char * key_secret,
 	}
 
 	/* Construct date string <yyyymmdd>. */
-	if (strftime(date, 9, "%Y%m%d", gmtime(&t_now)) == 0) {
+	if (strftime(date, 9, "%Y%m%d", gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}
 
 	/* Construct date-and-time string <yyyymmddThhmmssZ>. */
-	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ", gmtime(&t_now)) == 0) {
+	if (strftime(datetime, 17, "%Y%m%dT%H%M%SZ",
+	    gmtime_r(&t_now, &r_result)) == 0) {
 		warnp("strftime");
 		goto err0;
 	}

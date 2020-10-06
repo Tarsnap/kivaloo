@@ -69,7 +69,7 @@ err0:
 
 /**
  * kvldskey_cmp(x, y):
- * Returns < 0, 0, or > 0, depending on whether ${x} is lexicographically
+ * Return < 0, 0, or > 0, depending on whether ${x} is lexicographically
  * less than, equal to, or greater than ${y}.
  */
 int
@@ -81,7 +81,7 @@ kvldskey_cmp(const struct kvldskey * x, const struct kvldskey * y)
 
 /**
  * kvldskey_cmp2(x, y, mlen):
- * Returns < 0, 0, or > 0, depending on whether ${x} is lexicographically
+ * Return < 0, 0, or > 0, depending on whether ${x} is lexicographically
  * less than, equal to, or greater than ${y}.  The strings are known to match
  * up to ${mlen} bytes.
  */

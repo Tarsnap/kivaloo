@@ -96,7 +96,7 @@ pool_rec_free(struct pool * P, void * rec)
 
 /**
  * pool_rec_lockcount(P, rec):
- * Returns the lock count of the record ${rec} in the pool ${P}.
+ * Return the lock count of the record ${rec} in the pool ${P}.
  */
 size_t
 pool_rec_lockcount(struct pool * P, void * rec)

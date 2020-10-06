@@ -48,7 +48,7 @@ static void pool_rec_unlock(struct pool *, void *);
 
 /**
  * pool_rec_lockcount(P, rec):
- * Returns the lock count of the record ${rec} in the pool ${P}.
+ * Return the lock count of the record ${rec} in the pool ${P}.
  */
 size_t pool_rec_lockcount(struct pool *, void *);
 

@@ -37,10 +37,10 @@ int btree_find_leaf(struct btree *, struct node *, const struct kvldskey *,
  * btree_find_range(T, N, k, h, callback, cookie):
  * Search for a node of height ${h} or less in the subtree of ${T} rooted at
  * ${N} which is responsible for a range including the key ${k}.  Invoke
- * ${callback}(${cookie}, L, e} with the node ${L} locked, where ${L} is the
+ * ${callback}(${cookie}, L, e) with the node ${L} locked, where ${L} is the
  * node in question and ${e} is the endpoint of the range for which ${L} is
  * responsible (or "" if ${L} extends to the end of the keyspace).  The
- * callback is responsible for freeing e.
+ * callback is responsible for freeing ${e}.
  */
 int btree_find_range(struct btree *, struct node *, const struct kvldskey *,
     int, int (*)(void *, struct node *, struct kvldskey *), void *);

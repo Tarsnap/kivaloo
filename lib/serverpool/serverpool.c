@@ -425,7 +425,7 @@ err0:
 /**
  * serverpool_pick(P):
  * Return an address randomly selected from the addresses in the pool ${P}.
- * The callers is responsible for freeing the address.
+ * The caller is responsible for freeing the address.
  */
 struct sock_addr *
 serverpool_pick(struct serverpool * P)

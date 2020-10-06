@@ -17,6 +17,7 @@ struct bench {
 
 	/* Benchmark data. */
 	uint64_t * ticks;
+	uint64_t * sorted;
 	size_t tick_pos;
 
 	/* Internal time-keeping. */
@@ -51,13 +52,17 @@ bench_init(size_t start, size_t num_seconds)
 		warn0("malloc");
 		goto err1;
 	}
+	if ((B->sorted = malloc(num_seconds * sizeof(uint64_t))) == NULL) {
+		warn0("malloc");
+		goto err2;
+	}
 	memset(B->ticks, 0, num_seconds * sizeof(uint64_t));
 	B->tick_pos = 0;
 
 	/* Get current time. */
 	if (monoclock_get(&tv_now)) {
 		warnp("monoclock_get");
-		goto err2;
+		goto err3;
 	}
 
 	/* Prepare start benchmark time value. */
@@ -67,6 +72,8 @@ bench_init(size_t start, size_t num_seconds)
 	/* Success! */
 	return (B);
 
+err3:
+	free(B->sorted);
 err2:
 	free(B->ticks);
 err1:
@@ -180,6 +187,47 @@ bench_mean(struct bench * B)
 	return (sum / B->num_seconds);
 }
 
+static int
+compar_uint64_t(const void * ap, const void * bp)
+{
+	const uint64_t a = *(const uint64_t *)ap;
+	const uint64_t b = *(const uint64_t *)bp;
+
+	if (a > b)
+		return (1);
+	else if (b > a)
+		return (-1);
+	else
+		return (0);
+}
+
+/**
+ * bench_median(B):
+ * Return the median number of ticks per second.
+ */
+static uint64_t
+bench_median(struct bench * B)
+{
+	uint64_t median;
+	size_t midpos;
+
+	/* Make a copy of the ticks. */
+	memcpy(B->sorted, B->ticks, B->num_seconds * sizeof(uint64_t));
+
+	/* Sort the extra array. */
+	qsort(B->sorted, B->num_seconds, sizeof(uint64_t), compar_uint64_t);
+
+	/* Find the midpoint, or mean of nearest midpoints. */
+	midpos = B->num_seconds / 2;
+	if ((B->num_seconds % 2) == 0)
+		median = (B->sorted[midpos - 1] + B->sorted[midpos]) / 2;
+	else
+		median = B->sorted[midpos];
+
+	/* Return the median. */
+	return (median);
+}
+
 /**
  * bench_free(B):
  * Free the cookie ${B}.
@@ -192,6 +240,7 @@ bench_free(struct bench * B)
 	if (B == NULL)
 		return;
 
+	free(B->sorted);
 	free(B->ticks);
 	free(B);
 }

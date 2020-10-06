@@ -701,8 +701,8 @@ network_ssl_write_cancel(void * cookie)
 /**
  * network_ssl_close(ssl):
  * Stop performing SSL operations within the provided context.  This cannot
- * be called while there are network_ssl_read() or network_ssl_write() operations
- * pending; and this does not close the underlying socket.
+ * be called while there are network_ssl_read() or network_ssl_write()
+ * operations pending; and this does not close the underlying socket.
  */
 void
 network_ssl_close(struct network_ssl_ctx * ssl)

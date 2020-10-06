@@ -67,9 +67,9 @@ struct netbuf_write * netbuf_write_init(int, int (*)(void *), void *);
  * netbuf_write_reserve(W, len):
  * Reserve ${len} bytes of space in the buffered writer ${W} and return a
  * pointer to the buffer.  This operation must be followed by a call to
- * netbuf_write_consume() before the next call to _reserve() or _write() and before
- * a callback could be made into netbuf_write() (i.e., before control returns
- * to the event loop).
+ * netbuf_write_consume() before the next call to _reserve() or _write() and
+ * before a callback could be made into netbuf_write() (i.e., before control
+ * returns to the event loop).
  */
 uint8_t * netbuf_write_reserve(struct netbuf_write *, size_t);
 

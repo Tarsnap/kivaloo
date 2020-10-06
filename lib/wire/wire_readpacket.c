@@ -98,7 +98,7 @@ failed:
  * Wait until a packet is available to be read from ${R} or a failure occurs
  * while reading (e.g., EOF); then invoke ${callback}(${cookie}, status) where
  * status is 0 on success or 1 on error.  Return a cookie which can be passed
- * to wire_readpacket_wait_cancel.
+ * to wire_readpacket_wait_cancel().
  */
 void *
 wire_readpacket_wait(struct netbuf_read * R,
@@ -216,7 +216,7 @@ wire_readpacket_wait_cancel(void * cookie)
 /**
  * wire_readpacket_consume(R, P):
  * Consume from the reader ${R} the packet ${P}, which it must have returned
- * via wire_readpacket_peek.
+ * via wire_readpacket_peek().
  */
 void
 wire_readpacket_consume(struct netbuf_read * R, struct wire_packet * P)

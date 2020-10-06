@@ -26,7 +26,7 @@ static int callback_done(void *, int);
 /**
  * deleteto_init(Q_DDBKV, M):
  * Initialize the deleter to operate via the DynamoDB-KV daemon connected to
- * ${Q_DDBKV} and the metadata handler M.  This function may call events_run
+ * ${Q_DDBKV} and the metadata handler M.  This function may call events_run()
  * internally.
  */
 struct deleteto *
@@ -162,7 +162,7 @@ deleteto_deleteto(struct deleteto * D, uint64_t N)
 /**
  * deleteto_stop(D):
  * Clean up, shut down, and free the deleteto state ${D}.  This function may
- * call events_run internally.
+ * call events_run() internally.
  */
 int
 deleteto_stop(struct deleteto * D)

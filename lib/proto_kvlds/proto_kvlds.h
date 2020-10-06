@@ -123,7 +123,7 @@ int proto_kvlds_request_range(struct wire_requestqueue *,
 
 /**
  * proto_kvlds_request_range2(Q, start, end, callback_item, callback, cookie):
- * Repeatedly use proto_kvlds_request_range to issue RANGE requests via the
+ * Repeatedly use proto_kvlds_request_range() to issue RANGE requests via the
  * request queue ${Q}.  Invoke
  *     ${callback_item}(${cookie}, key, value)
  * for each key-value pair returned, and invoke

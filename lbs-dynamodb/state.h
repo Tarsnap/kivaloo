@@ -14,7 +14,7 @@ struct wire_requestqueue;
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
  * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
  * metadata handler ${M} to handle metadata.  Return a state which can be
- * passed to other state_* functions.  This function may call events_run
+ * passed to other state_* functions.  This function may call events_run()
  * internally.
  */
 struct state * state_init(struct wire_requestqueue *, size_t,
@@ -48,7 +48,7 @@ int state_append(struct state *, struct proto_lbs_request *,
 /**
  * state_free(S):
  * Free the internal state ${S}.  This function must only be called when
- * there are no state_get or state_append callbacks pending.
+ * there are no state_get() or state_append() callbacks pending.
  */
 void state_free(struct state *);
 

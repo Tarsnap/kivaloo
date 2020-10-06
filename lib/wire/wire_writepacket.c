@@ -12,7 +12,7 @@
  * wire_writepacket_getbuf(W, ID, len):
  * Start writing a packet with ID ${ID} and data length ${len} to the buffered
  * writer ${W}.  Return a pointer to where the data should be written.  This
- * must be followed by a call to wire_writepacket_done.
+ * must be followed by a call to wire_writepacket_done().
  */
 uint8_t *
 wire_writepacket_getbuf(struct netbuf_write * W, uint64_t ID, size_t len)
@@ -46,8 +46,8 @@ err0:
 /**
  * wire_writepacket_done(W, wbuf, len):
  * Finish writing a packet to the buffered writer ${W}.  The value ${wbuf} must
- * be the pointer returned by wire_writepacket_getbuf, and the value ${len}
- * must be the value which was passed to wire_writepacket_getbuf.
+ * be the pointer returned by wire_writepacket_getbuf(), and the value ${len}
+ * must be the value which was passed to wire_writepacket_getbuf().
  */
 int
 wire_writepacket_done(struct netbuf_write * W, uint8_t * wbuf, size_t len)

@@ -258,7 +258,7 @@ err0:
 
 /**
  * proto_dynamodb_kv_request_getc(Q, key, callback, cookie):
- * As proto_dynamodb_kv_request_get, except that the underlying DynamoDB
+ * As proto_dynamodb_kv_request_get(), except that the underlying DynamoDB
  * request is made with strong consistency.
  */
 int

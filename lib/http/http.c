@@ -228,7 +228,7 @@ err0:
  * response with a body of up to ${maxrlen} bytes and invoke the provided
  * callback as ${callback}(${cookie}, ${response}), with response == NULL if
  * no response was read (e.g., on connection error).  Return a cookie which can
- * be passed to http_request_cancel.
+ * be passed to http_request_cancel().
  *
  * If the response has no body, the response structure will have bodylen == 0
  * and body == NULL; if there is a body larger than ${maxrlen} bytes, the
@@ -783,7 +783,7 @@ callback_read_toeof(void * cookie, int status)
 
 /**
  * http_request_cancel(cookie):
- * Cancel the HTTP request for which ${cookie} was returned by http_request.
+ * Cancel the HTTP request for which ${cookie} was returned by http_request().
  * Do not invoke the associated callback function.
  */
 void

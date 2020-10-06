@@ -48,7 +48,7 @@ struct btree {
  * default values.  Storing a GB of data for a month costs roughly ${Scost}
  * times as much as performing 10^6 I/Os.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 struct btree * btree_init(struct wire_requestqueue *, uint64_t, uint64_t,
     uint64_t *, uint64_t *, double);

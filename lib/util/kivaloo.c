@@ -17,7 +17,7 @@ struct kivaloo_cookie {
  * kivaloo_open(addr, Q):
  * Resolve the socket address ${addr}, connect to it, and create a wire
  * request queue.  Return the request queue via ${Q}; and return a cookie
- * which can be passed to kivaloo_close to shut down the queue and release
+ * which can be passed to kivaloo_close() to shut down the queue and release
  * resources.
  */
 void *
@@ -67,7 +67,7 @@ err0:
 /**
  * kivaloo_close(cookie):
  * Destroy and free the wire request queue, close the socket and free memory
- * allocated by the kivaloo_open which returned ${cookie}.
+ * allocated by the kivaloo_open() which returned ${cookie}.
  */
 void
 kivaloo_close(void * cookie)

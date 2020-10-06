@@ -64,7 +64,7 @@ int btree_node_fetch(struct btree *, struct node *, int (*)(void *), void *);
 
 /**
  * btree_node_fetch_try(T, N, callback, cookie):
- * As btree_node_fetch, but if the page does not exist the callback will be
+ * As btree_node_fetch(), but if the page does not exist the callback will be
  * performed with the node not present.
  */
 int btree_node_fetch_try(struct btree *, struct node *, int (*)(void *), void *);

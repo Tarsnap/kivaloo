@@ -184,7 +184,7 @@ err0:
 /**
  * logging_printf(F, format, ...):
  * Write <datetime><printf-formatted-string><\n> to the log file for which ${F}
- * was returned by logging_open, where <printf-formatted-string> is formatted
+ * was returned by logging_open(), where <printf-formatted-string> is formatted
  * as per the printf functions using ${format} and any additional arguments,
  * and <datetime> is of the form "YYYY-MM-DD hh:mm:ss".  Note that there is
  * no separator after <datetime>; that should be included in the format string.
@@ -261,7 +261,7 @@ err0:
 
 /**
  * logging_close(F):
- * Close the log file for which ${F} was returned by logging_open.
+ * Close the log file for which ${F} was returned by logging_open().
  */
 void
 logging_close(struct logging_file * F)

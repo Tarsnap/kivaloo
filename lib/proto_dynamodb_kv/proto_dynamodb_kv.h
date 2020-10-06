@@ -35,7 +35,7 @@ int proto_dynamodb_kv_request_get(struct wire_requestqueue *, const char *,
 
 /**
  * proto_dynamodb_kv_request_getc(Q, key, callback, cookie):
- * As proto_dynamodb_kv_request_get, except that the underlying DynamoDB
+ * As proto_dynamodb_kv_request_get(), except that the underlying DynamoDB
  * request is made with strong consistency.
  */
 int proto_dynamodb_kv_request_getc(struct wire_requestqueue *, const char *,

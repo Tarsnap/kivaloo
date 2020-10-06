@@ -38,7 +38,7 @@ struct http_response {
  * response with a body of up to ${maxrlen} bytes and invoke the provided
  * callback as ${callback}(${cookie}, ${response}), with response == NULL if
  * no response was read (e.g., on connection error).  Return a cookie which can
- * be passed to http_request_cancel.
+ * be passed to http_request_cancel().
  *
  * If the response has no body, the response structure will have bodylen == 0
  * and body == NULL; if there is a body larger than ${maxrlen} bytes, the
@@ -53,7 +53,7 @@ void * http_request(struct sock_addr * const *, struct http_request *, size_t,
 
 /**
  * https_request(addrs, request, maxrlen, callback, cookie, hostname):
- * Behave as http_request, but use HTTPS and verify that the target host is
+ * Behave as http_request(), but use HTTPS and verify that the target host is
  * ${hostname}.
  */
 void * https_request(struct sock_addr * const *, struct http_request *,
@@ -61,7 +61,7 @@ void * https_request(struct sock_addr * const *, struct http_request *,
 
 /**
  * http_request_cancel(cookie):
- * Cancel the HTTP request for which ${cookie} was returned by http_request.
+ * Cancel the HTTP request for which ${cookie} was returned by http_request().
  * Do not invoke the associated callback function.
  */
 void http_request_cancel(void *);

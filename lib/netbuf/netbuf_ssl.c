@@ -5,7 +5,7 @@
 
 /**
  * netbuf_ssl_read_init(ssl):
- * Behave as netbuf_read_init but take an SSL context instead.
+ * Behave as netbuf_read_init() but take an SSL context instead.
  */
 struct netbuf_read *
 netbuf_ssl_read_init(struct network_ssl_ctx * ssl)
@@ -21,7 +21,7 @@ netbuf_ssl_read_init(struct network_ssl_ctx * ssl)
 
 /**
  * netbuf_ssl_write_init(ssl, fail_callback, fail_cookie):
- * Behave as netbuf_write_init but take an SSL context instead.
+ * Behave as netbuf_write_init() but take an SSL context instead.
  */
 struct netbuf_write *
 netbuf_ssl_write_init(struct network_ssl_ctx * ssl,

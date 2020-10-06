@@ -698,7 +698,7 @@ dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
  * dynamodb_request_queue(Q, prio, op, body, maxrlen, logstr, callback, cookie):
  * Using the DynamoDB request queue ${Q}, queue the DynamoDB request
  * contained in ${body} for the operation ${op}.  Read a response with a body
- * of up to ${maxrlen} bytes and invoke the callback as per dynamodb_request.
+ * of up to ${maxrlen} bytes and invoke the callback as per dynamodb_request().
  * The strings ${op} and ${body} must remain valid until the callback is
  * invoked or the queue is flushed.  For accurate rate limiting, on tables
  * with "provisioned" capacity requests must elicit ConsumedCapacity fields
@@ -710,7 +710,7 @@ dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
  * Requests will be served starting with the lowest ${prio}, breaking ties
  * according to the queue arrival time.
  *
- * If dynamodb_request_queue_log has been called, ${logstr} will be included
+ * If dynamodb_request_queue_log() has been called, ${logstr} will be included
  * when this request is logged.  (This could be used to identify the target
  * of the ${op} operation, for example.)
  */

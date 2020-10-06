@@ -103,7 +103,7 @@ struct node {
 	 *     v.cstate != NULL,
 	 * (d) once per present child node if type == NODE_TYPE_PARENT, and
 	 * (e) once plus once per callback if reading.
-	 * (f) once per priority-zero immediate event from btree_node_descend
+	 * (f) once per priority-zero immediate event from btree_node_descend()
 	 *     or btree_find_(leaf|range).
 	 *
 	 * At the point when a non-zero priority immediate event, a network

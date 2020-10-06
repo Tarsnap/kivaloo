@@ -158,7 +158,7 @@ failqueue(void * cookie)
  * wire_requestqueue_init(s):
  * Create and return a request queue attached to socket ${s}.  The caller is
  * responsible for ensuring that no attempts are made read/write from/to
- * said socket except via the request queue until wire_requestqueue_destroy
+ * said socket except via the request queue until wire_requestqueue_destroy()
  * is called to destroy the queue.
  */
 struct wire_requestqueue *
@@ -211,7 +211,7 @@ err0:
  * wire_requestqueue_add_getbuf(Q, len, callback, cookie):
  * Start writing a request of length ${len} to the request queue ${Q}.  Return
  * a pointer to where the request packet data should be written.  This must be
- * followed by a call to wire_requestqueue_add_done.
+ * followed by a call to wire_requestqueue_add_done().
  *
  * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
  * or with resbuf == NULL if the request failed (because it couldn't be sent
@@ -265,8 +265,8 @@ err0:
 /**
  * wire_requestqueue_add_done(Q, wbuf, len):
  * Finish writing a request to the request queue ${Q}.  The value ${wbuf} must
- * be the pointer returned by wire_requesqueue_add_getbuf, and the value ${len}
- * must be the value which was passed to wire_requestqueue_add_getbuf.
+ * be the pointer returned by wire_requesqueue_add_getbuf(), and the value ${len}
+ * must be the value which was passed to wire_requestqueue_add_getbuf().
  */
 int
 wire_requestqueue_add_done(struct wire_requestqueue * Q, uint8_t * wbuf,
@@ -322,7 +322,7 @@ err0:
 /**
  * wire_requestqueue_destroy(Q):
  * Destroy the request queue ${Q}.  The response callbacks will be queued to
- * be performed as failures after wire_requestqueue_destroy returns.  On
+ * be performed as failures after wire_requestqueue_destroy() returns.  On
  * error return, the queue will be destroyed but some callbacks might be lost.
  */
 int
@@ -343,7 +343,7 @@ wire_requestqueue_destroy(struct wire_requestqueue * Q)
 /**
  * wire_requestqueue_free(Q):
  * Free the request queue ${Q}.  The queue must have been previously
- * destroyed by a call to wire_requestqueue_destroy.
+ * destroyed by a call to wire_requestqueue_destroy().
  */
 void
 wire_requestqueue_free(struct wire_requestqueue * Q)

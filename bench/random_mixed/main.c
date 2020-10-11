@@ -1,5 +1,3 @@
-#include <sys/time.h>
-
 #include <inttypes.h>
 #include <limits.h>
 #include <stdint.h>
@@ -7,16 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bench.h"
 #include "events.h"
 #include "kvldskey.h"
 #include "mkpair.h"
-#include "monoclock.h"
 #include "parsenum.h"
 #include "proto_kvlds.h"
 #include "sock.h"
 #include "sysendian.h"
 #include "warnp.h"
 #include "wire.h"
+
+#define BENCHMARK_START 50	/* Seconds before starting to record. */
+#define BENCHMARK_SECONDS 100	/* Seconds to record. */
 
 struct randommixed_state {
 	/* State used for spewing requests. */
@@ -33,9 +34,7 @@ struct randommixed_state {
 	struct kvldskey * val;
 
 	/* Bits needed for measuring performance. */
-	struct timeval tv_end;
-	struct timeval tv_start;
-	uint64_t N;
+	struct bench * B;
 };
 
 static int callback_done(void *, int);
@@ -80,7 +79,6 @@ static int
 callback_done(void * cookie, int failed)
 {
 	struct randommixed_state * C = cookie;
-	struct timeval tv_now;
 
 	/* This request is no longer in progress. */
 	C->Nip -= 1;
@@ -91,22 +89,11 @@ callback_done(void * cookie, int failed)
 		C->failed = 1;
 	}
 
-	/* Read the current time. */
-	if (monoclock_get(&tv_now)) {
-		warnp("Error reading clock");
+	/* Notify the benchmarking code, and check if we should quit. */
+	if (bench_tick(C->B, &C->done)) {
+		warnp("bench_tick");
 		goto err0;
-	}
-
-	/* Are we finished?  Are we within the 50-150 second range? */
-	if ((tv_now.tv_sec > C->tv_end.tv_sec) ||
-	    ((tv_now.tv_sec == C->tv_end.tv_sec) &&
-		(tv_now.tv_usec > C->tv_end.tv_usec))) {
-		C->done = 1;
-	} else if ((tv_now.tv_sec > C->tv_start.tv_sec) ||
-	    ((tv_now.tv_sec == C->tv_start.tv_sec) &&
-		(tv_now.tv_usec > C->tv_start.tv_usec))) {
-		C->N += 1;
-	}
+ 	}
 
 	/* Send more requests if possible. */
 	if (sendbatch(C))
@@ -136,7 +123,6 @@ static int
 randommixed(struct wire_requestqueue * Q, uint64_t N)
 {
 	struct randommixed_state C;
-	struct timeval tv_now;
 	uint8_t buf[40];	/* dummy */
 
 	/* Initialize. */
@@ -146,7 +132,6 @@ randommixed(struct wire_requestqueue * Q, uint64_t N)
 	C.Nmax = N;
 	C.failed = 0;
 	C.done = 0;
-	C.N = 0;
 
 	/* Allocate key and value structures. */
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
@@ -155,36 +140,35 @@ randommixed(struct wire_requestqueue * Q, uint64_t N)
 		goto err1;
 	memset(C.val->buf, 0, 40);
 
-	/* Get current time and store T+150s and T+50s. */
-	if (monoclock_get(&tv_now)) {
-		warnp("Error reading clock");
-		goto err2;
-	}
-	C.tv_end.tv_sec = tv_now.tv_sec + 150;
-	C.tv_end.tv_usec = tv_now.tv_usec;
-	C.tv_start.tv_sec = tv_now.tv_sec + 50;
-	C.tv_start.tv_usec = tv_now.tv_usec;
+	/* Prepare benchmark time handling. */
+	if ((C.B = bench_init(BENCHMARK_START, BENCHMARK_SECONDS)) == NULL) {
+		warn0("bench_init");
+ 		goto err2;
+ 	}
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))
-		goto err2;
+		goto err3;
 
 	/* Wait until we've finished. */
 	if (events_spin(&C.done) || C.failed) {
 		warnp("SET request failed");
-		goto err2;
+		goto err3;
 	}
 
 	/* Print number of operations performed in a single second. */
-	printf("%" PRIu64 "\n", C.N / 100);
+	printf("%" PRIu64 "\n", bench_mean(C.B));
 
 	/* Free the key and value structures. */
+	bench_free(C.B);
 	kvldskey_free(C.val);
 	kvldskey_free(C.key);
 
 	/* Success! */
 	return (0);
 
+err3:
+	bench_free(C.B);
 err2:
 	kvldskey_free(C.val);
 err1:

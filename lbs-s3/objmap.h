@@ -6,7 +6,7 @@
 /**
  * objmap(N):
  * Convert the S3 object number ${N} into an object name.  Return a statically
- * allocated string which is valid until the next call to objmap.
+ * allocated string which is valid until the next call to objmap().
  */
 const char * objmap(uint64_t);
 

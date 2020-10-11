@@ -38,12 +38,12 @@ int s3_request_queue_addaddr(struct s3_request_queue *,
  * s3_request_queue(Q, request, maxrlen, callback, cookie):
  * Using the S3 request queue ${Q}, queue the S3 request ${request} to be
  * performed using a target address selected from those provided via the
- * s3_request_queue_addaddr function and the AWS Key ID and Secret Access Key
- * provided via the s3_request_queue_init function.  Requests which fail due
+ * s3_request_queue_addaddr() function and the AWS Key ID and Secret Access Key
+ * provided via the s3_request_queue_init() function.  Requests which fail due
  * to the HTTP connection breaking or with HTTP 500 or 503 responses are
  * retried.  The S3 request structure ${request} must remain valid until the
  * callback is performed or the request queue is freed.  Behave identically to
- * http_request otherwise.
+ * http_request() otherwise.
  */
 int s3_request_queue(struct s3_request_queue *, struct s3_request *, size_t,
     int (*)(void *, struct http_response *), void *);

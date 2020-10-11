@@ -54,14 +54,14 @@ size_t kvldskey_unserialize(struct kvldskey **, const uint8_t *, size_t);
 
 /**
  * kvldskey_cmp(x, y):
- * Returns < 0, 0, or > 0, depending on whether ${x} is lexicographically
+ * Return < 0, 0, or > 0, depending on whether ${x} is lexicographically
  * less than, equal to, or greater than ${y}.
  */
 int kvldskey_cmp(const struct kvldskey *, const struct kvldskey *);
 
 /**
  * kvldskey_cmp2(x, y, mlen):
- * Returns < 0, 0, or > 0, depending on whether ${x} is lexicographically
+ * Return < 0, 0, or > 0, depending on whether ${x} is lexicographically
  * less than, equal to, or greater than ${y}.  The strings are known to match
  * up to ${mlen} bytes.
  */

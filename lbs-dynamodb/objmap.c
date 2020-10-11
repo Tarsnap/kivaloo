@@ -8,7 +8,7 @@
 /**
  * objmap(N):
  * Convert the page number ${N} into a (string) key.  Return a statically
- * allocated string which is valid until the next call to objmap.
+ * allocated string which is valid until the next call to objmap().
  */
 const char *
 objmap(uint64_t N)

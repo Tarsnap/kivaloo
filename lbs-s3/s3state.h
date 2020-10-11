@@ -29,7 +29,7 @@ struct s3state {
  * ${blklen} bytes by sending S3 requests via the request queue ${Q_S3}.  Use
  * the DeleteTo state ${D} for handling garbage collection requests.  Return a
  * state which can be passed to other s3state_* functions.  This function may
- * call events_run internally.
+ * call events_run() internally.
  */
 struct s3state * s3state_init(struct wire_requestqueue *, const char *,
     size_t, struct deleteto *);
@@ -64,7 +64,7 @@ int s3state_gc(struct s3state *, uint64_t);
 /**
  * s3state_free(S):
  * Free the S3 state ${S}.  This function must only be called when there are
- * no s3state_get or s3state_append callbacks pending.
+ * no s3state_get() or s3state_append() callbacks pending.
  */
 void s3state_free(struct s3state *);
 

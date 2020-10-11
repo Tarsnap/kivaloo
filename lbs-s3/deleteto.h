@@ -9,7 +9,7 @@ struct wire_requestqueue;
 /**
  * deleteto_init(Q_S3, bucket):
  * Initialize the deleter to operate on bucket ${bucket} via the S3 daemon
- * connected to ${Q_S3}.  This function may call events_run internally.
+ * connected to ${Q_S3}.  This function may call events_run() internally.
  */
 struct deleteto * deleteto_init(struct wire_requestqueue *, const char *);
 
@@ -23,7 +23,7 @@ int deleteto_deleteto(struct deleteto *, uint64_t);
 /**
  * deleteto_stop(D):
  * Clean up, shut down, and free the deleteto state ${D}.  This function may
- * call events_run internally.
+ * call events_run() internally.
  */
 int deleteto_stop(struct deleteto *);
 

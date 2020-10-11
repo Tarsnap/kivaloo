@@ -156,7 +156,7 @@ dummyfail(void * cookie)
  * netbuf_write_init(s, fail_callback, fail_cookie):
  * Create and return a buffered writer attached to socket ${s}.  The caller
  * is responsible for ensuring that no attempts are made to write to said
- * socket except via the returned writer until netbuf_write_free is called.
+ * socket except via the returned writer until netbuf_write_free() is called.
  * to destroy the writer.  If a write fails, ${fail_callback} will be invoked
  * with the parameter ${fail_cookie}.
  */
@@ -169,7 +169,7 @@ netbuf_write_init(int s, int (* fail_callback)(void *), void * fail_cookie)
 
 /**
  * netbuf_write_init2(s, ssl, fail_callback, fail_cookie):
- * Behave like netbuf_write_init if ${ssl} is NULL.  If the SSL context ${ssl}
+ * Behave like netbuf_write_init() if ${ssl} is NULL.  If the SSL context ${ssl}
  * is not NULL, use it and ignore ${s}.
  */
 struct netbuf_write *
@@ -219,9 +219,9 @@ err0:
  * netbuf_write_reserve(W, len):
  * Reserve ${len} bytes of space in the buffered writer ${W} and return a
  * pointer to the buffer.  This operation must be followed by a call to
- * netbuf_write_consume before the next call to _reserve or _write and before
- * a callback could be made into netbuf_write (i.e., before control returns
- * to the event loop).
+ * netbuf_write_consume() before the next call to _reserve() or _write() and
+ * before a callback could be made into netbuf_write() (i.e., before control
+ * returns to the event loop).
  */
 uint8_t *
 netbuf_write_reserve(struct netbuf_write * W, size_t len)
@@ -280,8 +280,8 @@ err0:
 
 /**
  * netbuf_write_consume(W, len):
- * Consume a reservation previously made by netbuf_write_reserve; the value
- * ${len} must be <= the value passed to netbuf_write_reserve.
+ * Consume a reservation previously made by netbuf_write_reserve(); the value
+ * ${len} must be <= the value passed to netbuf_write_reserve().
  */
 int
 netbuf_write_consume(struct netbuf_write * W, size_t len)

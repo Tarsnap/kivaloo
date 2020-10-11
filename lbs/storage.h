@@ -10,7 +10,7 @@ struct storage_state;
 /**
  * storage_init(storagedir, blklen, latency, nosync):
  * Initialize and return the storage state for ${blklen}-byte blocks of data
- * stored in ${storagedir}.  Sleep ${latency} ns in storage_read calls.  If
+ * stored in ${storagedir}.  Sleep ${latency} ns in storage_read() calls.  If
  * ${nosync} is non-zero, don't use fsync.
  */
 struct storage_state * storage_init(const char *, size_t, long, int);

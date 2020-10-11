@@ -15,7 +15,7 @@ struct dynamodb_request_queue;
  * Issue one request immediately, and wait for it to complete before
  * returning; issue subsequent requests every 15 seconds.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 struct capacity_reader * capacity_init(const char *, const char *,
     const char *, const char *, struct serverpool *,

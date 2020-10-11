@@ -22,7 +22,7 @@ struct pool * pool_init(size_t, size_t);
  * must be evicted from the pool, return it via ${evict}.  If no records have
  * lock count 0 (i.e., no records can be evicted) and the pool is already at
  * the target size, ${rec} will still be added to the pool, and the pool will
- * only return to its target size via calls to pool_rec_free.
+ * only return to its target size via calls to pool_rec_free().
  */
 int pool_rec_add(struct pool *, void *, void **);
 
@@ -48,7 +48,7 @@ static void pool_rec_unlock(struct pool *, void *);
 
 /**
  * pool_rec_lockcount(P, rec):
- * Returns the lock count of the record ${rec} in the pool ${P}.
+ * Return the lock count of the record ${rec} in the pool ${P}.
  */
 size_t pool_rec_lockcount(struct pool *, void *);
 

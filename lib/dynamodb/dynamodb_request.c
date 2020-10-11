@@ -16,7 +16,7 @@
  * Read a response with a body of up to ${maxrlen} bytes and invoke the
  * provided callback as ${callback}(${cookie}, ${response}), with a response
  * of NULL if no response was read (e.g., on connection error).  Return a
- * cookie which can be passed to http_request_cancel to abort the request.
+ * cookie which can be passed to http_request_cancel() to abort the request.
  * (Note however that such a cancellation does not guarantee that the actual
  * DynamoDB operation will not occur and have results which are visible at a
  * later time.)

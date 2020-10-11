@@ -14,7 +14,7 @@ struct wire_requestqueue;
  * the size of that object into ${olen}.  If there are no numbered objects,
  * return L = 0, olen = 0.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int findlast(struct wire_requestqueue *, const char *, uint64_t *, size_t *);
 

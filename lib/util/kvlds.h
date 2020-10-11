@@ -14,7 +14,7 @@ struct wire_requestqueue;
  * no further pairs are to be stored.  Return 0 on success; or nonzero if
  * a KVLDS request failed or any of the callbacks returned nonzero.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int kvlds_multiset(struct wire_requestqueue *,
     int (*)(void *, struct kvldskey **, struct kvldskey **),
@@ -27,7 +27,7 @@ int kvlds_multiset(struct wire_requestqueue *,
  * for each such key.  Return 0 on success; or nonzero if a KVLDS request
  * failed or any of the callbacks returned nonzero.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int kvlds_range(struct wire_requestqueue *,
     const struct kvldskey *, const struct kvldskey *,
@@ -38,7 +38,7 @@ int kvlds_range(struct wire_requestqueue *,
  * kvlds_set(Q, key, value):
  * Store a key-value pair.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int kvlds_set(struct wire_requestqueue *, const struct kvldskey *,
     const struct kvldskey *);
@@ -47,7 +47,7 @@ int kvlds_set(struct wire_requestqueue *, const struct kvldskey *,
  * kvlds_get(Q, key, value):
  * Get the value associated with ${key} and store it in ${value}.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int kvlds_get(struct wire_requestqueue *, const struct kvldskey *,
     struct kvldskey **);
@@ -56,7 +56,7 @@ int kvlds_get(struct wire_requestqueue *, const struct kvldskey *,
  * kvlds_delete(Q, key):
  * Delete the value associated with ${key}.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int kvlds_delete(struct wire_requestqueue *, const struct kvldskey *);
 

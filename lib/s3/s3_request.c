@@ -14,7 +14,7 @@
  *     callback, cookie):
  * Using the AWS Key ID ${key_id} and Secret Access Key ${key_secret}, send
  * the S3 request ${request} to the specified S3 region.  Behave identically
- * to http_request otherwise.
+ * to http_request() otherwise.
  */
 void *
 s3_request(struct sock_addr * const * addrs, const char * key_id,

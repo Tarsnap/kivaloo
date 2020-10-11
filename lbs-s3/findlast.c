@@ -79,7 +79,7 @@ err1:
  * the size of that object into ${olen}.  If there are no numbered objects,
  * return L = 0, olen = 0.
  *
- * This function may call events_run internally.
+ * This function may call events_run() internally.
  */
 int
 findlast(struct wire_requestqueue * Q_S3, const char * bucket,

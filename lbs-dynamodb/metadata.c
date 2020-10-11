@@ -231,7 +231,7 @@ err0:
 /**
  * metadata_init(Q):
  * Prepare for metadata operations using the queue ${Q}.  This function may
- * call events_run internally.
+ * call events_run() internally.
  */
 struct metadata *
 metadata_init(struct wire_requestqueue * Q)

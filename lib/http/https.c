@@ -9,7 +9,7 @@
 
 /**
  * https_request(addrs, request, maxrlen, callback, cookie, hostname):
- * Behave as http_request, but use HTTPS and verify that the target host is
+ * Behave as http_request(), but use HTTPS and verify that the target host is
  * ${hostname}.
  */
 void *

@@ -3,6 +3,7 @@
 # Paths
 LBS=../../lbs/lbs
 KVLDS=../../kvlds/kvlds
+MSLEEP=../msleep/msleep
 TESTKVLDS=./test_kvlds
 STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCKL=$STOR/sock_lbs
@@ -99,9 +100,9 @@ fi
 # Check that an unclean disconnect is handled appropriately
 printf "Testing KVLDS disconnection cleanup..."
 ( $TESTKVLDS $SOCKK & ) 2>/dev/null
-sleep 0.1 && killall test_kvlds
+$MSLEEP 100 && killall test_kvlds
 ( $TESTKVLDS $SOCKK & ) 2>/dev/null
-sleep 0.1 && killall test_kvlds
+$MSLEEP 100 && killall test_kvlds
 if $TESTKVLDS $SOCKK; then
 	echo " PASSED!"
 else
@@ -117,15 +118,15 @@ rm $SOCKK.pid $SOCKK
 printf "Testing KVLDS crash-safety..."
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
-sleep 0.1 && kill `cat $SOCKK.pid`
+$MSLEEP 100 && kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
-sleep 0.1 && kill `cat $SOCKK.pid`
+$MSLEEP 100 && kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 $TESTKVLDS $SOCKK 2>/dev/null &
-sleep 0.1 && kill `cat $SOCKK.pid`
+$MSLEEP 100 && kill `cat $SOCKK.pid`
 rm $SOCKK.pid $SOCKK
 $KVLDS -s $SOCKK -l $SOCKL -v 104
 if $TESTKVLDS $SOCKK; then

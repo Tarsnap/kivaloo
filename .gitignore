@@ -41,6 +41,7 @@ tests/kvlds-s3/test_kvlds
 tests/kvlds/test_kvlds
 tests/lbs/test_lbs
 tests/mux/test_mux
+tests/msleep/test_msleep
 tests/s3/test_s3
 # test output
 perftests/network-ssl/test_network_ssl_stderr.log

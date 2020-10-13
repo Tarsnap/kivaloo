@@ -64,8 +64,8 @@ fi
 
 # Verify that we survive the client dying
 printf "Testing client disconnection cleanup... "
-( $TESTMUX $SOCKM loop &) 2>/dev/null
-sleep 1 && killall test_mux
+( $TESTMUX $SOCKM loop & echo $! > $TESTMUX.pid) 2>/dev/null
+sleep 1 && kill "$(cat $TESTMUX.pid)"
 if $TESTMUX $SOCKM 0.; then
 	echo " PASSED!"
 else
@@ -93,8 +93,8 @@ $KVLDS -s $SOCKK -l $SOCKL -C 1024
 # Check that connection limit is enforced
 printf "Verifying that connection limit is enforced... "
 $MUX -t $SOCKK -s $SOCKM -n 1
-( $TESTMUX $SOCKM ping & ) 2>/dev/null
-( $TESTMUX $SOCKM pong & ) 2>/dev/null
+( $TESTMUX $SOCKM ping & echo $! > $TESTMUX.1.pid ) 2>/dev/null
+( $TESTMUX $SOCKM pong & echo $! > $TESTMUX.2.pid ) 2>/dev/null
 sleep 4
 if pgrep test_mux | grep -q .; then
 	echo " PASSED!"
@@ -102,7 +102,10 @@ else
 	echo " FAILED!"
 	exit 1
 fi
-killall test_mux
+kill "$(cat $TESTMUX.1.pid)"
+kill "$(cat $TESTMUX.2.pid)"
+rm "$TESTMUX.1.pid"
+rm "$TESTMUX.2.pid"
 
 # Check that the connection limit doesn't block connections permanently.
 printf "Verifying that connection acceptance is resumed... "

@@ -39,8 +39,9 @@ fi
 
 # Check that an unclean disconnect is handled appropriately
 printf "Testing LBS disconnection cleanup..."
-( $TESTLBS $SOCK & ) 2>/dev/null
-$MSLEEP 100 && killall test_lbs
+( $TESTLBS $SOCK & echo $! > $TESTLBS.pid) 2>/dev/null
+$MSLEEP 100 && kill "$(cat $TESTLBS.pid)"
+rm $TESTLBS.pid
 if $TESTLBS $SOCK; then
 	echo " PASSED!"
 else

@@ -21,7 +21,7 @@ TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2
 LIBCPERCIVA_DIR=	libcperciva
-TEST_CMD=	${MAKE} -C tests test
+TEST_CMD=	cd tests && ${MAKE} test
 
 ### Shared code between Tarsnap projects.
 

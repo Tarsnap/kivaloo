@@ -90,7 +90,7 @@ printf "Testing server disconnection death... "
 sleep 1 && kill `cat $SOCKK.pid`
 rm $SOCKK $SOCKK.pid
 sleep 1
-if pgrep -F $SOCKM.pid | grep .; then
+if kill -s 0 "$(cat $SOCKM.pid)" 2> /dev/null; then
 	echo " FAILED!"
 	exit 1
 else

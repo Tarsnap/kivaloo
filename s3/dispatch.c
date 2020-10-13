@@ -269,7 +269,7 @@ callback_response(void * cookie, struct http_response * res)
 			res->status = 0;
 
 		/* Sanity check. */
-		assert(res->bodylen <= UINT32_MAX);
+		assert((res->bodylen == -1) || (res->bodylen <= UINT32_MAX));
 
 		/* Send the response. */
 		if (proto_s3_response_get(D->writeq, R->R.ID, res->status,
@@ -278,7 +278,7 @@ callback_response(void * cookie, struct http_response * res)
 		break;
 	case PROTO_S3_RANGE:
 		/* Sanity check. */
-		assert(res->bodylen <= UINT32_MAX);
+		assert((res->bodylen == -1) || (res->bodylen <= UINT32_MAX));
 
 		/* Send the response. */
 		if (proto_s3_response_range(D->writeq, R->R.ID, res->status,

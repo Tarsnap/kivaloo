@@ -10,6 +10,17 @@ SOCKL=$STOR/sock_lbs
 SOCKK=$STOR/sock_kvlds
 SOCKM=$STOR/sock_mux
 
+## has_pid (cmd):
+# Look for ${cmd} in ps; return 0 if ${cmd} exists.
+has_pid() {
+	cmd=$1
+	pid=$(ps -Aopid,args | grep -F "${cmd}" | grep -v "grep") || true
+	if [ -n "${pid}" ]; then
+		return 0
+	fi
+	return 1
+}
+
 # Clean up any old tests
 rm -rf $STOR
 rm -f .failed
@@ -37,7 +48,7 @@ for X in 1 2 3 4 5 6 7 8 9 10; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed; ) &
 done
 sleep 1
-while pgrep test_mux | grep -q .; do
+while has_pid $TESTMUX; do
 	sleep 1
 done
 if [ -f .failed ]; then
@@ -52,7 +63,7 @@ printf "Testing ping-pong... "
 ( $TESTMUX $SOCKM ping || touch .failed ) &
 ( $TESTMUX $SOCKM pong || touch .failed ) &
 sleep 2
-if pgrep test_mux | grep -q .; then
+if has_pid $TESTMUX; then
 	touch .failed;
 fi
 if [ -f .failed ]; then
@@ -96,7 +107,7 @@ $MUX -t $SOCKK -s $SOCKM -n 1
 ( $TESTMUX $SOCKM ping & echo $! > $TESTMUX.1.pid ) 2>/dev/null
 ( $TESTMUX $SOCKM pong & echo $! > $TESTMUX.2.pid ) 2>/dev/null
 sleep 4
-if pgrep test_mux | grep -q .; then
+if has_pid $TESTMUX; then
 	echo " PASSED!"
 else
 	echo " FAILED!"
@@ -143,7 +154,7 @@ for X in 1 2; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed ) &
 done
 sleep 1
-while pgrep test_mux | grep -q .; do
+while has_pid $TESTMUX; do
 	sleep 1
 done
 if [ -f .failed ]; then

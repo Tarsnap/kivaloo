@@ -31,6 +31,7 @@ if cmp -s test_s3.log test_s3.good; then
 	echo "PASSED!"
 else
 	echo "FAILED!"
+	exit 1
 fi
 
 # Shut down S3 daemon

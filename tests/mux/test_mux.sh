@@ -81,6 +81,7 @@ rm $SOCKK $SOCKK.pid
 sleep 1
 if pgrep -F $SOCKM.pid | grep .; then
 	echo " FAILED!"
+	exit 1
 else
 	echo " PASSED!"
 fi

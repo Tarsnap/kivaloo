@@ -10,6 +10,17 @@ SOCKL=$STOR/sock_lbs
 SOCKK=$STOR/sock_kvlds
 SOCKM=$STOR/sock_mux
 
+## has_pid (cmd):
+# Look for ${cmd} in ps; return 0 if ${cmd} exists.
+has_pid() {
+	cmd=$1
+	pid=$(ps -Aopid,args | grep -F "${cmd}" | grep -v "grep") || true
+	if [ -n "${pid}" ]; then
+		return 0
+	fi
+	return 1
+}
+
 # Clean up any old tests
 rm -rf $STOR
 rm -f .failed
@@ -37,7 +48,7 @@ for X in 1 2 3 4 5 6 7 8 9 10; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed; ) &
 done
 sleep 1
-while pgrep test_mux | grep -q .; do
+while has_pid $TESTMUX; do
 	sleep 1
 done
 if [ -f .failed ]; then
@@ -52,7 +63,7 @@ printf "Testing ping-pong... "
 ( $TESTMUX $SOCKM ping || touch .failed ) &
 ( $TESTMUX $SOCKM pong || touch .failed ) &
 sleep 2
-if pgrep test_mux | grep -q .; then
+if has_pid $TESTMUX; then
 	touch .failed;
 fi
 if [ -f .failed ]; then
@@ -64,8 +75,8 @@ fi
 
 # Verify that we survive the client dying
 printf "Testing client disconnection cleanup... "
-( $TESTMUX $SOCKM loop &) 2>/dev/null
-sleep 1 && killall test_mux
+( $TESTMUX $SOCKM loop & echo $! > $TESTMUX.pid) 2>/dev/null
+sleep 1 && kill "$(cat $TESTMUX.pid)"
 if $TESTMUX $SOCKM 0.; then
 	echo " PASSED!"
 else
@@ -79,7 +90,7 @@ printf "Testing server disconnection death... "
 sleep 1 && kill `cat $SOCKK.pid`
 rm $SOCKK $SOCKK.pid
 sleep 1
-if pgrep -F $SOCKM.pid | grep .; then
+if kill -s 0 "$(cat $SOCKM.pid)" 2> /dev/null; then
 	echo " FAILED!"
 	exit 1
 else
@@ -93,16 +104,19 @@ $KVLDS -s $SOCKK -l $SOCKL -C 1024
 # Check that connection limit is enforced
 printf "Verifying that connection limit is enforced... "
 $MUX -t $SOCKK -s $SOCKM -n 1
-( $TESTMUX $SOCKM ping & ) 2>/dev/null
-( $TESTMUX $SOCKM pong & ) 2>/dev/null
+( $TESTMUX $SOCKM ping & echo $! > $TESTMUX.1.pid ) 2>/dev/null
+( $TESTMUX $SOCKM pong & echo $! > $TESTMUX.2.pid ) 2>/dev/null
 sleep 4
-if pgrep test_mux | grep -q .; then
+if has_pid $TESTMUX; then
 	echo " PASSED!"
 else
 	echo " FAILED!"
 	exit 1
 fi
-killall test_mux
+kill "$(cat $TESTMUX.1.pid)"
+kill "$(cat $TESTMUX.2.pid)"
+rm "$TESTMUX.1.pid"
+rm "$TESTMUX.2.pid"
 
 # Check that the connection limit doesn't block connections permanently.
 printf "Verifying that connection acceptance is resumed... "
@@ -140,7 +154,7 @@ for X in 1 2; do
 	( $TESTMUX $SOCKM ${X}. || touch .failed ) &
 done
 sleep 1
-while pgrep test_mux | grep -q .; do
+while has_pid $TESTMUX; do
 	sleep 1
 done
 if [ -f .failed ]; then

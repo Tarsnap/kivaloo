@@ -99,10 +99,11 @@ fi
 
 # Check that an unclean disconnect is handled appropriately
 printf "Testing KVLDS disconnection cleanup..."
-( $TESTKVLDS $SOCKK & ) 2>/dev/null
-$MSLEEP 100 && killall test_kvlds
-( $TESTKVLDS $SOCKK & ) 2>/dev/null
-$MSLEEP 100 && killall test_kvlds
+( $TESTKVLDS $SOCKK & echo $! > $TESTKVLDS.pid ) 2>/dev/null
+$MSLEEP 100 && kill "$(cat $TESTKVLDS.pid)"
+( $TESTKVLDS $SOCKK & echo $! > $TESTKVLDS.pid ) 2>/dev/null
+$MSLEEP 100 && kill "$(cat $TESTKVLDS.pid)"
+rm -f "${TESTKVLDS}.pid"
 if $TESTKVLDS $SOCKK; then
 	echo " PASSED!"
 else

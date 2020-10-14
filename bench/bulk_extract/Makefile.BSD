@@ -8,6 +8,7 @@ LDADD	=	-lrt
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
+BENCHLIB_DIR	=	../lib
 
 # CPU features detection
 .PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
@@ -34,6 +35,11 @@ SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
+
+# Benchmark utility functions
+.PATH.c	:	${BENCHLIB_DIR}
+SRCS	+=	bench.c
+IDIRS	+=	-I ${BENCHLIB_DIR}
 
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg

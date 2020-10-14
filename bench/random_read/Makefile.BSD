@@ -38,7 +38,10 @@ SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
+
+# Benchmark utility functions
 .PATH.c	:	${BENCHLIB_DIR}
+SRCS	+=	bench.c
 SRCS	+=	mkpair.c
 IDIRS	+=	-I ${BENCHLIB_DIR}
 

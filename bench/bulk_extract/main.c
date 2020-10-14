@@ -1,18 +1,19 @@
-#include <sys/time.h>
-
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "bench.h"
 #include "events.h"
 #include "kvldskey.h"
-#include "monoclock.h"
 #include "proto_kvlds.h"
 #include "sock.h"
 #include "warnp.h"
 #include "wire.h"
+
+#define BENCHMARK_START 50	/* Seconds before starting to record. */
+#define BENCHMARK_SECONDS 10	/* Seconds to record. */
 
 struct bulkextract_state {
 	/* State used for spewing requests. */
@@ -22,9 +23,7 @@ struct bulkextract_state {
 	int done;
 
 	/* Bits needed for measuring performance. */
-	struct timeval tv_end;
-	struct timeval tv_start;
-	uint64_t N;
+	struct bench * B;
 };
 
 static int startrange(struct bulkextract_state *);
@@ -49,26 +48,14 @@ callback_range(void * cookie,
     const struct kvldskey * key, const struct kvldskey * value)
 {
 	struct bulkextract_state * C = cookie;
-	struct timeval tv_now;
 
 	(void)key; /* UNUSED */
 	(void)value; /* UNUSED */
 
-	/* Read the current time. */
-	if (monoclock_get(&tv_now)) {
-		warnp("Error reading clock");
+	/* Notify the benchmarking code, and check if we should quit. */
+	if (bench_tick(C->B, &C->done)) {
+		warnp("bench_tick");
 		goto err0;
-	}
-
-	/* Are we finished?  Are we within the 50-60 second range? */
-	if ((tv_now.tv_sec > C->tv_end.tv_sec) ||
-	    ((tv_now.tv_sec == C->tv_end.tv_sec) &&
-		(tv_now.tv_usec > C->tv_end.tv_usec))) {
-		C->done = 1;
-	} else if ((tv_now.tv_sec > C->tv_start.tv_sec) ||
-	    ((tv_now.tv_sec == C->tv_start.tv_sec) &&
-		(tv_now.tv_usec > C->tv_start.tv_usec))) {
-		C->N += 1;
 	}
 
 	/* Success! */
@@ -92,46 +79,43 @@ static int
 bulkextract(struct wire_requestqueue * Q)
 {
 	struct bulkextract_state C;
-	struct timeval tv_now;
 
 	/* Initialize state. */
 	C.Q = Q;
 	C.failed = C.done = 0;
-	C.N = 0;
 
 	/* Create null key (used as start and end of range). */
 	if ((C.nullkey = kvldskey_create(NULL, 0)) == NULL)
 		goto err0;
 
-	/* Get current time and store T+60s and T+50s. */
-	if (monoclock_get(&tv_now)) {
-		warnp("Error reading clock");
+	/* Prepare benchmark time handling. */
+	if ((C.B = bench_init(BENCHMARK_START, BENCHMARK_SECONDS)) == NULL) {
+		warn0("bench_init");
 		goto err1;
 	}
-	C.tv_end.tv_sec = tv_now.tv_sec + 60;
-	C.tv_end.tv_usec = tv_now.tv_usec;
-	C.tv_start.tv_sec = tv_now.tv_sec + 50;
-	C.tv_start.tv_usec = tv_now.tv_usec;
 
 	/* Launch the first RANGE request. */
 	if (startrange(&C))
-		goto err1;
+		goto err2;
 
 	/* Wait until we've finished. */
 	if (events_spin(&C.done) || C.failed) {
 		warnp("RANGE request failed");
-		goto err1;
+		goto err2;
 	}
 
 	/* Print number of pairs read in a single second. */
-	printf("%" PRIu64 "\n", C.N / 10);
+	printf("%" PRIu64 "\n", bench_mean(C.B));
 
 	/* Clean up. */
+	bench_free(C.B);
 	kvldskey_free(C.nullkey);
 
 	/* Success! */
 	return (0);
 
+err2:
+	bench_free(C.B);
 err1:
 	kvldskey_free(C.nullkey);
 err0:

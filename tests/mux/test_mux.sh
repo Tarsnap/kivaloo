@@ -83,6 +83,7 @@ else
 	echo " FAILED!"
 	exit 1
 fi
+rm $TESTMUX.pid
 
 # Verify that we die if the upstream server dies
 printf "Testing server disconnection death... "

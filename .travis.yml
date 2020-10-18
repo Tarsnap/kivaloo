@@ -1,6 +1,15 @@
 language: c
 os: linux
 dist: xenial
+jobs:
+  include:
+    - compiler: gcc
+      env: CFLAGS_STRICT="-Wall -Wextra -Werror -Wpedantic -pedantic-errors -Wno-clobbered"
+    - compiler: clang
+      env: CFLAGS_STRICT="-Wall -Wextra -Werror -Weverything -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-missing-noreturn -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-comma -Wno-cast-qual"
+    - os: osx
+      compiler: clang
+      env: CFLAGS_STRICT="-Wall -Wextra -Werror -Weverything -Wno-#warnings -Wno-pedantic -Wno-padded -Wno-format-nonliteral -Wno-disabled-macro-expansion -Wno-missing-noreturn -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-comma -Wno-cast-qual"
 env:
   global:
     # Some projects need -std=c99 to specify library support for ./configure
@@ -23,5 +32,8 @@ before_install:
       sleep 1
       exit 0
     fi
-script:
-  - make test
+  # Otherwise, act normally.
+  - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export CFLAGS="-I/usr/local/opt/openssl/include $CFLAGS" LDFLAGS="-L/usr/local/opt/openssl/lib $LDFLAGS"; fi'
+# We can't use strict flags in CFLAGS as a general environment
+# variable, because that messes up coverity-scan.
+script: make CFLAGS="$CFLAGS $CFLAGS_STRICT" all && make test

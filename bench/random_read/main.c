@@ -15,8 +15,8 @@
 #include "warnp.h"
 #include "wire.h"
 
-#define BENCHMARK_START 50	/* Seconds before starting to record. */
-#define BENCHMARK_SECONDS 100	/* Seconds to record. */
+#define BENCHMARK_START 5	/* Seconds before starting to record. */
+#define BENCHMARK_SECONDS 5	/* Seconds to record. */
 
 struct randomread_state {
 	/* State used for spewing requests. */

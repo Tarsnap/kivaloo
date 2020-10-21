@@ -34,6 +34,12 @@ uint64_t * bench_get_ticks(struct bench *);
 uint64_t bench_mean(struct bench *);
 
 /**
+ * bench_median(B):
+ * Return the median number of ticks per second.
+ */
+uint64_t bench_median(struct bench *);
+
+/**
  * bench_free(B):
  * Free the cookie ${B}.
  */

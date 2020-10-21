@@ -205,7 +205,7 @@ compar_uint64_t(const void * ap, const void * bp)
  * bench_median(B):
  * Return the median number of ticks per second.
  */
-static uint64_t
+uint64_t
 bench_median(struct bench * B)
 {
 	uint64_t median;

@@ -32,6 +32,7 @@ static int
 callback_done(void * cookie, int failed)
 {
 	struct bulkextract_state * C = cookie;
+	int rc = 0;
 
 	/* Did we fail? */
 	if (failed) {
@@ -40,7 +41,10 @@ callback_done(void * cookie, int failed)
 	}
 
 	/* Restart the RANGE requests. */
-	return (startrange(C));
+	if (!C->done)
+		rc = startrange(C);
+
+	return (rc);
 }
 
 static int

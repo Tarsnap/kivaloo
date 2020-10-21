@@ -90,7 +90,7 @@ callback_done(void * cookie, int failed)
 	}
 
 	/* Send more requests if possible. */
-	if (sendbatch(C))
+	if ((!C->done) && sendbatch(C))
 		goto err0;
 
 	/* Success! */

@@ -89,7 +89,7 @@ callback_get(void * cookie, int failed, struct kvldskey * value)
 	}
 
 	/* Send more requests if possible. */
-	if (sendbatch(C))
+	if ((!C->done) && sendbatch(C))
 		goto err0;
 
 	/* Success! */

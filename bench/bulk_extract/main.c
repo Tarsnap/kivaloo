@@ -108,8 +108,8 @@ bulkextract(struct wire_requestqueue * Q)
 		goto err2;
 	}
 
-	/* Print number of pairs read in a single second. */
-	printf("%" PRIu64 "\n", bench_mean(C.B));
+	/* Print median number of pairs read in a single second. */
+	printf("%" PRIu64 "\n", bench_median(C.B));
 
 	/* Clean up. */
 	bench_free(C.B);

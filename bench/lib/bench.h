@@ -21,10 +21,23 @@ struct bench * bench_init(size_t, size_t);
 int bench_tick(struct bench *, int *);
 
 /**
+ * bench_get_ticks(B):
+ * Get the array containing the number of ticks per second.  The callee is
+ * responsible for knowing the length of the array.
+ */
+uint64_t * bench_get_ticks(struct bench *);
+
+/**
  * bench_mean(B):
  * Return the mean number of ticks per second during the benchmark period.
  */
 uint64_t bench_mean(struct bench *);
+
+/**
+ * bench_median(B):
+ * Return the median number of ticks per second.
+ */
+uint64_t bench_median(struct bench *);
 
 /**
  * bench_free(B):

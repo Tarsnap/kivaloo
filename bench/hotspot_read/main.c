@@ -137,8 +137,8 @@ hotspotread(struct wire_requestqueue * Q, uint64_t N)
 		goto err2;
 	}
 
-	/* Print number of reads performed in a single second. */
-	printf("%" PRIu64 "\n", bench_mean(C.B));
+	/* Print median number of reads performed in a single second. */
+	printf("%" PRIu64 "\n", bench_median(C.B));
 
 	/* Free the key structure. */
 	bench_free(C.B);

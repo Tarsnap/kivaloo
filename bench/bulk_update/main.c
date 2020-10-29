@@ -137,8 +137,8 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 		goto err3;
 	}
 
-	/* Print number of updates performed in a single second. */
-	printf("%" PRIu64 "\n", bench_mean(C.B));
+	/* Print median number of updates performed in a single second. */
+	printf("%" PRIu64 "\n", bench_median(C.B));
 
 	/* Free the key and value structures. */
 	bench_free(C.B);

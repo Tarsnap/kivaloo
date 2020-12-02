@@ -259,7 +259,7 @@ MD5_Update(MD5_CTX * ctx, const void * in, size_t len)
 /**
  * MD5_Final(digest, ctx):
  * Output the MD5 hash of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 void
 MD5_Final(uint8_t digest[16], MD5_CTX * ctx)

@@ -94,9 +94,11 @@ static struct crc32_test {
 	.crc = { 0xca, 0x13, 0x0b, 0xaa }
 };
 
-/* Test whether CRC extensions and software code produce the same results. */
+/*
+ * Test whether hardware extensions and software code produce the same results.
+ */
 static int
-crctest(void)
+hwtest(void)
 {
 	uint32_t state = T_0_0x80;
 
@@ -128,7 +130,7 @@ usecrc(void)
 #endif
 
 		/* Calculate with hardware and compare against a test vector. */
-		if (crctest()) {
+		if (hwtest()) {
 			warn0("Disabling hardware CRC due to failed self-test");
 			break;
 		}

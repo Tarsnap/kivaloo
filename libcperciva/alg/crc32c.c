@@ -3,12 +3,13 @@
 #include <string.h>
 
 #include "cpusupport.h"
+#include "crc32c_arm.h"
 #include "crc32c_sse42.h"
 #include "warnp.h"
 
 #include "crc32c.h"
 
-#if defined(CPUSUPPORT_X86_CRC32_64)
+#if defined(CPUSUPPORT_X86_CRC32_64) || defined(CPUSUPPORT_ARM_CRC32_64)
 #define HWACCEL
 #endif
 
@@ -106,6 +107,9 @@ hwtest(void)
 #if defined(CPUSUPPORT_X86_CRC32_64)
 	state = CRC32C_Update_SSE42(state, (const uint8_t *)testcase.buf,
 	    strlen(testcase.buf));
+#elif defined(CPUSUPPORT_ARM_CRC32_64)
+	state = CRC32C_Update_ARM(state, (const uint8_t *)testcase.buf,
+	    strlen(testcase.buf));
 #endif
 
 	/* Is the output correct? */
@@ -126,6 +130,10 @@ usecrc(void)
 #if defined(CPUSUPPORT_X86_CRC32_64)
 		/* If the CPU doesn't claim to support SSE4.2, stop here. */
 		if (!cpusupport_x86_crc32_64())
+			break;
+#elif defined(CPUSUPPORT_ARM_CRC32_64)
+		/* If the CPU doesn't claim to support ARM CRC32, stop here. */
+		if (!cpusupport_arm_crc32_64())
 			break;
 #endif
 
@@ -174,6 +182,11 @@ CRC32C_Update(CRC32C_CTX * ctx, const uint8_t * buf, size_t len)
 #if defined(CPUSUPPORT_X86_CRC32_64)
 	if (usecrc() && (len >= 8)) {
 		ctx->state = CRC32C_Update_SSE42(ctx->state, buf, len);
+		return;
+	}
+#elif defined(CPUSUPPORT_ARM_CRC32_64)
+	if (usecrc() && (len >= 8)) {
+		ctx->state = CRC32C_Update_ARM(ctx->state, buf, len);
 		return;
 	}
 #endif

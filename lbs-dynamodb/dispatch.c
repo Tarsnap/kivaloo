@@ -123,6 +123,8 @@ gotrequest(void * cookie, int status)
 				if (proto_lbs_response_append(D->writeq,
 				    R->ID, 1, 0))
 					goto err2;
+				free(R->r.append.buf);
+				free(R);
 				break;
 			}
 			D->npending += 1;

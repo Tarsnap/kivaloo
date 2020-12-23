@@ -8,6 +8,10 @@
 
 #include "crc32c.h"
 
+#if defined(CPUSUPPORT_X86_CRC32_64)
+#define HWACCEL
+#endif
+
 /**
  * CRC32C tables:
  * T[0][i] = reverse32(reverse8(i) * x^32 mod p(x) mod 2)
@@ -81,7 +85,7 @@ init(void)
 	assert(T0[0x80] == T_0_0x80);
 }
 
-#ifdef CPUSUPPORT_X86_CRC32_64
+#ifdef HWACCEL
 static struct crc32_test {
 	const char * buf;
 	const uint8_t crc[4];
@@ -90,15 +94,19 @@ static struct crc32_test {
 	.crc = { 0xca, 0x13, 0x0b, 0xaa }
 };
 
-/* Test whether CRC extensions and software code produce the same results. */
+/*
+ * Test whether hardware extensions and software code produce the same results.
+ */
 static int
-crctest(void)
+hwtest(void)
 {
 	uint32_t state = T_0_0x80;
 
 	/* Test hardware transform function. */
+#if defined(CPUSUPPORT_X86_CRC32_64)
 	state = CRC32C_Update_SSE42(state, (const uint8_t *)testcase.buf,
 	    strlen(testcase.buf));
+#endif
 
 	/* Is the output correct? */
 	return (memcmp(&state, testcase.crc, 4));
@@ -115,12 +123,14 @@ usecrc(void)
 		/* Default to software. */
 		crcgood = 0;
 
+#if defined(CPUSUPPORT_X86_CRC32_64)
 		/* If the CPU doesn't claim to support SSE4.2, stop here. */
 		if (!cpusupport_x86_crc32_64())
 			break;
+#endif
 
 		/* Calculate with hardware and compare against a test vector. */
-		if (crctest()) {
+		if (hwtest()) {
 			warn0("Disabling hardware CRC due to failed self-test");
 			break;
 		}
@@ -131,7 +141,7 @@ usecrc(void)
 
 	return (crcgood);
 }
-#endif /* !CPUSUPPORT_X86_CRC32_64 */
+#endif /* HWACCEL */
 
 /**
  * CRC32C_Init(ctx):
@@ -161,7 +171,7 @@ void
 CRC32C_Update(CRC32C_CTX * ctx, const uint8_t * buf, size_t len)
 {
 
-#ifdef CPUSUPPORT_X86_CRC32_64
+#if defined(CPUSUPPORT_X86_CRC32_64)
 	if (usecrc() && (len >= 8)) {
 		ctx->state = CRC32C_Update_SSE42(ctx->state, buf, len);
 		return;

@@ -41,7 +41,7 @@ void SHA1_Update(SHA1_CTX *, const void *, size_t);
 /**
  * SHA1_Final(digest, ctx):
  * Output the SHA1 hash of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 void SHA1_Final(uint8_t[20], SHA1_CTX *);
 
@@ -72,7 +72,7 @@ void HMAC_SHA1_Update(HMAC_SHA1_CTX *, const void *, size_t);
 /**
  * HMAC_SHA1_Final(digest, ctx):
  * Output the HMAC-SHA1 of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 void HMAC_SHA1_Final(uint8_t[20], HMAC_SHA1_CTX *);
 

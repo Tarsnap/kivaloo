@@ -7,11 +7,14 @@ KVLDS=../../kvlds/kvlds
 TESTKVLDS=./test_kvlds
 TMPDIR=`pwd`/tmp
 SOCKDDBKV=$TMPDIR/sock_ddbkv
+SOCKDDBKVM=$TMPDIR/sock_ddbkv_m
 SOCKL=$TMPDIR/sock_lbs
 SOCKK=$TMPDIR/sock_kvlds
 REGION=${REGION:-us-east-1}
 TABLE=${TABLE:-kivaloo-testing}
+TABLEM=${TABLEM:-kivaloo-testing-m}
 LOGFILE=dynamodb-kv.log
+LOGFILEM=dynamodb-kv-m.log
 AWSKEY=~/.dynamodb/aws.key
 
 # If you don't have my AWS keys, you can't run this test.
@@ -23,12 +26,13 @@ fi
 # Clean up any old tests
 rm -rf $TMPDIR
 
-# Start DynamoDB-KV daemon
+# Start DynamoDB-KV daemons
 mkdir $TMPDIR
 $DDBKV -1 -s $SOCKDDBKV -r $REGION -t $TABLE -k $AWSKEY -l $LOGFILE
+$DDBKV -1 -s $SOCKDDBKVM -r $REGION -t $TABLEM -k $AWSKEY -l $LOGFILEM
 
 # Start LBS
-$LBS -1 -s $SOCKL -t $SOCKDDBKV -b 512
+$LBS -1 -s $SOCKL -t $SOCKDDBKV -m $SOCKDDBKVM -b 512
 
 # Start KVLDS (the small number of pages should trigger evictions)
 $KVLDS -s $SOCKK -l $SOCKL -v 104 -k 40 -C 1024

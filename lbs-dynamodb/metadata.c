@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "asprintf.h"
 #include "events.h"
 #include "proto_dynamodb_kv.h"
 #include "sysendian.h"
@@ -38,32 +37,21 @@ struct readmetadata {
 };
 
 static int
-readmetadata(struct wire_requestqueue * Q, struct readmetadata * R,
-    uint64_t g)
+readmetadata(struct wire_requestqueue * Q, struct readmetadata * R)
 {
-	char * s;
 
-	/* Construct metadata key. */
-	if (asprintf(&s, "m%03lx", (unsigned long)(g % 4096)) == -1)
-		goto err0;
-
-	/* Read the metadata "shard". */
+	/* Read the metadata. */
 	R->done = 0;
-	if (proto_dynamodb_kv_request_getc(Q, s,
+	if (proto_dynamodb_kv_request_getc(Q, "metadata",
 	    callback_readmetadata, R) ||
 	    events_spin(&R->done)) {
 		warnp("Error reading LBS metadata");
-		goto err1;
+		goto err0;
 	}
-
-	/* Free string allocated by asprintf. */
-	free(s);
 
 	/* Success! */
 	return (0);
 
-err1:
-	free(s);
 err0:
 	/* Failure! */
 	return (-1);
@@ -116,7 +104,6 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
-	char * s;
 	uint8_t buf[24];
 
 	/* If we have a timer in progress, cancel it. */
@@ -139,24 +126,14 @@ writemetadata(struct metadata * M)
 	if (M->callback_deletedto)
 		M->callbacks += CB_DELETEDTO;
 
-	/* Construct metadata key. */
-	if (asprintf(&s, "m%03lx",
-	    (unsigned long)(M->generation % 4096)) == -1)
-		goto err0;
-
 	/* Write metadata. */
-	if (proto_dynamodb_kv_request_put(M->Q, s, buf, 24,
+	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 24,
 	    callback_writemetadata, M))
-		goto err1;
-
-	/* Free string allocated by asprintf. */
-	free(s);
+		goto err0;
 
 	/* Success! */
 	return (0);
 
-err1:
-	free(s);
 err0:
 	/* Failure! */
 	return (-1);
@@ -238,30 +215,18 @@ metadata_init(struct wire_requestqueue * Q)
 {
 	struct metadata * M;
 	struct readmetadata R;
-	uint64_t k;
 
 	/* Bake a cookie. */
 	if ((M = malloc(sizeof(struct metadata))) == NULL)
 		goto err0;
 	M->Q = Q;
 
-	/* Read metadata from shard #0. */
-	if (readmetadata(Q, &R, 0))
+	/* Read metadata. */
+	if (readmetadata(Q, &R))
 		goto err1;
 	M->nextblk = R.nextblk;
 	M->deletedto = R.deletedto;
 	M->generation = R.generation;
-
-	/* Binary search for the latest metadata. */
-	for (k = 2048; k != 0; k >>= 1) {
-		if (readmetadata(Q, &R, M->generation + k))
-			goto err1;
-		if (R.generation > M->generation) {
-			M->nextblk = R.nextblk;
-			M->deletedto = R.deletedto;
-			M->generation = R.generation;
-		}
-	}
 
 	/* Nothing in progress yet. */
 	M->callback_nextblk = NULL;

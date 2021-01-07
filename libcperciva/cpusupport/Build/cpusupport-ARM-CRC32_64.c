@@ -2,10 +2,6 @@
 #include <arm_acle.h>
 #endif
 
-#ifndef __ARM_FEATURE_CRC32
-#error "ARM_FEATURE_CRC32 not supported"
-#endif
-
 int
 main(void)
 {

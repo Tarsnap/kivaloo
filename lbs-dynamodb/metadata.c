@@ -22,9 +22,9 @@ struct metadata {
 	struct mtuple M_stored;
 	struct mtuple M_storing;
 	struct mtuple M_latest;
-	int (* callback_nextblk)(void *, int);
+	int (* callback_nextblk)(void *);
 	void * cookie_nextblk;
-	int (* callback_deletedto)(void *, int);
+	int (* callback_deletedto)(void *);
 	void * cookie_deletedto;
 	int callbacks;
 #define CB_NEXTBLK 1
@@ -153,10 +153,16 @@ static int
 callback_writemetadata(void * _M, int status)
 {
 	struct metadata * M = _M;
-	int (* callback)(void *, int);
+	int (* callback)(void *);
 	void * cookie;
 	int rc = 0;
 	int rc2;
+
+	/* If we failed to write metadata, something went very wrong. */
+	if (status) {
+		warn0("Failed to store metadata to DynamoDB!");
+		goto err0;
+	}
 
 	/* The values we were storing have now been stored. */
 	M->M_stored = M->M_storing;
@@ -167,7 +173,7 @@ callback_writemetadata(void * _M, int status)
 		cookie = M->cookie_nextblk;
 		M->callback_nextblk = NULL;
 		M->cookie_nextblk = NULL;
-		if ((rc2 = (callback)(cookie, status)) != 0)
+		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
 	if (M->callbacks & CB_DELETEDTO) {
@@ -175,7 +181,7 @@ callback_writemetadata(void * _M, int status)
 		cookie = M->cookie_deletedto;
 		M->callback_deletedto = NULL;
 		M->cookie_deletedto = NULL;
-		if ((rc2 = (callback)(cookie, status)) != 0)
+		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
 
@@ -194,6 +200,10 @@ callback_writemetadata(void * _M, int status)
 
 	/* Return status from callbacks or writemetadata. */
 	return (rc);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 static int
@@ -283,7 +293,7 @@ metadata_nextblk_read(struct metadata * M, uint64_t * nextblk)
  */
 int
 metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
-    int (*callback)(void *, int), void * cookie)
+    int (*callback)(void *), void * cookie)
 {
 
 	/* We shouldn't be storing nextblk already. */
@@ -328,7 +338,7 @@ metadata_deletedto_read(struct metadata * M, uint64_t * deletedto)
  */
 int
 metadata_deletedto_write(struct metadata * M, uint64_t deletedto,
-    int (*callback)(void *, int), void * cookie)
+    int (*callback)(void *), void * cookie)
 {
 
 	/* We shouldn't be storing deletedto already. */

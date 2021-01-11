@@ -274,17 +274,15 @@ err0:
 }
 
 /**
- * metadata_nextblk_read(M, nextblk):
- * Read the "nextblk" value.
+ * metadata_nextblk_read(M):
+ * Return the "nextblk" value.
  */
-int
-metadata_nextblk_read(struct metadata * M, uint64_t * nextblk)
+uint64_t
+metadata_nextblk_read(struct metadata * M)
 {
 
-	*nextblk = M->M_stored.nextblk;
-
-	/* Success! */
-	return (0);
+	/* Return currently stored value. */
+	return (M->M_stored.nextblk);
 }
 
 /**
@@ -319,17 +317,15 @@ err0:
 }
 
 /**
- * metadata_deletedto_read(M, deletedto):
- * Read the "deletedto" value.
+ * metadata_deletedto_read(M):
+ * Return the "deletedto" value.
  */
-int
-metadata_deletedto_read(struct metadata * M, uint64_t * deletedto)
+uint64_t
+metadata_deletedto_read(struct metadata * M)
 {
 
-	*deletedto = M->M_stored.deletedto;
-
-	/* Success! */
-	return (0);
+	/* Return currently stored value. */
+	return (M->M_stored.deletedto);
 }
 
 /**

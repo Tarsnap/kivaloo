@@ -46,14 +46,11 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
 	D->shutdown = 0;
 
 	/* Read "DeletedTo" into M. */
-	if (metadata_deletedto_read(D->MD, &D->M))
-		goto err1;
+	D->M = metadata_deletedto_read(D->MD);
 
 	/* Success! */
 	return (D);
 
-err1:
-	free(D);
 err0:
 	/* Failure! */
 	return (NULL);

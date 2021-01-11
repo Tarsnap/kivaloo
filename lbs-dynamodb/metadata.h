@@ -25,7 +25,7 @@ int metadata_nextblk_read(struct metadata *, uint64_t *);
  * Store "nextblk" value.  Invoke ${callback}(${cookie}) on success.
  */
 int metadata_nextblk_write(struct metadata *, uint64_t,
-    int (*)(void *, int), void *);
+    int (*)(void *), void *);
 
 /**
  * metadata_deletedto_read(M, deletedto):
@@ -38,7 +38,7 @@ int metadata_deletedto_read(struct metadata *, uint64_t *);
  * Store "deletedto" value.  Invoke ${callback}(${cookie}) on success.
  */
 int metadata_deletedto_write(struct metadata *, uint64_t,
-    int (*)(void *, int), void *);
+    int (*)(void *), void *);
 
 /**
  * metadata_free(M):

@@ -37,7 +37,7 @@ struct get_cookie {
 	int consistent;
 };
 
-int callback_append_put_nextblk(void *, int);
+int callback_append_put_nextblk(void *);
 int callback_append_put_blks(void *, int);
 int callback_append_put_finalblk(void *, int);
 
@@ -250,18 +250,12 @@ err0:
 
 /* Callback when "nextblk" has been written. */
 int
-callback_append_put_nextblk(void * cookie, int status)
+callback_append_put_nextblk(void * cookie)
 {
 	struct append_cookie * C = cookie;
 	struct state * S = C->S;
 	struct proto_lbs_request * R = C->R;
 	size_t i;
-
-	/* Failures are bad. */
-	if (status) {
-		warn0("DynamoDB-KV failed storing \"nextblk\"");
-		goto err0;
-	}
 
 	/* Store all the blocks except the last one. */
 	for (i = 0; i + 1 < R->r.append.nblks; i++) {

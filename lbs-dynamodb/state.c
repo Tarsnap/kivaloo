@@ -79,15 +79,12 @@ state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
 	S->npending = 0;
 
 	/* Read "nextblk"; we *might* have written anything prior to here. */
-	if (metadata_nextblk_read(S->M, &S->nextblk))
-		goto err1;
+	S->nextblk = metadata_nextblk_read(S->M);
 	S->lastblk = S->nextblk - 1;
 
 	/* Success! */
 	return (S);
 
-err1:
-	free(S);
 err0:
 	/* Failure! */
 	return (NULL);

@@ -15,10 +15,10 @@ struct metadata;
 struct metadata * metadata_init(struct wire_requestqueue *);
 
 /**
- * metadata_nextblk_read(M, nextblk):
- * Read the "nextblk" value.
+ * metadata_nextblk_read(M):
+ * Return the "nextblk" value.
  */
-int metadata_nextblk_read(struct metadata *, uint64_t *);
+uint64_t metadata_nextblk_read(struct metadata *);
 
 /**
  * metadata_nextblk_write(M, nextblk, callback, cookie):
@@ -28,10 +28,10 @@ int metadata_nextblk_write(struct metadata *, uint64_t,
     int (*)(void *), void *);
 
 /**
- * metadata_deletedto_read(M, deletedto):
- * Read the "deletedto" value.
+ * metadata_deletedto_read(M):
+ * Return the "deletedto" value.
  */
-int metadata_deletedto_read(struct metadata *, uint64_t *);
+uint64_t metadata_deletedto_read(struct metadata *);
 
 /**
  * metadata_deletedto_write(M, deletedto, callback, cookie):

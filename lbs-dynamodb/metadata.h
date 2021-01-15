@@ -34,11 +34,19 @@ int metadata_nextblk_write(struct metadata *, uint64_t,
 uint64_t metadata_deletedto_read(struct metadata *);
 
 /**
- * metadata_deletedto_write(M, deletedto, callback, cookie):
- * Store "deletedto" value.  Invoke ${callback}(${cookie}) on success.
+ * metadata_deletedto_write(M, deletedto):
+ * Store "deletedto" value.
  */
-int metadata_deletedto_write(struct metadata *, uint64_t,
-    int (*)(void *), void *);
+int metadata_deletedto_write(struct metadata *, uint64_t);
+
+/**
+ * metadata_deletedto_register(M, callback, cookie):
+ * Register ${callback}(${cookie}) to be called every time metadata is stored.
+ * This API exists for the benefit of the deletedto code; only one callback can
+ * be registered in this manner at once, and the callback must be reset to NULL
+ * before metadata_free is called.
+ */
+void metadata_deletedto_register(struct metadata *, int(*)(void *), void *);
 
 /**
  * metadata_free(M):

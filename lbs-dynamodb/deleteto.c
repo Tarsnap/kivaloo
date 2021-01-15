@@ -49,6 +49,9 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
 	/* Read "DeletedTo" into M. */
 	D->M = metadata_deletedto_read(D->MD);
 
+	/* We want to be poked every time a metadata write completes. */
+	metadata_deletedto_register(D->MD, callback_poke, D);
+
 	/* Success! */
 	return (D);
 
@@ -71,9 +74,8 @@ poke(struct deleteto * D)
 	 * progress, we're guaranteed to have deleted everything below M.
 	 */
 	if (D->updateDeletedTo) {
-		if (metadata_deletedto_write(D->MD, D->M, callback_poke, D))
+		if (metadata_deletedto_write(D->MD, D->M))
 			goto err0;
-		D->npending++;
 		D->updateDeletedTo = 0;
 		return (0);
 	}
@@ -140,17 +142,11 @@ err0:
 	return (-1);
 }
 
-/* The deletedto metadata value has been updated. */
+/* A metadata write has been performed. */
 static int
 callback_poke(void * cookie)
 {
 	struct deleteto * D = cookie;
-
-	/* Sanity-check. */
-	assert(D->npending > 0);
-
-	/* We've finished an operation. */
-	D->npending -= 1;
 
 	/* Check what we should do next. */
 	return (poke(D));
@@ -195,6 +191,9 @@ deleteto_stop(struct deleteto * D)
 	/* Wait for all pending operations to finish. */
 	if (events_spin(&D->shutdown))
 		goto err0;
+
+	/* We don't want to know about metadata writes completing. */
+	metadata_deletedto_register(D->MD, NULL, NULL);
 
 	/* Free the DeleteTo structure. */
 	free(D);

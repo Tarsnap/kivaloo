@@ -162,6 +162,9 @@ callback_writemetadata(void * _M, int status)
 	int rc = 0;
 	int rc2;
 
+	/* Sanity-check. */
+	assert(M->write_inprogress);
+
 	/* If we failed to write metadata, something went very wrong. */
 	if (status) {
 		warn0("Failed to store metadata to DynamoDB!");

@@ -112,8 +112,8 @@ writemetadata(struct metadata * M)
 {
 	uint8_t buf[24];
 
-	/* Is a metadata write wanted? */
-	if (M->write_wanted == 0)
+	/* Is a metadata write wanted and not already in progress? */
+	if ((M->write_wanted == 0) || (M->write_inprogress == 1))
 		return (0);
 
 	/* We're going to start a write now. */

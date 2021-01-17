@@ -10,25 +10,38 @@
 
 #include "deleteto.h"
 
+/* Maximum number of deletes in progress at once. */
+#define MAXINPROGRESS	64
+
+/* Maximum number of deletes to replay if we crash. */
+#define MAXUNRECORDED	8000
+
+struct delete {
+	struct deleteto * D;
+	uint64_t N;
+	struct delete * prev;
+	struct delete * next;
+};
+
 struct deleteto {
 	struct wire_requestqueue * Q;
 	struct metadata * MD;
 	uint64_t N;		/* Delete objects below this number. */
 	uint64_t M;		/* We've issued deletes up to this number. */
-	size_t npending;	/* Operations in progress. */
-	int updateDeletedTo;	/* M has changed since it was last stored. */
+	size_t npending;	/* DELETE operations in progress. */
 	int shuttingdown;	/* Stop issuing DELETEs. */
 	int shutdown;		/* Everything is done. */
+	struct delete * ip_head;	/* Head of deletes in progress list. */
+	struct delete * ip_tail;	/* Tail of deletes in progress list. */
 };
 
-static int callback_poke(void *);
+static int poke(void *);
 static int callback_done(void *, int);
 
 /**
  * deleteto_init(Q_DDBKV, M):
  * Initialize the deleter to operate via the DynamoDB-KV daemon connected to
- * ${Q_DDBKV} and the metadata handler M.  This function may call events_run
- * internally.
+ * ${Q_DDBKV} and the metadata handler M.
  */
 struct deleteto *
 deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
@@ -42,15 +55,16 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
 	D->MD = M;
 	D->N = 0;
 	D->npending = 0;
-	D->updateDeletedTo = 0;
 	D->shuttingdown = 0;
 	D->shutdown = 0;
+	D->ip_head = NULL;
+	D->ip_tail = NULL;
 
-	/* Read "DeletedTo" into M. */
+	/* How far are we guaranteed was previously deleted? */
 	D->M = metadata_deletedto_read(D->MD);
 
 	/* We want to be poked every time a metadata write completes. */
-	metadata_deletedto_register(D->MD, callback_poke, D);
+	metadata_deletedto_register(D->MD, poke, D);
 
 	/* Success! */
 	return (D);
@@ -62,46 +76,59 @@ err0:
 
 /* Do a round of deletes if appropriate. */
 static int
-poke(struct deleteto * D)
+poke(void * cookie)
 {
+	struct deleteto * D = cookie;
+	struct delete * D1;
+	uint64_t deletedto;
 
-	/* If we're already busy, don't do anything. */
-	if (D->npending)
-		return (0);
-
-	/*
-	 * Store DeletedTo if we want to; since we have no requests in
-	 * progress, we're guaranteed to have deleted everything below M.
-	 */
-	if (D->updateDeletedTo) {
-		if (metadata_deletedto_write(D->MD, D->M))
-			goto err0;
-		D->updateDeletedTo = 0;
-		return (0);
-	}
+	/* Tell the metadata code how far we've finished deleting. */
+	if (D->ip_head != NULL)
+		deletedto = D->ip_head->N;
+	else
+		deletedto = D->M;
+	if (metadata_deletedto_write(D->MD, deletedto))
+		goto err0;
 
 	/* Are we waiting to shut down? */
 	if (D->shuttingdown) {
-		D->shutdown = 1;
+		/*
+		 * If there's no deletes in progress and the metadata is up to
+		 * date with how far we've deleted, we're done.
+		 */
+		if ((D->npending == 0) &&
+		    (metadata_deletedto_read(D->MD) == deletedto))
+			D->shutdown = 1;
+
+		/* Either way, return without sending any more. */
 		return (0);
 	}
 
 	/* Can we issue more deletes? */
-	while (D->M < D->N) {
-		/* Issue a delete for M. */
+	while ((D->M < D->N) &&
+	    (D->npending < MAXINPROGRESS) &&
+	    (D->M < metadata_deletedto_read(D->MD) + MAXUNRECORDED)) {
+		/* Bake a cookie for deleting M. */
+		if ((D1 = malloc(sizeof(struct delete))) == NULL)
+			goto err0;
+		D1->D = D;
+		D1->N = D->M;
+		D1->prev = D->ip_tail;
+		D1->next = NULL;
+		if (D->ip_head == NULL)
+			D->ip_head = D1;
+		else
+			D->ip_tail->next = D1;
+		D->ip_tail = D1;
+
+		/* Issue the delete. */
 		if (proto_dynamodb_kv_request_delete(D->Q, objmap(D->M),
-		    callback_done, D))
+		    callback_done, D1))
 			goto err0;
 		D->npending++;
 
 		/* We've issued deletes for everything under one more. */
 		D->M++;
-
-		/* If we've finished a "century", stop here for a moment. */
-		if ((D->M % 256) == 0) {
-			D->updateDeletedTo = 1;
-			break;
-		}
 	}
 
 	/* Success! */
@@ -112,20 +139,34 @@ err0:
 	return (-1);
 }
 
-/* One of the DynamoDB-KV operations kicked off by poke() has completed. */
+/* A delete has completed. */
 static int
 callback_done(void * cookie, int status)
 {
-	struct deleteto * D = cookie;
+	struct delete * D1 = cookie;
+	struct deleteto * D = D1->D;
 
 	/* Sanity-check. */
 	assert(D->npending > 0);
 
 	/* Failures are bad, m'kay? */
 	if (status) {
-		warn0("DynamoDB-KV operation failed!");
+		warn0("DynamoDB-KV DELETE operation failed!");
 		goto err0;
 	}
+
+	/* Remove from linked list of in-progress deletes. */
+	if (D1->prev != NULL)
+		D1->prev->next = D1->next;
+	else
+		D->ip_head = D1->next;
+	if (D1->next != NULL)
+		D1->next->prev = D1->prev;
+	else
+		D->ip_tail = D1->prev;
+
+	/* Free cookie. */
+	free(D1);
 
 	/* We've finished an operation. */
 	D->npending -= 1;
@@ -140,16 +181,6 @@ callback_done(void * cookie, int status)
 err0:
 	/* Failure! */
 	return (-1);
-}
-
-/* A metadata write has been performed. */
-static int
-callback_poke(void * cookie)
-{
-	struct deleteto * D = cookie;
-
-	/* Check what we should do next. */
-	return (poke(D));
 }
 
 /**
@@ -180,9 +211,6 @@ deleteto_stop(struct deleteto * D)
 
 	/* We don't want to do any more DELETEs, just shut down. */
 	D->shuttingdown = 1;
-
-	/* Store DeletedTo when all the DELETEs have finished. */
-	D->updateDeletedTo = 1;
 
 	/* Poke the deleter in case it's not already doing anything. */
 	if (poke(D))

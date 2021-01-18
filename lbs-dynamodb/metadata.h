@@ -50,7 +50,7 @@ uint64_t metadata_deletedto_read(struct metadata *);
  * metadata_deletedto_write(M, deletedto):
  * Store "deletedto" value.
  */
-int metadata_deletedto_write(struct metadata *, uint64_t);
+void metadata_deletedto_write(struct metadata *, uint64_t);
 
 /**
  * metadata_deletedto_register(M, callback, cookie):
@@ -60,6 +60,12 @@ int metadata_deletedto_write(struct metadata *, uint64_t);
  * before metadata_free is called.
  */
 void metadata_deletedto_register(struct metadata *, int(*)(void *), void *);
+
+/**
+ * metadata_flush(M):
+ * Trigger a flush of pending metadata updates.
+ */
+int metadata_flush(struct metadata *);
 
 /**
  * metadata_free(M):

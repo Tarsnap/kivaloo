@@ -28,6 +28,19 @@ int metadata_nextblk_write(struct metadata *, uint64_t,
     int (*)(void *), void *);
 
 /**
+ * metadata_lastblk_read(M):
+ * Return the "lastblk" value.
+ */
+uint64_t metadata_lastblk_read(struct metadata *);
+
+/**
+ * metadata_lastblk_write(M, lastblk, callback, cookie):
+ * Store "lastblk" value.  Invoke ${callback}(${cookie}) on success.
+ */
+int metadata_lastblk_write(struct metadata *, uint64_t,
+    int (*)(void *), void *);
+
+/**
  * metadata_deletedto_read(M):
  * Return the "deletedto" value.
  */

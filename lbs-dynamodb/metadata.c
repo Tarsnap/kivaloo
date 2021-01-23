@@ -14,6 +14,7 @@ struct mtuple {
 	uint64_t nextblk;
 	uint64_t deletedto;
 	uint64_t generation;
+	uint64_t lastblk;
 	int (* callback)(void *);
 	void * cookie;
 };
@@ -38,6 +39,7 @@ struct readmetadata {
 	uint64_t nextblk;
 	uint64_t deletedto;
 	uint64_t generation;
+	uint64_t lastblk;
 	int done;
 };
 
@@ -81,11 +83,12 @@ callback_readmetadata(void * cookie, int status,
 		R->nextblk = 0;
 		R->deletedto = 0;
 		R->generation = 0;
+		R->lastblk = (uint64_t)(-1);
 		goto done;
 	}
 
-	/* We should have 24 bytes. */
-	if (len != 24) {
+	/* We should have 32 bytes. */
+	if (len != 32) {
 		warn0("metadata has incorrect size: %zu", len);
 		goto err0;
 	}
@@ -94,6 +97,7 @@ callback_readmetadata(void * cookie, int status,
 	R->nextblk = be64dec(&buf[0]);
 	R->deletedto = be64dec(&buf[8]);
 	R->generation = be64dec(&buf[16]);
+	R->lastblk = be64dec(&buf[24]);
 
 done:
 	R->done = 1;
@@ -109,7 +113,7 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
-	uint8_t buf[24];
+	uint8_t buf[32];
 
 	/* Is a write already in progress? */
 	if (M->write_inprogress == 1)
@@ -132,9 +136,10 @@ writemetadata(struct metadata * M)
 	be64enc(&buf[0], M->M_storing.nextblk);
 	be64enc(&buf[8], M->M_storing.deletedto);
 	be64enc(&buf[16], M->M_storing.generation);
+	be64enc(&buf[24], M->M_storing.lastblk);
 
 	/* Write metadata. */
-	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 24,
+	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 32,
 	    callback_writemetadata, M))
 		goto err0;
 
@@ -220,6 +225,7 @@ metadata_init(struct wire_requestqueue * Q)
 	M->M_stored.nextblk = R.nextblk;
 	M->M_stored.deletedto = R.deletedto;
 	M->M_stored.generation = R.generation;
+	M->M_stored.lastblk = R.lastblk;
 
 	/* The next metadata will be the same except one higher generation. */
 	M->M_latest = M->M_stored;
@@ -269,6 +275,47 @@ metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
 
 	/* Record the new value and callback parameters. */
 	M->M_latest.nextblk = nextblk;
+	M->M_latest.callback = callback;
+	M->M_latest.cookie = cookie;
+
+	/* We want to write metadata as soon as possible. */
+	if (writemetadata(M))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * metadata_lastblk_read(M):
+ * Return the "lastblk" value.
+ */
+uint64_t
+metadata_lastblk_read(struct metadata * M)
+{
+
+	/* Return currently stored value. */
+	return (M->M_stored.lastblk);
+}
+
+/**
+ * metadata_lastblk_write(M, lastblk, callback, cookie):
+ * Store "lastblk" value.  Invoke ${callback}(${cookie}) on success.
+ */
+int
+metadata_lastblk_write(struct metadata * M, uint64_t lastblk,
+    int (*callback)(void *), void * cookie)
+{
+
+	/* We shouldn't have a callback already. */
+	assert(M->M_latest.callback == NULL);
+
+	/* Record the new value and callback parameters. */
+	M->M_latest.lastblk = lastblk;
 	M->M_latest.callback = callback;
 	M->M_latest.cookie = cookie;
 

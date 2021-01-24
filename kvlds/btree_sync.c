@@ -255,8 +255,10 @@ callback_append(void * cookie, int failed, int status, uint64_t blkno)
 	struct btree * T = WC->T;
 
 	/* Throw a fit if we didn't manage to write the pages. */
-	if (failed)
+	if (failed) {
+		warnp("LBS APPEND request failed");
 		goto err1;
+	}
 	if (status) {
 		warn0("Failed to write dirty nodes to backing store");
 		goto err1;

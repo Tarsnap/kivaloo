@@ -187,17 +187,6 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		goto err1;
 	}
 
-	/*
-	 * If there's a gap between last-block-written and next-writable-block
-	 * then we're using a sparse block space; our cleaning code can't
-	 * handle this, since it estimates the number of "garbage" pages by
-	 * comparing the largest and smallest block #s against the number of
-	 * nodes, i.e., it implicitly assumes a dense block space.  Set the
-	 * storage cost to zero in this case (which disables cleaning).
-	 */
-	if (PC.lastblk + 1 != T->nextblk)
-		Scost = 0.0;
-
 	/* If we have neither npages nor npagebytes, set a default. */
 	if ((npages == (uint64_t)(-1)) && (npagebytes == (uint64_t)(-1))) {
 #if 128 * 1024 * 1024 < SIZE_MAX

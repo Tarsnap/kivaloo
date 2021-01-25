@@ -590,7 +590,7 @@ main(int argc, char * argv[])
 
 	/* Open a connection to KVLDS. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
-		warnp("Could not connect o KVLDS daemon.");
+		warnp("Could not connect to KVLDS daemon.");
 		exit(1);
 	}
 

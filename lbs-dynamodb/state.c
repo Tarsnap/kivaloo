@@ -57,8 +57,7 @@ struct append_cookie {
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
  * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
  * metadata handler ${M} to handle metadata.  Return a state which can be
- * passed to other state_* functions.  This function may call events_run()
- * internally.
+ * passed to other state_* functions.
  */
 struct state *
 state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,

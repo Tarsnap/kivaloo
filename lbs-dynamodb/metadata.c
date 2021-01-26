@@ -44,27 +44,6 @@ struct readmetadata {
 };
 
 static int
-readmetadata(struct wire_requestqueue * Q, struct readmetadata * R)
-{
-
-	/* Read the metadata. */
-	R->done = 0;
-	if (proto_dynamodb_kv_request_getc(Q, "metadata",
-	    callback_readmetadata, R) ||
-	    events_spin(&R->done)) {
-		warnp("Error reading LBS metadata");
-		goto err0;
-	}
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
-static int
 callback_readmetadata(void * cookie, int status,
     const uint8_t * buf, size_t len)
 {
@@ -220,8 +199,16 @@ metadata_init(struct wire_requestqueue * Q)
 	M->Q = Q;
 
 	/* Read metadata. */
-	if (readmetadata(Q, &R))
+	R.done = 0;
+	if (proto_dynamodb_kv_request_getc(Q, "metadata",
+	    callback_readmetadata, &R)) {
+		warnp("Error reading LBS metadata");
 		goto err1;
+	}
+	if (events_spin(&R.done)) {
+		warnp("Error reading LBS metadata");
+		goto err1;
+	}
 	M->M_stored.nextblk = R.nextblk;
 	M->M_stored.deletedto = R.deletedto;
 	M->M_stored.generation = R.generation;

@@ -111,7 +111,7 @@ btree_find_child(struct node * N, const struct kvldskey * k)
 	return (min);
 }
 
-/* Keep looking for a leaf. */
+/* Keep looking for a leaf.  Do not free the cookie. */
 static int
 findleaf(void * cookie)
 {
@@ -175,9 +175,6 @@ findleaf(void * cookie)
 		else
 			rc = (C->callback)(C->cookie, C->N);
 
-		/* Free the cookie. */
-		mpool_findleaf_free(C);
-
 		/* Return status code from callback. */
 		return (rc);
 	}
@@ -217,6 +214,9 @@ btree_find_leaf(struct btree * T, struct node * N, const struct kvldskey * k,
 	/* Call into findleaf. */
 	if (findleaf(C))
 		goto err1;
+
+	/* Free the cookie. */
+	mpool_findleaf_free(C);
 
 	/* Success! */
 	return (0);
@@ -265,6 +265,9 @@ btree_find_range(struct btree * T, struct node * N,
 	/* Call into findleaf. */
 	if (findleaf(C))
 		goto err2;
+
+	/* Free the cookie. */
+	mpool_findleaf_free(C);
 
 	/* Success! */
 	return (0);

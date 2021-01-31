@@ -80,15 +80,15 @@ warnp.o: ../libcperciva/util/warnp.c ../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/util/warnp.c -o warnp.o
 logging.o: ../lib/logging/logging.c ../libcperciva/events/events.h ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h ../lib/logging/logging.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../lib/logging/logging.c -o logging.o
-crc32c.o: ../libcperciva/alg/crc32c.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h ../libcperciva/alg/crc32c_sse42.h ../libcperciva/util/warnp.h ../libcperciva/alg/crc32c.h
+crc32c.o: ../libcperciva/alg/crc32c.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h ../libcperciva/alg/crc32c_arm.h ../libcperciva/alg/crc32c_sse42.h ../libcperciva/util/warnp.h ../libcperciva/alg/crc32c.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/crc32c.c -o crc32c.o
-crc32c_sse42.o: ../libcperciva/alg/crc32c_sse42.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h
+crc32c_sse42.o: ../libcperciva/alg/crc32c_sse42.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h ../libcperciva/alg/crc32c_sse42.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" ${CFLAGS_X86_CRC32_64} -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/crc32c_sse42.c -o crc32c_sse42.o
 md5.o: ../libcperciva/alg/md5.c ../libcperciva/util/insecure_memzero.h ../libcperciva/util/sysendian.h ../libcperciva/alg/md5.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/md5.c -o md5.o
 sha256.o: ../libcperciva/alg/sha256.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h ../libcperciva/util/insecure_memzero.h ../libcperciva/alg/sha256_shani.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../libcperciva/alg/sha256.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/sha256.c -o sha256.o
-sha256_shani.o: ../libcperciva/alg/sha256_shani.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h
+sha256_shani.o: ../libcperciva/alg/sha256_shani.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h ../libcperciva/alg/sha256_shani.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" ${CFLAGS_X86_SHANI} ${CFLAGS_X86_SSSE3} -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/alg/sha256_shani.c -o sha256_shani.o
 events_immediate.o: ../libcperciva/events/events_immediate.c ../libcperciva/datastruct/mpool.h ../libcperciva/events/events.h ../libcperciva/events/events_internal.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/events/events_immediate.c -o events_immediate.o

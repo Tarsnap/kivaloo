@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "entropy.h"
 #include "events.h"
@@ -33,6 +34,7 @@ struct metadata {
 	int write_inprogress;
 	int write_wanted;
 	int init_done;
+	int init_lostrace;
 };
 
 static int callback_readmetadata(void *, int, const uint8_t *, size_t);
@@ -88,9 +90,15 @@ callback_readmetadata(void * cookie, int status,
 	/* Write new metadata back. */
 	memcpy(nbuf, buf, 32);
 	memcpy(&nbuf[32], M->process_id, 32);
-	if (proto_dynamodb_kv_request_put(M->Q, "metadata", nbuf, 64,
-	    callback_claimmetadata, M))
-		goto err0;
+	if (buf != metadata_null) {
+		if (proto_dynamodb_kv_request_icas(M->Q, "metadata", buf, 64,
+		nbuf, 64, callback_claimmetadata, M))
+			goto err0;
+	} else {
+		if (proto_dynamodb_kv_request_create(M->Q, "metadata",
+		nbuf, 64, callback_claimmetadata, M))
+			goto err0;
+	}
 
 	/* Success! */
 	return (0);
@@ -105,10 +113,20 @@ callback_claimmetadata(void * _M, int status)
 {
 	struct metadata * M = _M;
 
-	/* If we failed to write metadata, something went very wrong. */
-	if (status) {
+	/* Did we succeed? */
+	switch (status) {
+	case 0:
+		/* Request succeeded and we won the race. */
+		M->init_lostrace = 0;
+		break;
+	case 1:
+		/* Request failed.  This is bad. */
 		warn0("Failed to claim ownership of metadata!");
 		goto err0;
+	case 2:
+		/* We lost the race. */
+		M->init_lostrace = 1;
+		break;
 	}
 
 	/* We're done. */
@@ -125,6 +143,7 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
+	uint8_t obuf[64];
 	uint8_t buf[64];
 
 	/* Is a write already in progress? */
@@ -145,6 +164,11 @@ writemetadata(struct metadata * M)
 	M->M_latest.generation++;
 
 	/* Encode metadata. */
+	be64enc(&obuf[0], M->M_stored.nextblk);
+	be64enc(&obuf[8], M->M_stored.deletedto);
+	be64enc(&obuf[16], M->M_stored.generation);
+	be64enc(&obuf[24], M->M_stored.lastblk);
+	memcpy(&obuf[32], M->process_id, 32);
 	be64enc(&buf[0], M->M_storing.nextblk);
 	be64enc(&buf[8], M->M_storing.deletedto);
 	be64enc(&buf[16], M->M_storing.generation);
@@ -152,7 +176,7 @@ writemetadata(struct metadata * M)
 	memcpy(&buf[32], M->process_id, 32);
 
 	/* Write metadata. */
-	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 64,
+	if (proto_dynamodb_kv_request_icas(M->Q, "metadata", obuf, 64, buf, 64,
 	    callback_writemetadata, M))
 		goto err0;
 
@@ -176,10 +200,25 @@ callback_writemetadata(void * _M, int status)
 	/* Sanity-check. */
 	assert(M->write_inprogress);
 
-	/* If we failed to write metadata, something went very wrong. */
-	if (status) {
+	/* Did we succeed? */
+	switch (status) {
+	case 0:
+		/* Request succeeded. */
+		break;
+	case 1:
+		/* Request failed.  This is bad. */
 		warn0("Failed to store metadata to DynamoDB!");
 		goto err0;
+	case 2:
+		/* Another process stole the metadata from us. */
+		warn0("Lost ownership of metadata in DynamoDB!");
+
+		/*
+		 * We could error out here, but it's safer to just abort;
+		 * another process stealing our metadata tells us that we
+		 * should not do anything else at all.
+		 */
+		_exit(0);
 	}
 
 	/* We're no longer storing metadata. */
@@ -218,8 +257,8 @@ err0:
 
 /**
  * metadata_init(Q):
- * Prepare for metadata operations using the queue ${Q}.  This function may
- * call events_run internally.
+ * Prepare for metadata operations using the queue ${Q}, and take ownership of
+ * the metadata item.  This function may call events_run internally.
  */
 struct metadata *
 metadata_init(struct wire_requestqueue * Q)
@@ -231,7 +270,8 @@ metadata_init(struct wire_requestqueue * Q)
 		goto err0;
 	M->Q = Q;
 
-	/* Read metadata. */
+	/* Read metadata and take ownership. */
+tryagain:
 	M->init_done = 0;
 	if (proto_dynamodb_kv_request_getc(Q, "metadata",
 	    callback_readmetadata, M)) {
@@ -241,6 +281,12 @@ metadata_init(struct wire_requestqueue * Q)
 	if (events_spin(&M->init_done)) {
 		warnp("Error claiming ownership of LBS metadata");
 		goto err1;
+	}
+
+	/* Did we lose a race trying to claim the metadata? */
+	if (M->init_lostrace) {
+		warn0("Lost race claiming metadata; trying again...");
+		goto tryagain;
 	}
 
 	/* The next metadata will be the same except one higher generation. */

@@ -1,19 +1,21 @@
-LBS-DynamoDB-kv design
-======================
+LBS-DynamoDB design
+===================
 
-The lbs-dynamodb-kv block store is invoked as
+The lbs-dynamodb block store is invoked as
 
-# kivaloo-lbs-dynamodb-kv -s <lbs socket> -t <dynamodb-kv socket>
-      -b <item size> [-1] [-p <pidfile>]
+# kivaloo-lbs-dynamodb -s <lbs socket> -t <dynamodb-kv socket>
+      -m <dynamodb-kv metadata socket> -b <item size> [-1] [-p <pidfile>]
 
 It creates a socket <lbs socket> on which it listens for incoming connections,
 accepts one at a time, and performs I/Os following the LBS protocol.  It
 stores data in Amazon DynamoDB via the kivaloo-dynamodb-kv protocol, using
 DynamoDB items of size <item size>; the LBS block size is slightly smaller.
+It stores metadata in Amazon DynamoDB via the metadata socket using the same
+protocol.
 
-The user is responsible for ensuring that the DynamoDB table at which the
-dynamodb-kv daemon is pointed is initialized with a string partition key "K"
-and no items.
+The user is responsible for ensuring that the DynamoDB tables at which the
+dynamodb-kv daemons are pointed are initialized with a string partition key
+"K" and no items.
 
 The other options are:
   -p <pidfile>
@@ -23,58 +25,66 @@ The other options are:
   -1
 	Exit after handling one connection.
 
-NOTE: THE USER MUST ENSURE THAT THERE ARE NEVER TWO LBS-DYNAMODB-KV DAEMONS
-USING THE SAME DYNAMODB TABLE.  Two daemons operating on the same table
-will overwrite each other's data and generally cause utter chaos, and since
-lbs-dynamodb-kv must be able to resume after a crash, there is no way for
-it to "lock" a bucket.
-
 Overview
 --------
 
-LBS-DynamoDB-kv implements an "append multiple blocks" / "read one block" /
+LBS-DynamoDB implements an "append multiple blocks" / "read one block" /
 "delete blocks up to" logging block store on top of Amazon DynamoDB, using
 one DynamoDB item for each block.  Requests are made to DynamoDB via the
 dynamodb-kv daemon; items are expressed as key-value pairs with a string
 K=<64-bit ID in hex> and a binary V=<block data provided from upstream>.
 
 Aside from the DynamoDB items which are block data -- which are written once
-and never modified until they are deleted -- there are two other values which
-are stored: The "next block" value and the "deleted to" value.  These act as
-a head and tail: All blocks which have been written and have not been deleted
-satisfy the condition "deleted to" <= block # < "next block".
+and never modified until they are deleted -- there are four other values which
+are stored as a single item with K="metadata" in the metadata table:
+1. A 64-bit "nextblk" value; no data blocks with IDs greater than this value
+have been written.
+2. A 64-bit "deletedto" value; all data blocks with IDs less than this value
+have been deleted.
+3. A 64-bit "generation" value; this is incremented every time the metadata is
+stored.
+4. A 64-bit "lastblk" value; this is the highest block number which has been
+logically written.  Note that block numbers between this and "nextblk" may have
+been written but are not considered to be "committed".
+5. A 256-bit "process-id" value; this is generated randomly when lbs-dynamodb
+starts and is used to ensure that a new daemon can atomically acquire ownership
+of the metadata from a running daemon.
 
-The two "metadata" values are stored in a series of 4096 items with key
-values K="m<3 hex digits>".  These are stored as a circular buffer with a
-"generation number" added; on startup, a sequence of 13 reads are performed
-executing a binary search to find the most recently stored values.  These
-have a negligable cost (less than 0.015 cents/month of storage) and under
-reasonable assumptions (metadata updates no more than once per 10 ms; at
-least 10 provisioned writes per second per DynamoDB partition) this ensures
-that the rewriting of items does not result in significant "hot spots".
+When the daemon starts, it reads the existing metadata and compare-and-swaps it
+back with its own nonce value in order to claim ownership; if the CAS fails
+(due to an intervening update) the daemon tries again until it succeeds.  Once
+ownership of the metadata is obtained, any further updates are performed via
+CAS operations, and lbs-dynamodb aborts if the precondition fails -- since this
+indicates that another process has acquired ownership of the metadata item.
 
-Since we never reuse block IDs, we can read blocks using weak consistency,
+Writes are performed by
+1. Reserving a range of block IDs by recording a new "nextblk" value in the
+metadata,
+2. Storing all of the blocks being appended, and then
+3. Recording a new "lastblk" value in the metadata.
+
+Updates to the "deletedto" value in the metadata are performed either
+1. Along with the next "nextblk" or "lastblk" update, or
+2. Triggered by a large backlog of deletes having been performed but not yet
+reflected in the stored "deletedto" value;
+in typical operations the first case will always apply but the second case
+ensures that deletes will complete even if no writes are being performed.
+
+Since we never reuse block IDs, we can read data blocks using weak consistency,
 and only perform a strongly consistent read in the (very unlikely) event that
 the weakly consistent read does not find the block (because it hasn't been
 propagated to all of the DynamoDB replicas yet).
 
-Writes are performed by
-1. Recording the new "next block",
-2. Storing all of the blocks being appended *except the last one*, and then
-3. Storing the last block.
+If KVLDS crashes and a new KVLDS connects, the new KVLDS will "see" the results
+of the last write, since in-progress writes complete before a new connection is
+accepted.  (Note that it is an error to send a PARAMS request while an APPEND
+is pending; effectively this means that KVLDS must connect directly and not via
+a connection multiplexer.)
 
-This guarantees that if the final block has been stored then all previous
-blocks have also been stored (even if requests are handled out of order); but
-if we crash in the middle of the second phase the upstream service may see an
-arbitrary subset of the non-final blocks as having been stored.  Since the
-KVLDS daemon scans for the last page containing a B+Tree root node and skips
-over any non-present pages, this works fine for KVLDS; other users may need
-to have special handling of partial writes.
-
-If KVLDS crashes and a new KVLDS connects, the new KVLDS will "see" the last
-write performed by the deceased KVLDS iff the final block was written before
-the new KVLDS looks for it; thus any acknowledged write is guaranteed to be
-visible while unacknowledged writes offer no guarantee.
+If lbs-dynamodb crashes and a new daemon is launched, the final APPEND from
+the old daemon will be visible iff its lastblk metadata update (step 3 above)
+is sequenced by DynamoDB as occurring prior to the new daemon claiming metadata
+ownership by storing a new process-id.
 
 Code structure
 --------------
@@ -83,7 +93,11 @@ main.c		-- Processes command line, connects to target, initializes
 		   state, creates a listening socket, daemonizes, accepts
 		   one connection at once, and runs the event loop.
 dispatch.c	-- Reads requests from a connection and drops the connection
-		   if one cannot be read.  Passes requests to state.c.
-state.c		-- Manages the internal storage state and processes requests.
-deleteto.c	-- Implements the DeleteTo algorithm.
+		   if one cannot be read.  Passes requests to state.c and
+		   deleteto.c.
+state.c		-- Reads and write data blocks; asks metadata.c to update
+		   "nextblk" and "lastblk" as needed.
+deleteto.c	-- Deletes data blocks; asks metadata.c to update "deletedto".
+metadata.c	-- Manages the metadata, atomically claiming ownership during
+		   initialization and then atomically updating as needed later.
 objmap.c	-- Converts object #s into stringified keys.

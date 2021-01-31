@@ -9,8 +9,8 @@ struct metadata;
 
 /**
  * metadata_init(Q):
- * Prepare for metadata operations using the queue ${Q}.  This function may
- * call events_run() internally.
+ * Prepare for metadata operations using the queue ${Q}, and take ownership of
+ * the metadata item.  This function may call events_run() internally.
  */
 struct metadata * metadata_init(struct wire_requestqueue *);
 

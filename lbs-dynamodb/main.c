@@ -21,9 +21,9 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: kivaloo-lbs-dynamodb-kv -s <lbs socket>"
+	fprintf(stderr, "usage: kivaloo-lbs-dynamodb -s <lbs socket>"
 	    " -t <dynamodb-kv socket> -b <item size> [-1] [-p <pidfile>]\n");
-	fprintf(stderr, "       kivaloo-lbs-dynamodb-kv --version\n");
+	fprintf(stderr, "       kivaloo-lbs-dynamodb --version\n");
 	exit(1);
 }
 
@@ -87,7 +87,7 @@ main(int argc, char * argv[])
 				OPT_EPARSE(ch, optarg);
 			break;
 		GETOPT_OPT("--version"):
-			fprintf(stderr, "kivaloo-lbs-dynamodb-kv @VERSION@\n");
+			fprintf(stderr, "kivaloo-lbs-dynamodb @VERSION@\n");
 			exit(0);
 		GETOPT_OPT("-1"):
 			if (opt_1 != 0)

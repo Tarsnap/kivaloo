@@ -93,7 +93,7 @@ callback_free_done(void * cookie, int failed)
 
 	/* Throw a fit if the FREE failed. */
 	if (failed) {
-		warn0("FREE request failed");
+		warn0("LBS FREE request failed");
 		goto err0;
 	}
 
@@ -183,7 +183,7 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		goto err1;
 	}
 	if (events_spin(&PC.done) || PC.failed) {
-		warnp("PARAMS2 request failed");
+		warnp("LBS PARAMS2 request failed");
 		goto err1;
 	}
 

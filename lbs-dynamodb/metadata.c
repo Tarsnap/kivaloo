@@ -1,7 +1,9 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "entropy.h"
 #include "events.h"
 #include "proto_dynamodb_kv.h"
 #include "sysendian.h"
@@ -25,6 +27,7 @@ struct metadata {
 	struct mtuple M_stored;
 	struct mtuple M_storing;
 	struct mtuple M_latest;
+	uint8_t process_id[32];
 	int (* callback_deletedto)(void *);
 	void * cookie_deletedto;
 	int write_inprogress;
@@ -33,14 +36,17 @@ struct metadata {
 };
 
 static int callback_readmetadata(void *, int, const uint8_t *, size_t);
+static int callback_claimmetadata(void *, int);
 static int callback_writemetadata(void *, int);
 
 /* Fake metadata used if no metadata exists. */
-static uint8_t metadata_null[32] = {
+static uint8_t metadata_null[64] = {
 	0, 0, 0, 0, 0, 0, 0, 0,				/* nextblk */
 	0, 0, 0, 0, 0, 0, 0, 0,				/* deletedto */
 	0, 0, 0, 0, 0, 0, 0, 0,				/* generation */
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff	/* lastblk */
+	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,	/* lastblk */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0	/* process_id */
 };
 
 static int
@@ -48,6 +54,7 @@ callback_readmetadata(void * cookie, int status,
     const uint8_t * buf, size_t len)
 {
 	struct metadata * M = cookie;
+	uint8_t nbuf[64];
 
 	/* Failures are bad. */
 	if (status == 1)
@@ -57,11 +64,11 @@ callback_readmetadata(void * cookie, int status,
 	if (status == 2) {
 		/* Use fake metadata. */
 		buf = metadata_null;
-		len = 32;
+		len = 64;
 	}
 
-	/* We should have 32 bytes. */
-	if (len != 32) {
+	/* We should have 64 bytes. */
+	if (len != 64) {
 		warn0("metadata has incorrect size: %zu", len);
 		goto err0;
 	}
@@ -71,6 +78,40 @@ callback_readmetadata(void * cookie, int status,
 	M->M_stored.deletedto = be64dec(&buf[8]);
 	M->M_stored.generation = be64dec(&buf[16]);
 	M->M_stored.lastblk = be64dec(&buf[24]);
+
+	/* Generate a random process ID. */
+	if (entropy_read(M->process_id, 32)) {
+		warn0("Failed to generate random process ID");
+		goto err0;
+	}
+
+	/* Write new metadata back. */
+	memcpy(nbuf, buf, 32);
+	memcpy(&nbuf[32], M->process_id, 32);
+	if (proto_dynamodb_kv_request_put(M->Q, "metadata", nbuf, 64,
+	    callback_claimmetadata, M))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+static int
+callback_claimmetadata(void * _M, int status)
+{
+	struct metadata * M = _M;
+
+	/* If we failed to write metadata, something went very wrong. */
+	if (status) {
+		warn0("Failed to claim ownership of metadata!");
+		goto err0;
+	}
+
+	/* We're done. */
 	M->init_done = 1;
 
 	/* Success! */
@@ -84,7 +125,7 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
-	uint8_t buf[32];
+	uint8_t buf[64];
 
 	/* Is a write already in progress? */
 	if (M->write_inprogress == 1)
@@ -108,9 +149,10 @@ writemetadata(struct metadata * M)
 	be64enc(&buf[8], M->M_storing.deletedto);
 	be64enc(&buf[16], M->M_storing.generation);
 	be64enc(&buf[24], M->M_storing.lastblk);
+	memcpy(&buf[32], M->process_id, 32);
 
 	/* Write metadata. */
-	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 32,
+	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 64,
 	    callback_writemetadata, M))
 		goto err0;
 
@@ -197,7 +239,7 @@ metadata_init(struct wire_requestqueue * Q)
 		goto err1;
 	}
 	if (events_spin(&M->init_done)) {
-		warnp("Error reading LBS metadata");
+		warnp("Error claiming ownership of LBS metadata");
 		goto err1;
 	}
 

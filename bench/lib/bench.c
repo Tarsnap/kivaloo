@@ -84,7 +84,8 @@ err0:
 }
 
 /* Compare timevals. */
-static int tv_cmp(const struct timeval a, const struct timeval b)
+static int
+tv_cmp(const struct timeval a, const struct timeval b)
 {
 
 	if (a.tv_sec < b.tv_sec)

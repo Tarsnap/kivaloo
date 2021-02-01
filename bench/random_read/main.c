@@ -120,8 +120,8 @@ randomread(struct wire_requestqueue * Q, uint64_t N)
 	/* Prepare benchmark time handling. */
 	if ((C.B = bench_init(BENCHMARK_START, BENCHMARK_SECONDS)) == NULL) {
 		warn0("bench_init");
- 		goto err1;
- 	}
+		goto err1;
+	}
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))

@@ -93,7 +93,7 @@ callback_done(void * cookie, int failed)
 	if (bench_tick(C->B, &C->done)) {
 		warnp("bench_tick");
 		goto err0;
- 	}
+	}
 
 	/* Send more requests if possible. */
 	if ((!C->done) && sendbatch(C))
@@ -143,8 +143,8 @@ randommixed(struct wire_requestqueue * Q, uint64_t N)
 	/* Prepare benchmark time handling. */
 	if ((C.B = bench_init(BENCHMARK_START, BENCHMARK_SECONDS)) == NULL) {
 		warn0("bench_init");
- 		goto err2;
- 	}
+		goto err2;
+	}
 
 	/* Send an initial batch of 4096 requests. */
 	if (sendbatch(&C))

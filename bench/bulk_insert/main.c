@@ -74,8 +74,7 @@ printperf(struct bulkinsert_state * C)
 	}
 
 	/* Compute time difference. */
-	T = (tv_now.tv_sec - C->tv_saved.tv_sec) +
-	    (tv_now.tv_usec - C->tv_saved.tv_usec) * 0.000001;
+	T = timeval_diff(C->tv_saved, tv_now);
 
 	/* Compute number of requests between then and now. */
 	N = C->Ndone - C->Ndone_saved;

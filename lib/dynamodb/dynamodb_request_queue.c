@@ -384,8 +384,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 		 * statistics even on retries, since we know which attempt
 		 * succeeded.
 		 */
-		treq = (t_end.tv_sec - R->t_start.tv_sec) +
-		    (t_end.tv_usec - R->t_start.tv_usec) * 0.000001;
+		treq = timeval_diff(R->t_start, t_end);
 		Q->tmu += (treq - Q->tmu) * 0.125;
 		if (treq > Q->tmu)
 			Q->tmud += ((treq - Q->tmu) - Q->tmud) * 0.25;

@@ -38,7 +38,7 @@ dynamodb_kv_put(const char * table, const char * key,
 	const char * s3 = "\"},\"V\":{\"B\":\"";
 	const char * s4 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
 	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
-	    strlen(s3) + ((len + 2) / 3) * 4 + strlen(s4);
+	    strlen(s3) + b64len(len) + strlen(s4);
 	size_t spos = 0;
 	char * s;
 
@@ -53,7 +53,7 @@ dynamodb_kv_put(const char * table, const char * key,
 	COPYANDINCR(s, spos, key);
 	COPYANDINCR(s, spos, s3);
 	b64encode(buf, &s[spos], len);
-	spos += ((len + 2) / 3) * 4;
+	spos += b64len(len);
 	COPYANDINCR(s, spos, s4);
 	s[spos] = '\0';
 

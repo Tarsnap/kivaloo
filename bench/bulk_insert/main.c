@@ -95,7 +95,7 @@ printperf(struct bulkinsert_state * C)
 	 * bundle.
 	 */
 	if (N >= 4096)
-		printf("%zu %.0f\n", C->Ndone_saved, N / T);
+		printf("%zu %.0f\n", C->Ndone_saved, (double)N / T);
 
 	/* We've printed this performance point. */
 	C->Ndone_saved = 0;

@@ -283,6 +283,27 @@ PUT:	Request type = 0x00010100
 	Response:
 	[4 byte status (0 = success, 1 = failure)]
 
+ICAS:	Request type = 0x00010101
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[4 byte val1 length][X byte val1]
+	[4 byte val2 length][X byte val2]
+
+	Response:
+	[4 byte status (0 = success, 1 = failure, 2 = precondition failed)]
+
+CREATE:	Request type = 0x00010102
+
+	Request:
+	[4 byte request type]
+	[1 byte key length][X byte key]
+	[4 byte value length][X byte value]
+
+	Response:
+	[4 byte status (0 = success, 1 = failure, 2 = precondition failed)]
+
 GET:	Request type = 0x00010110
 
 	Request:

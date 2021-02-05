@@ -144,6 +144,207 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 
+	/* Send (faulty) ICAS request. */
+	C.done = 0;
+	fprintf(stderr, "ICAS \"key\" \"value2\" -> \"value3\"\n");
+	if (proto_dynamodb_kv_request_icas(Q, "key",
+	    (const uint8_t *)"value2", 6, (const uint8_t *)"value3", 6,
+	    callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_icas");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status != 2) {
+		warn0("Faulty ICAS returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send GET request. */
+	C.done = 0;
+	fprintf(stderr, "GET \"key\"\n");
+	if (proto_dynamodb_kv_request_get(Q, "key", callback_get, &C)) {
+		warnp("proto_dynamodb_kv_request_get");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("GET returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send (legitimate) ICAS request. */
+	C.done = 0;
+	fprintf(stderr, "ICAS \"key\" \"value\" -> \"value2\"\n");
+	if (proto_dynamodb_kv_request_icas(Q, "key",
+	    (const uint8_t *)"value", 5, (const uint8_t *)"value2", 6,
+	    callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_icas");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("ICAS returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send GET request. */
+	C.done = 0;
+	fprintf(stderr, "GET \"key\"\n");
+	if (proto_dynamodb_kv_request_get(Q, "key", callback_get, &C)) {
+		warnp("proto_dynamodb_kv_request_get");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("GET returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send (legitimate) ICAS request. */
+	C.done = 0;
+	fprintf(stderr, "ICAS \"key\" \"value\" -> \"value2\"\n");
+	if (proto_dynamodb_kv_request_icas(Q, "key",
+	    (const uint8_t *)"value", 5, (const uint8_t *)"value2", 6,
+	    callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_icas");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("ICAS returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send GET request. */
+	C.done = 0;
+	fprintf(stderr, "GET \"key\"\n");
+	if (proto_dynamodb_kv_request_get(Q, "key", callback_get, &C)) {
+		warnp("proto_dynamodb_kv_request_get");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("GET returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send (faulty) CREATE request. */
+	C.done = 0;
+	fprintf(stderr, "CREATE \"key\" = \"value\"\n");
+	if (proto_dynamodb_kv_request_create(Q, "key",
+	    (const uint8_t *)"value", 5, callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_create");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status != 2) {
+		warn0("Faulty CREATE returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send GET request. */
+	C.done = 0;
+	fprintf(stderr, "GET \"key\"\n");
+	if (proto_dynamodb_kv_request_get(Q, "key", callback_get, &C)) {
+		warnp("proto_dynamodb_kv_request_get");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("GET returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send DELETE request. */
+	C.done = 0;
+	fprintf(stderr, "DELETE \"key\"\n");
+	if (proto_dynamodb_kv_request_delete(Q, "key", callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_delete");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("DELETE returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send (legitimate) CREATE request. */
+	C.done = 0;
+	fprintf(stderr, "CREATE \"key\" = \"value\"\n");
+	if (proto_dynamodb_kv_request_create(Q, "key",
+	    (const uint8_t *)"value", 5, callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_create");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("CREATE returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send GET request. */
+	C.done = 0;
+	fprintf(stderr, "GET \"key\"\n");
+	if (proto_dynamodb_kv_request_get(Q, "key", callback_get, &C)) {
+		warnp("proto_dynamodb_kv_request_get");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("GET returned status %d", C.status);
+		exit(1);
+	}
+
+	/* Send (legitimate) CREATE request. */
+	C.done = 0;
+	fprintf(stderr, "CREATE \"key\" = \"value\"\n");
+	if (proto_dynamodb_kv_request_create(Q, "key",
+	    (const uint8_t *)"value", 5, callback_status, &C)) {
+		warnp("proto_dynamodb_kv_request_create");
+		exit(1);
+	}
+	if (events_spin(&C.done)) {
+		warnp("events_spin");
+		exit(1);
+	}
+	if (C.status) {
+		warn0("CREATE returned status %d", C.status);
+		exit(1);
+	}
+
 	/* Free the request queue. */
 	wire_requestqueue_destroy(Q);
 	wire_requestqueue_free(Q);

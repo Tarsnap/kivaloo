@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "dynamodb_kv.h"
@@ -154,6 +155,24 @@ gotrequest(void * cookie, int status)
 			    R->R.buf, R->R.len)) == NULL)
 				goto err1;
 			break;
+		case PROTO_DDBKV_ICAS:
+			Q = D->QW;
+			op = "PutItem";
+			maxrlen = 1024;
+			prio = 0;
+			if ((R->body = dynamodb_kv_icas(D->table, R->R.key,
+			    R->R.buf, R->R.len, R->R.buf2, R->R.len2)) == NULL)
+				goto err1;
+			break;
+		case PROTO_DDBKV_CREATE:
+			Q = D->QW;
+			op = "PutItem";
+			maxrlen = 1024;
+			prio = 0;
+			if ((R->body = dynamodb_kv_create(D->table, R->R.key,
+			    R->R.buf, R->R.len)) == NULL)
+				goto err1;
+			break;
 		case PROTO_DDBKV_GET:
 			Q = D->QR;
 			op = "GetItem";
@@ -242,14 +261,27 @@ callback_response(void * cookie, struct http_response * res, const char * err)
 	uint32_t vlen;
 	int status;
 
-	(void)err; /* UNUSED */
-
 	/* Did we succeed? */
-	status = (res->status == 200) ? 0 : 1;
+	switch (res->status) {
+	case 200:
+		status = 0;
+		break;
+	case 400:
+		if (strcmp(err, "ConditionalCheckFailedException") == 0)
+			status = 2;
+		else
+			status = 1;
+		break;
+	default:
+		status = 1;
+		break;
+	}
 
 	/* Send appropriate response back to the client. */
 	switch (R->R.type) {
 	case PROTO_DDBKV_PUT:
+	case PROTO_DDBKV_ICAS:
+	case PROTO_DDBKV_CREATE:
 	case PROTO_DDBKV_DELETE:	/* Has same response as PUT. */
 		if (proto_dynamodb_kv_response_put(D->writeq, R->R.ID,
 		    status))

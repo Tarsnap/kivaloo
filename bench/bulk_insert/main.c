@@ -74,8 +74,7 @@ printperf(struct bulkinsert_state * C)
 	}
 
 	/* Compute time difference. */
-	T = (tv_now.tv_sec - C->tv_saved.tv_sec) +
-	    (tv_now.tv_usec - C->tv_saved.tv_usec) * 0.000001;
+	T = timeval_diff(C->tv_saved, tv_now);
 
 	/* Compute number of requests between then and now. */
 	N = C->Ndone - C->Ndone_saved;
@@ -96,7 +95,7 @@ printperf(struct bulkinsert_state * C)
 	 * bundle.
 	 */
 	if (N >= 4096)
-		printf("%zu %.0f\n", C->Ndone_saved, N / T);
+		printf("%zu %.0f\n", C->Ndone_saved, (double)N / T);
 
 	/* We've printed this performance point. */
 	C->Ndone_saved = 0;

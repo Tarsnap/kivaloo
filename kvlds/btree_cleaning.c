@@ -312,7 +312,7 @@ poke(struct cleaner * C)
 	 * is more than the cleaning debt, we don't need to look for any more
 	 * pages to clean yet.
 	 */
-	if (C->pending_cleans >= C->cleandebt)
+	if ((double)C->pending_cleans >= C->cleandebt)
 		goto done;
 
 	/* We're going to launch a group of node cleans. */
@@ -366,7 +366,7 @@ tick(void * cookie)
 	 * circumstances.
 	 */
 	if (T->npages >= T->nnodes)
-		C->cleandebt += (T->npages - T->nnodes) * C->cleanrate;
+		C->cleandebt += (double)(T->npages - T->nnodes) * C->cleanrate;
 
 	/**
 	 * Limit our "cleaning balance" based on the size of the tree.  We
@@ -383,10 +383,10 @@ tick(void * cookie)
 	 * cleaned nodes even if the tree is now completely compact; so don't
 	 * allow that either.
 	 */
-	if (C->cleandebt + T->nnodes < 0)
+	if (C->cleandebt + (double)T->nnodes < 0)
 		C->cleandebt = -(double)(T->nnodes);
-	if (C->cleandebt > T->nnodes)
-		C->cleandebt = T->nnodes;
+	if (C->cleandebt > (double)T->nnodes)
+		C->cleandebt = (double)T->nnodes;
 
 	/* Launch cleaning if possible and appropriate. */
 	if (poke(C))
@@ -439,7 +439,8 @@ btree_cleaning_start(struct btree * T, double Scost)
 	 * conversion factors, we can compute a factor which tells us how
 	 * many I/Os we should perform per second per block of garbage.
 	 */
-	C->cleanrate = (T->pagelen / 1000000000.) *	/* GB per page. */
+	C->cleanrate =
+	    ((double)T->pagelen / 1000000000.) *	/* GB per page. */
 	    (1.0 / 86400. / 30.) *			/* months per s. */
 	    Scost *				/* 10^6 I/Os per GB-month. */
 	    1000000.;				/* I/Os per (10^6 I/Os). */
@@ -482,7 +483,7 @@ btree_cleaning_notify_dirtying(struct cleaner * C, struct node * N)
 	 * pages are somewhat more likely to be modified again, but not
 	 * dramatically so.
 	 */
-	C->cleandebt -= (T->nextblk - N->pagenum) / (double)(T->npages);
+	C->cleandebt -= (double)(T->nextblk - N->pagenum) / (double)(T->npages);
 
 	/*
 	 * If this node is waiting to be dirtied by the cleaner, remove it

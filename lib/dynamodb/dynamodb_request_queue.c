@@ -384,8 +384,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 		 * statistics even on retries, since we know which attempt
 		 * succeeded.
 		 */
-		treq = (t_end.tv_sec - R->t_start.tv_sec) +
-		    (t_end.tv_usec - R->t_start.tv_usec) * 0.000001;
+		treq = timeval_diff(R->t_start, t_end);
 		Q->tmu += (treq - Q->tmu) * 0.125;
 		if (treq > Q->tmu)
 			Q->tmud += ((treq - Q->tmu) - Q->tmud) * 0.25;
@@ -501,8 +500,8 @@ runqueue(struct dynamodb_request_queue * Q)
 	Q->bucket_cap_lastbump = tnow;
 
 	/* Send requests as long as we have enough capacity. */
-	while (((Q->inflight + 1) * Q->mu_capperreq <= Q->maxburst_cap) &&
-	    ((Q->inflight + 1) * Q->mu_capperreq <= Q->bucket_cap)) {
+	while (((double)(Q->inflight + 1) * Q->mu_capperreq <= Q->maxburst_cap) &&
+	    ((double)(Q->inflight + 1) * Q->mu_capperreq <= Q->bucket_cap)) {
 		/* Find the highest-priority request in the queue. */
 		R = ptrheap_getmin(Q->reqs);
 
@@ -517,7 +516,7 @@ runqueue(struct dynamodb_request_queue * Q)
 
 	/* Do we need to (re)start the capacity-accumulation timer? */
 	if ((Q->timer_cookie == NULL) &&
-	    ((Q->inflight + 1) * Q->mu_capperreq > Q->bucket_cap)) {
+	    ((double)(Q->inflight + 1) * Q->mu_capperreq > Q->bucket_cap)) {
 		if ((Q->timer_cookie = events_timer_register_double(
 		        poke_timer, Q, Q->spercap)) == NULL)
 			goto err0;
@@ -671,13 +670,13 @@ dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
 
 	/* Record rate at which new capacity arrives. */
 	if (capacity > 0)
-		Q->cappers = capacity;
+		Q->cappers = (double)capacity;
 	else
 		Q->cappers = 1000000.0;
 
 	/* How long does it take for one capacity unit to arrive? */
 	if (capacity > 0)
-		Q->spercap = 1.0 / capacity;
+		Q->spercap = 1.0 / (double)capacity;
 	else
 		Q->spercap = 0.0;
 
@@ -689,7 +688,7 @@ dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
 	 * per second, so it's not likely to be a problem).
 	 */
 	if ((capacity > 0) && (capacity < 100))
-		Q->maxburst_cap = capacity * 5.0;
+		Q->maxburst_cap = (double)capacity * 5.0;
 	else
 		Q->maxburst_cap = 500.0;
 }

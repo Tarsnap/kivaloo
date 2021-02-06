@@ -36,7 +36,7 @@ struct request {
 	size_t bodylen;
 	size_t maxrlen;
 	char * logstr;
-	int (* callback)(void *, struct http_response *);
+	int (* callback)(void *, struct http_response *, const char *);
 	void * cookie;
 	struct sock_addr * addrs[2];
 	void * http_cookie;
@@ -118,34 +118,11 @@ err0:
 	return (-1);
 }
 
-/* Is this a ProvisionedThroughputExceededException? */
-static int
-isthrottle(struct http_response * res)
-{
-	size_t i;
-
-	/*
-	 * Search the body for "#ProvisionedThroughputExceededException".
-	 * The AWS SDKs extract the "__type" field, split this on '#'
-	 * characters, and look at the last element; we're guaranteed to
-	 * catch anything they catch, and if someone can trigger HTTP 400
-	 * responses which yield false positives, we don't really care -- the
-	 * worst they can do is to prevent us from bursting requests.
-	 */
-#define SS "#ProvisionedThroughputExceededException"
-	for (i = 0; i + strlen(SS) <= res->bodylen; i++) {
-		if (memcmp(&res->body[i], SS, strlen(SS)) == 0)
-			return (1);
-	}
-#undef SS
-	return (0);
-}
-
 /* Log the (attempted) request. */
 static int
 logreq(struct logging_file * F, struct request * R,
     struct http_response * res, double capacity,
-    struct timeval t_end)
+    struct timeval t_end, char * ddberr)
 {
 	long t_micros;
 	char * addr;
@@ -170,9 +147,10 @@ logreq(struct logging_file * F, struct request * R,
 	}
 
 	/* Write to the log file. */
-	if (logging_printf(F, "|%s|%s|%d|%s|%ld|%zu|%f",
+	if (logging_printf(F, "|%s|%s|%d|%s|%ld|%zu|%f|%s",
 	    R->op, R->logstr ? R->logstr : "",
-	    status, addr, t_micros, bodylen, capacity))
+	    status, addr, t_micros, bodylen, capacity,
+	    ddberr ? ddberr : ""))
 		goto err1;
 
 	/* Free string allocated by sock_addr_prettyprint. */
@@ -243,6 +221,64 @@ err0:
 	return (-1);
 }
 
+/* Extract a DynamoDB error string from an HTTP 400 response. */
+static int
+extracterror(struct http_response * res, char ** errstr)
+{
+	const uint8_t * buf = res->body;
+	const uint8_t * end = res->body + res->bodylen;
+	size_t len;
+
+	/* Look for __type. */
+	buf = json_find(buf, end, "__type");
+
+	/*
+	 * We should be pointing at the opening double-quote of a string;
+	 * move past it.
+	 */
+	if (buf[0] != '"')
+		goto bad;
+	buf++;
+
+	/* Find a '#' inside the double-quoted string and move past it. */
+	for ( ; ; buf++) {
+		if ((buf == end) || (buf[0] == '"'))
+			goto bad;
+		if (buf[0] == '#')
+			break;
+	}
+	buf++;
+
+	/* Find a '"' ending the double-quoted string. */
+	for (len = 0; ; len++) {
+		if (&buf[len] == end)
+			goto bad;
+		if (buf[len] == '"')
+			break;
+	}
+
+	/* Duplicate the error string. */
+	if ((*errstr = malloc(len + 1)) == NULL)
+		goto err0;
+	memcpy(*errstr, buf, len);
+	(*errstr)[len] = '\0';
+
+	/* Success! */
+	return (0);
+
+bad:
+	warn0("DynamoDB sent HTTP 400 response without valid error string!");
+	if ((*errstr = strdup("ErrorNotSpecified")) == NULL)
+		goto err0;
+
+	/* We successfully parsed; not our fault DynamoDB gave us garbage. */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /* Clean up an HTTP request. */
 static int
 done_http(struct request * R, int timedout)
@@ -260,7 +296,7 @@ done_http(struct request * R, int timedout)
 				t_end = R->t_start;
 				rc = -1;
 			}
-			if (logreq(Q->logfile, R, NULL, 0.0, t_end))
+			if (logreq(Q->logfile, R, NULL, 0.0, t_end, NULL))
 				rc = -1;
 		}
 	}
@@ -317,6 +353,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 	double treq;
 	int rc = 0;
 	double capacity = 0.0;
+	char * ddberr = NULL;
 
 	/*
 	 * If we have a response body, extract the number of capacity units
@@ -334,6 +371,12 @@ callback_reqdone(void * cookie, struct http_response * res)
 		}
 	}
 
+	/* If we got an HTTP 400 response, extract the DynamoDB error string. */
+	if ((res != NULL) && (res->status == 400)) {
+		if (extracterror(res, &ddberr))
+			rc = -1;
+	}
+
 	/* Figure out how long this request took. */
 	if (monoclock_get(&t_end)) {
 		warnp("monoclock_get");
@@ -343,7 +386,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 
 	/* Optionally log this request. */
 	if (Q->logfile) {
-		if (logreq(Q->logfile, R, res, capacity, t_end))
+		if (logreq(Q->logfile, R, res, capacity, t_end, ddberr))
 			rc = -1;
 	}
 
@@ -356,7 +399,8 @@ callback_reqdone(void * cookie, struct http_response * res)
 		rc = -1;
 
 	/* What should we do with this response? */
-	if ((res != NULL) && (res->status == 400) && isthrottle(res)) {
+	if ((ddberr != NULL) &&
+	    (strcmp(ddberr, "ProvisionedThroughputExceededException") == 0)) {
 		/*
 		 * We hit the throughput limits.  Zero out our estimate of
 		 * the number of tokens in the bucket; we won't send any
@@ -393,9 +437,9 @@ callback_reqdone(void * cookie, struct http_response * res)
 
 		/* Invoke the upstream callback. */
 		if (rc) {
-			(void)(R->callback)(R->cookie, res);
+			(void)(R->callback)(R->cookie, res, ddberr);
 		} else {
-			rc = (R->callback)(R->cookie, res);
+			rc = (R->callback)(R->cookie, res, ddberr);
 		}
 
 		/* Free the request; we're done with it now. */
@@ -419,6 +463,9 @@ callback_reqdone(void * cookie, struct http_response * res)
 	 */
 	if (poke(Q))
 		rc = -1;
+
+	/* Free the DynamoDB error string (if any). */
+	free(ddberr);
 
 	/* Return status from callback, or our own success/failure. */
 	return (rc);
@@ -697,7 +744,8 @@ dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
  * dynamodb_request_queue(Q, prio, op, body, maxrlen, logstr, callback, cookie):
  * Using the DynamoDB request queue ${Q}, queue the DynamoDB request
  * contained in ${body} for the operation ${op}.  Read a response with a body
- * of up to ${maxrlen} bytes and invoke the callback as per dynamodb_request().
+ * of up to ${maxrlen} bytes and invoke the callback with the provided cookie,
+ * the HTTP response, and (for HTTP 400 responses) the DynamoDB error string.
  * The strings ${op} and ${body} must remain valid until the callback is
  * invoked or the queue is flushed.  For accurate rate limiting, on tables
  * with "provisioned" capacity requests must elicit ConsumedCapacity fields
@@ -716,7 +764,8 @@ dynamodb_request_queue_setcapacity(struct dynamodb_request_queue * Q,
 int
 dynamodb_request_queue(struct dynamodb_request_queue * Q, int prio,
     const char * op, const char * body, size_t maxrlen, const char * logstr,
-    int (* callback)(void *, struct http_response *), void * cookie)
+    int (* callback)(void *, struct http_response *, const char *),
+    void * cookie)
 {
 	struct request * R;
 

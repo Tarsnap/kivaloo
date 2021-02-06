@@ -16,10 +16,11 @@ static int done = 0;
 static int inprogress = 0;
 
 static int
-donereq(void * cookie, struct http_response * R)
+donereq(void * cookie, struct http_response * R, const char * err)
 {
 
 	(void)cookie; /* UNUSED */
+	(void)err; /* UNUSED */
 
 	/* This request is over. */
 	if (--inprogress == 0)

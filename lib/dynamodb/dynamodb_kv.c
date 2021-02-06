@@ -66,6 +66,137 @@ done:
 }
 
 /**
+ * dynamodb_kv_icas(table, key, buf, len, buf2, len2):
+ * Construct a DynamoDB request body for an ICAS replacing V=${buf} (of length
+ * ${len}) with V=${buf2} (of length ${len2}), associated with K=${key} in
+ * DynamoDB table ${table}.
+ */
+char *
+dynamodb_kv_icas(const char * table, const char * key,
+    const uint8_t * buf, size_t len, const uint8_t * buf2, size_t len2)
+{
+	/**
+	 * An ICAS is a PutItem request with a body (with spaces added) of:
+	 * { "TableName": "TABLE",
+	 *   "Item": {
+	 *     "K": { "S": "KEY" },
+	 *     "V": { "B": "BASE64NEW" }
+	 *   },
+	 *   "ConditionExpression": "(V = :old) OR (V = :new)",
+	 *   "ExpressionAttributeValues": {
+	 *       ":old": { "B": "BASE64OLD" },
+	 *       ":new": { "B": "BASE64NEW" }
+	 *   },
+	 *   "ReturnConsumedCapacity": "TOTAL"
+	 * }
+	 */
+	const char * s1 = "{\"TableName\":\"";
+	const char * s2 = "\",\"Item\":{\"K\":{\"S\":\"";
+	const char * s3 = "\"},\"V\":{\"B\":\"";
+	const char * s4 = "\"}},\"ConditionExpression\":\"(V=:old)OR(V=:new)\",";
+	const char * s5 = "\"ExpressionAttributeValues\":{\":old\":{\"B\":\"";
+	const char * s6 = "\"},\":new\":{\"B\":\"";
+	const char * s7 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
+	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
+	    strlen(s3) + b64len(len2) + strlen(s4) + strlen(s5) +
+	    b64len(len) + strlen(s6) + b64len(len2) + strlen(s7);
+	size_t spos = 0;
+	char * s;
+
+	/* Allocate request string. */
+	if ((s = malloc(slen + 1)) == NULL)
+		goto done;
+
+	/* Construct the request, piece by piece. */
+	COPYANDINCR(s, spos, s1);
+	COPYANDINCR(s, spos, table);
+	COPYANDINCR(s, spos, s2);
+	COPYANDINCR(s, spos, key);
+	COPYANDINCR(s, spos, s3);
+	b64encode(buf2, &s[spos], len2);
+	spos += b64len(len2);
+	COPYANDINCR(s, spos, s4);
+	COPYANDINCR(s, spos, s5);
+	b64encode(buf, &s[spos], len);
+	spos += b64len(len);
+	COPYANDINCR(s, spos, s6);
+	b64encode(buf2, &s[spos], len2);
+	spos += b64len(len2);
+	COPYANDINCR(s, spos, s7);
+	s[spos] = '\0';
+
+	/* Check that we got the buffer size right. */
+	assert(slen == spos);
+
+done:
+	/* Return string (or NULL if allocation failed). */
+	return (s);
+}
+
+/**
+ * dynamodb_kv_create(table, key, buf, len):
+ * Construct a DynamoDB request body for a PutItem of V=${buf} (of length
+ * ${len}) associated with K=${key} in DynamoDB table ${table}, with a
+ * precondition that the value does not exist or is not changing.
+ */
+char *
+dynamodb_kv_create(const char * table, const char * key,
+    const uint8_t * buf, size_t len)
+{
+	/**
+	 * A CREATE is a PutItem request with a body (with spaces added) of:
+	 * { "TableName": "TABLE",
+	 *   "Item": {
+	 *     "K": { "S": "KEY" },
+	 *     "V": { "B": "BASE64NEW" }
+	 *   },
+	 *   "ConditionExpression": "(attribute_not_exists(V)) OR (V = :new)",
+	 *   "ExpressionAttributeValues": {
+	 *       ":new": { "B": "BASE64NEW" }
+	 *   },
+	 *   "ReturnConsumedCapacity": "TOTAL"
+	 * }
+	 */
+	const char * s1 = "{\"TableName\":\"";
+	const char * s2 = "\",\"Item\":{\"K\":{\"S\":\"";
+	const char * s3 = "\"},\"V\":{\"B\":\"";
+	const char * s4 = "\"}},\"ConditionExpression\":\"(attribute_not_exists(V))OR(V=:new)\",";
+	const char * s5 = "\"ExpressionAttributeValues\":{\":new\":{\"B\":\"";
+	const char * s6 = "\"}},\"ReturnConsumedCapacity\":\"TOTAL\"}";
+	size_t slen = strlen(s1) + strlen(table) + strlen(s2) + strlen(key) +
+	    strlen(s3) + b64len(len) + strlen(s4) + strlen(s5) + b64len(len) +
+	    strlen(s6);
+	size_t spos = 0;
+	char * s;
+
+	/* Allocate request string. */
+	if ((s = malloc(slen + 1)) == NULL)
+		goto done;
+
+	/* Construct the request, piece by piece. */
+	COPYANDINCR(s, spos, s1);
+	COPYANDINCR(s, spos, table);
+	COPYANDINCR(s, spos, s2);
+	COPYANDINCR(s, spos, key);
+	COPYANDINCR(s, spos, s3);
+	b64encode(buf, &s[spos], len);
+	spos += b64len(len);
+	COPYANDINCR(s, spos, s4);
+	COPYANDINCR(s, spos, s5);
+	b64encode(buf, &s[spos], len);
+	spos += b64len(len);
+	COPYANDINCR(s, spos, s6);
+	s[spos] = '\0';
+
+	/* Check that we got the buffer size right. */
+	assert(slen == spos);
+
+done:
+	/* Return string (or NULL if allocation failed). */
+	return (s);
+}
+
+/**
  * dynamodb_kv_get(table, key):
  * Construct a DynamoDB request body for a GetItem associated with K=${key}
  * in DynamoDB table ${table}.

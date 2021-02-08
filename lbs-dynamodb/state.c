@@ -275,8 +275,6 @@ callback_append_put_blks(void * cookie, int status)
 {
 	struct append_cookie * C = cookie;
 	struct state * S = C->S;
-	struct proto_lbs_request * R = C->R;
-	size_t i;
 
 	/* Sanity-check: We should be storing blocks. */
 	assert(C->nblks_left != 0);

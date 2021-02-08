@@ -513,14 +513,14 @@ createmany(struct wire_requestqueue * Q, size_t N)
 		key = kvldskey_create(keybuf, 8);
 		if (proto_kvlds_request_set(Q, key, values[i],
 		    callback_done, NULL))
-			goto err0;
+			goto err1;
 		kvldskey_free(key);
 	}
 
 	/* Wait for SETs to complete. */
 	if (events_spin(&op_done) || op_failed) {
 		warnp("SET request failed");
-		goto err0;
+		goto err1;
 	}
 
 	/* Read the values back and check that they are correct. */
@@ -533,17 +533,17 @@ createmany(struct wire_requestqueue * Q, size_t N)
 		if (proto_kvlds_request_get(Q, key, callback_get,
 		    (void *)(uintptr_t)values[i])) {
 			warnp("Error sending GET request");
-			goto err0;
+			goto err1;
 		}
 		kvldskey_free(key);
 	}
 	if (events_spin(&op_done) || op_failed) {
 		warnp("GET request failed");
-		goto err0;
+		goto err1;
 	}
 	if (op_badval) {
 		warn0("Bad value returned by GET!");
-		goto err0;
+		goto err1;
 	}
 
 	/* Free values. */
@@ -573,6 +573,10 @@ createmany(struct wire_requestqueue * Q, size_t N)
 	/* Success! */
 	return (0);
 
+err1:
+	for (i = 0; i < N; i++)
+		kvldskey_free(values[i]);
+	free(values);
 err0:
 	/* Failure! */
 	return (-1);

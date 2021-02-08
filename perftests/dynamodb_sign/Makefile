@@ -52,7 +52,7 @@ warnp.o: ../../libcperciva/util/warnp.c ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/util/warnp.c -o warnp.o
 sha256.o: ../../libcperciva/alg/sha256.c ../../libcperciva/cpusupport/cpusupport.h ../../cpusupport-config.h ../../libcperciva/util/insecure_memzero.h ../../libcperciva/alg/sha256_shani.h ../../libcperciva/util/sysendian.h ../../libcperciva/util/warnp.h ../../libcperciva/alg/sha256.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/alg/sha256.c -o sha256.o
-sha256_shani.o: ../../libcperciva/alg/sha256_shani.c ../../libcperciva/cpusupport/cpusupport.h ../../cpusupport-config.h
+sha256_shani.o: ../../libcperciva/alg/sha256_shani.c ../../libcperciva/cpusupport/cpusupport.h ../../cpusupport-config.h ../../libcperciva/alg/sha256_shani.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" ${CFLAGS_X86_SHANI} ${CFLAGS_X86_SSSE3} -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/alg/sha256_shani.c -o sha256_shani.o
 aws_readkeys.o: ../../libcperciva/aws/aws_readkeys.c ../../libcperciva/util/insecure_memzero.h ../../libcperciva/util/warnp.h ../../libcperciva/aws/aws_readkeys.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/aws/aws_readkeys.c -o aws_readkeys.o

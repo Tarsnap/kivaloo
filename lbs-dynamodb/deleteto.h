@@ -10,8 +10,7 @@ struct metadata;
 /**
  * deleteto_init(Q_DDBKV, M):
  * Initialize the deleter to operate via the DynamoDB-KV daemon connected to
- * ${Q_DDBKV} and the metadata handler M.  This function may call events_run()
- * internally.
+ * ${Q_DDBKV} and the metadata handler M.
  */
 struct deleteto * deleteto_init(struct wire_requestqueue *,
     struct metadata *);

@@ -180,6 +180,9 @@ bench_mean(struct bench * B)
 	size_t i;
 	uint64_t sum = 0;
 
+	/* Sanity check. */
+	assert(B->num_seconds > 0);
+
 	/* Calculate sum. */
 	for (i = 0; i < B->num_seconds; i++)
 		sum += B->ticks[i];

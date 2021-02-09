@@ -22,7 +22,7 @@ usage(void)
 {
 
 	fprintf(stderr, "usage: kivaloo-lbs-dynamodb -s <lbs socket>"
-	    " -t <dynamodb data socket> -m <dynamodb metadata socket>"
+	    " -t <dynamodb-kv data socket> -m <dynamodb-kv metadata socket>"
 	    " -b <item size> [-1] [-p <pidfile>]\n");
 	fprintf(stderr, "       kivaloo-lbs-dynamodb --version\n");
 	exit(1);

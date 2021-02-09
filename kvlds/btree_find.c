@@ -111,7 +111,10 @@ btree_find_child(struct node * N, const struct kvldskey * k)
 	return (min);
 }
 
-/* Keep looking for a leaf. */
+/*
+ * Keep looking for a leaf.  This function is responsible for ensuring that
+ * C and C->e are freed.
+ */
 static int
 findleaf(void * cookie)
 {
@@ -139,7 +142,7 @@ findleaf(void * cookie)
 		if ((C->e != NULL) && (i < C->N->nkeys)) {
 			kvldskey_free(C->e);
 			if ((C->e = kvldskey_dup(C->N->u.keys[i])) == NULL)
-				goto err0;
+				goto err1;
 		}
 		NP = C->N;
 		C->N = C->N->v.children[i];
@@ -155,7 +158,7 @@ findleaf(void * cookie)
 
 		/* Fetch the child node.  This adds a lock to the parent. */
 		if (btree_node_fetch(C->T, C->N, findleaf, C))
-			goto err0;
+			goto err2;
 
 		/* Release the lock we acquired on the parent node. */
 		btree_node_unlock(C->T, NP);
@@ -175,14 +178,18 @@ findleaf(void * cookie)
 		else
 			rc = (C->callback)(C->cookie, C->N);
 
-		/* Free the cookie. */
+		/* Free the cookie.  C->e was freed by the callback. */
 		mpool_findleaf_free(C);
 
 		/* Return status code from callback. */
 		return (rc);
 	}
 
-err0:
+err2:
+	kvldskey_free(C->e);
+err1:
+	mpool_findleaf_free(C);
+
 	/* Failure! */
 	return (-1);
 }
@@ -215,14 +222,14 @@ btree_find_leaf(struct btree * T, struct node * N, const struct kvldskey * k,
 	btree_node_lock(C->T, C->N);
 
 	/* Call into findleaf. */
-	if (findleaf(C))
-		goto err1;
+	if (findleaf(C)) {
+		/* Upon error, findleaf has already freed C. */
+		goto err0;
+	}
 
 	/* Success! */
 	return (0);
 
-err1:
-	mpool_findleaf_free(C);
 err0:
 	/* Failure! */
 	return (-1);
@@ -263,14 +270,14 @@ btree_find_range(struct btree * T, struct node * N,
 	btree_node_lock(C->T, C->N);
 
 	/* Call into findleaf. */
-	if (findleaf(C))
-		goto err2;
+	if (findleaf(C)) {
+		/* Upon error, findleaf has already freed C->e and C. */
+		goto err0;
+	}
 
 	/* Success! */
 	return (0);
 
-err2:
-	kvldskey_free(C->e);
 err1:
 	mpool_findleaf_free(C);
 err0:

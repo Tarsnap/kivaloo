@@ -35,6 +35,7 @@ SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
 SRCS	+=	hexify.c
 SRCS	+=	insecure_memzero.c
+SRCS	+=	json.c
 SRCS	+=	monoclock.c
 SRCS	+=	sock.c
 SRCS	+=	warnp.c

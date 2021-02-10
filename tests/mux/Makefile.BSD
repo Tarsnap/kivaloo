@@ -83,9 +83,6 @@ IDIRS	+=	-I ${LIB_DIR}/proto_kvlds
 #CFLAGS	+=	-DDEBUG
 #CFLAGS	+=	-pg
 
-cflags-crc32c_sse42.o:
-	@echo '$${CFLAGS_X86_CRC32_64}'
-
 test:	all
 	@/bin/sh test_mux.sh
 

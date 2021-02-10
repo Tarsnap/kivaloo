@@ -81,6 +81,7 @@ callback_readmetadata(void * cookie, struct http_response * res)
 	const uint8_t * end;
 	const uint8_t * capstr;
 	long capr, capw;
+	char * ddberr = NULL;
 
 	/* This request is no longer in progress. */
 	M->http_cookie = NULL;
@@ -90,6 +91,20 @@ callback_readmetadata(void * cookie, struct http_response * res)
 	M->addrs[0] = NULL;
 	free(M->ddbreq);
 	M->ddbreq = NULL;
+
+	/* If we got an HTTP 400 response, warn and bail. */
+	if ((res != NULL) && (res->status == 400)) {
+		if (dynamodb_request_extracterror(res, &ddberr)) {
+			/* Failed to parse. */
+			warn0("dynamodb_request_extracterror failed");
+			goto err0;
+		} else {
+			/* Parsed ok; show error and bail. */
+			warn0("DescribeTable failed: %s", ddberr);
+			free(ddberr);
+			goto err0;
+		}
+	}
 
 	/* If we have a response, pull data out of it. */
 	if ((res != NULL) && (res->body != NULL)) {

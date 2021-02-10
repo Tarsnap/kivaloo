@@ -9,6 +9,13 @@ struct http_response;
 struct sock_addr;
 
 /**
+ * dynamodb_request_extracterror(res, errstr):
+ * Extract a DynamoDB error string from an HTTP 400 response ${res}.
+ * Allocates a new string at ${*errstr}.
+ */
+int dynamodb_request_extracterror(struct http_response *, char **);
+
+/**
  * dynamodb_request(addrs, key_id, key_secret, region, op, body, bodylen,
  *     maxrlen, callback, cookie):
  * Using the AWS Key ID ${key_id} and Secret Access Key ${key_secret}, send

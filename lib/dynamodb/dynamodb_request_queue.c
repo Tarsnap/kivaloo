@@ -226,64 +226,6 @@ err0:
 	return (-1);
 }
 
-/* Extract a DynamoDB error string from an HTTP 400 response. */
-static int
-extracterror(struct http_response * res, char ** errstr)
-{
-	const uint8_t * buf = res->body;
-	const uint8_t * end = res->body + res->bodylen;
-	size_t len;
-
-	/* Look for __type. */
-	buf = json_find(buf, end, "__type");
-
-	/*
-	 * We should be pointing at the opening double-quote of a string;
-	 * move past it.
-	 */
-	if (buf[0] != '"')
-		goto bad;
-	buf++;
-
-	/* Find a '#' inside the double-quoted string and move past it. */
-	for ( ; ; buf++) {
-		if ((buf == end) || (buf[0] == '"'))
-			goto bad;
-		if (buf[0] == '#')
-			break;
-	}
-	buf++;
-
-	/* Find a '"' ending the double-quoted string. */
-	for (len = 0; ; len++) {
-		if (&buf[len] == end)
-			goto bad;
-		if (buf[len] == '"')
-			break;
-	}
-
-	/* Duplicate the error string. */
-	if ((*errstr = malloc(len + 1)) == NULL)
-		goto err0;
-	memcpy(*errstr, buf, len);
-	(*errstr)[len] = '\0';
-
-	/* Success! */
-	return (0);
-
-bad:
-	warn0("DynamoDB sent HTTP 400 response without valid error string!");
-	if ((*errstr = strdup("ErrorNotSpecified")) == NULL)
-		goto err0;
-
-	/* We successfully parsed; not our fault DynamoDB gave us garbage. */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
 /* Clean up an HTTP request. */
 static int
 done_http(struct request * R, int timedout)
@@ -378,7 +320,7 @@ callback_reqdone(void * cookie, struct http_response * res)
 
 	/* If we got an HTTP 400 response, extract the DynamoDB error string. */
 	if ((res != NULL) && (res->status == 400)) {
-		if (extracterror(res, &ddberr))
+		if (dynamodb_request_extracterror(res, &ddberr))
 			rc = -1;
 	}
 

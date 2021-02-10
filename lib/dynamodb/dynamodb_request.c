@@ -1,10 +1,75 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "asprintf.h"
 #include "aws_sign.h"
 #include "http.h"
+#include "json.h"
+#include "warnp.h"
 
 #include "dynamodb_request.h"
+
+/**
+ * dynamodb_request_extracterror(res, errstr):
+ * Extract a DynamoDB error string from an HTTP 400 response ${res}.
+ * Allocates a new string at ${*errstr}.
+ */
+int
+dynamodb_request_extracterror(struct http_response * res, char ** errstr)
+{
+	const uint8_t * buf = res->body;
+	const uint8_t * end = res->body + res->bodylen;
+	size_t len;
+
+	/* Look for __type. */
+	buf = json_find(buf, end, "__type");
+
+	/*
+	 * We should be pointing at the opening double-quote of a string;
+	 * move past it.
+	 */
+	if (buf[0] != '"')
+		goto bad;
+	buf++;
+
+	/* Find a '#' inside the double-quoted string and move past it. */
+	for ( ; ; buf++) {
+		if ((buf == end) || (buf[0] == '"'))
+			goto bad;
+		if (buf[0] == '#')
+			break;
+	}
+	buf++;
+
+	/* Find a '"' ending the double-quoted string. */
+	for (len = 0; ; len++) {
+		if (&buf[len] == end)
+			goto bad;
+		if (buf[len] == '"')
+			break;
+	}
+
+	/* Duplicate the error string. */
+	if ((*errstr = malloc(len + 1)) == NULL)
+		goto err0;
+	memcpy(*errstr, buf, len);
+	(*errstr)[len] = '\0';
+
+	/* Success! */
+	return (0);
+
+bad:
+	warn0("DynamoDB sent HTTP 400 response without valid error string!");
+	if ((*errstr = strdup("ErrorNotSpecified")) == NULL)
+		goto err0;
+
+	/* We successfully parsed; not our fault DynamoDB gave us garbage. */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
 
 /**
  * dynamodb_request(addrs, key_id, key_secret, region, op, body, bodylen,

@@ -3,7 +3,7 @@
 # Paths
 TMPDIR=`pwd`/tmp
 REGION=${REGION:-us-east-1}
-TABLE=kivaloo-testing
+TABLE=${TABLE:-kivaloo-testing}
 AWSKEY=~/.dynamodb/aws.key
 DYNAMODBKV=../../dynamodb-kv/dynamodb-kv
 DDBKVLOG=$TMPDIR/dynamodb-kv.log

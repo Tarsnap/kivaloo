@@ -1,9 +1,9 @@
-LBS-DynamoDB-kv design
-======================
+LBS-DynamoDB design
+===================
 
-The lbs-dynamodb-kv block store is invoked as
+The lbs-dynamodb block store is invoked as
 
-# kivaloo-lbs-dynamodb-kv -s <lbs socket> -t <dynamodb-kv socket>
+# kivaloo-lbs-dynamodb -s <lbs socket> -t <dynamodb-kv socket>
       -b <item size> [-1] [-p <pidfile>]
 
 It creates a socket <lbs socket> on which it listens for incoming connections,
@@ -26,13 +26,13 @@ The other options are:
 NOTE: THE USER MUST ENSURE THAT THERE ARE NEVER TWO LBS-DYNAMODB-KV DAEMONS
 USING THE SAME DYNAMODB TABLE.  Two daemons operating on the same table
 will overwrite each other's data and generally cause utter chaos, and since
-lbs-dynamodb-kv must be able to resume after a crash, there is no way for
+lbs-dynamodb must be able to resume after a crash, there is no way for
 it to "lock" a bucket.
 
 Overview
 --------
 
-LBS-DynamoDB-kv implements an "append multiple blocks" / "read one block" /
+LBS-DynamoDB implements an "append multiple blocks" / "read one block" /
 "delete blocks up to" logging block store on top of Amazon DynamoDB, using
 one DynamoDB item for each block.  Requests are made to DynamoDB via the
 dynamodb-kv daemon; items are expressed as key-value pairs with a string

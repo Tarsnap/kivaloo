@@ -25,6 +25,7 @@ SRCS	+=	disk.c
 
 # CPU features detection
 .PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
+SRCS	+=	cpusupport_arm_crc32_64.c
 SRCS	+=	cpusupport_x86_crc32_64.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
 
@@ -52,6 +53,7 @@ IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	crc32c.c
+SRCS	+=	crc32c_arm.c
 SRCS	+=	crc32c_sse42.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
 

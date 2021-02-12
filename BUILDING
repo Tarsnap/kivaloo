@@ -36,9 +36,12 @@ kivaloo, that info should be saved in a text file with the form:
 - tests/kvlds-ddbkv: you must:
   1) have a ~/.dynamodb/aws.key which contains the access key.
   2) have a unique DynamodDB table name in AWS, with a partition key `K`.
-  3) specify the table name as the TABLE environment variable, for example:
+  3) specify the two table names as the TABLE and TABLEM environment
+     variables, for example:
 
-      $ TABLE=kivaloo-testing-john-smith make test
+      $ TABLE=kivaloo-testing-john-smith \
+        TABLEM=kivaloo-testing-m-john-smith \
+	make test
 
   4) you might be required to specify a REGION environment variable, for
      example:

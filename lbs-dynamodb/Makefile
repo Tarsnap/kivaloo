@@ -44,7 +44,7 @@ state.o: state.c ../libcperciva/events/events.h metadata.h ../lib/proto_dynamodb
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c state.c -o state.o
 deleteto.o: deleteto.c ../libcperciva/events/events.h metadata.h objmap.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/warnp.h deleteto.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c deleteto.c -o deleteto.o
-metadata.o: metadata.c ../libcperciva/util/asprintf.h ../libcperciva/events/events.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h metadata.h
+metadata.o: metadata.c ../libcperciva/events/events.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h metadata.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c metadata.c -o metadata.o
 objmap.o: objmap.c ../libcperciva/util/hexify.h ../libcperciva/util/sysendian.h objmap.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c objmap.c -o objmap.o

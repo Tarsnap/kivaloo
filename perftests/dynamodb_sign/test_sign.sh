@@ -2,8 +2,8 @@
 
 # Paths
 TMPDIR=`pwd`/tmp
-REGION=us-east-1
-TABLE=kivaloo-testing
+REGION=${REGION:-us-east-1}
+TABLE=${TABLE:-kivaloo-testing}
 AWSKEY=~/.dynamodb/aws.key
 
 # If you don't have my AWS keys, you can't run this test.

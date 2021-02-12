@@ -6,6 +6,49 @@ which includes the Software Development Utilities and Threads options.  If it
 doesn't, this is a bug -- please report it!
 
 
+Tests
+-----
+
+Tests involving AWS require additional setup.
+
+First, you must have AWS access keys.  If you use the web console, this is
+under "My Security Credentials"->"Access keys for CLI, SDK, & API access".  For
+kivaloo, that info should be saved in a text file with the form:
+    ACCESS_KEY_ID=...
+    ACCESS_KEY_SECRET=...
+(with no leading spaces)
+
+- tests/s3: you must:
+  1) have a ~/.s3/aws.key file which contains the access key.
+  2) have a unique S3 bucket name in AWS.
+  3) specify the bucket name as the BUCKET environment variable, for example:
+
+      $ BUCKET=kivaloo-test-john-smith make test
+
+  4) you might be required to specify a REGION environment variable, for
+     example:
+
+      $ REGION=us-east-1 make test
+
+     The default region varies based on the test directory, so if in doubt,
+     check test_s3.sh.
+
+- tests/kvlds-ddbkv: you must:
+  1) have a ~/.dynamodb/aws.key which contains the access key.
+  2) have a unique DynamodDB table name in AWS, with a partition key `K`.
+  3) specify the table name as the TABLE environment variable, for example:
+
+      $ TABLE=kivaloo-testing-john-smith make test
+
+  4) you might be required to specify a REGION environment variable, for
+     example:
+
+      $ REGION=us-west-2 make test
+
+     The default region varies based on the test directory, so if in doubt,
+     check test_kvlds.sh.
+
+
 Platform-specific notes
 -----------------------
 

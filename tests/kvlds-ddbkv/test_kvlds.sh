@@ -9,8 +9,8 @@ TMPDIR=`pwd`/tmp
 SOCKDDBKV=$TMPDIR/sock_ddbkv
 SOCKL=$TMPDIR/sock_lbs
 SOCKK=$TMPDIR/sock_kvlds
-REGION=us-east-1
-TABLE=kivaloo-testing
+REGION=${REGION:-us-east-1}
+TABLE=${TABLE:-kivaloo-testing}
 LOGFILE=dynamodb-kv.log
 AWSKEY=~/.dynamodb/aws.key
 

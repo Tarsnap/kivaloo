@@ -78,9 +78,6 @@ IDIRS	+=	-I ${LIB_DIR}/proto_lbs
 #CFLAGS	+=	-DDEBUG
 #CFLAGS	+=	-pg
 
-cflags-crc32c_sse42.o:
-	@echo '$${CFLAGS_X86_CRC32_64}'
-
 test:	all
 	@./test_lbs.sh
 

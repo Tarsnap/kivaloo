@@ -1,5 +1,8 @@
 #include "cpusupport.h"
 #ifdef CPUSUPPORT_X86_CRC32_64
+/**
+ * CPUSUPPORT CFLAGS: X86_CRC32_64
+ */
 
 #include <assert.h>
 #include <smmintrin.h>

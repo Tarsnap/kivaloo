@@ -1,5 +1,8 @@
 #include "cpusupport.h"
 #ifdef CPUSUPPORT_ARM_CRC32_64
+/**
+ * CPUSUPPORT CFLAGS: ARM_CRC32_64
+ */
 
 #ifdef __ARM_ACLE
 #include <arm_acle.h>

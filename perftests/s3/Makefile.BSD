@@ -77,12 +77,6 @@ IDIRS	+=	-I ${LIB_DIR}/s3
 
 CFLAGS	+=	-g
 
-cflags-sha256_shani.o:
-	@echo '$${CFLAGS_X86_SHANI} $${CFLAGS_X86_SSSE3}'
-
-cflags-sha256_sse2.o:
-	@echo '$${CFLAGS_X86_SSE2}'
-
 test:	test_s3
 	./test_s3 ~/.s3/aws.key
 

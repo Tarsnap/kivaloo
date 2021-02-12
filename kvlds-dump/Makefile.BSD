@@ -83,7 +83,4 @@ SRCS	+=	kivaloo.c
 SRCS	+=	kvlds.c
 IDIRS	+=	-I ${LIB_DIR}/util
 
-cflags-crc32c_sse42.o:
-	@echo '$${CFLAGS_X86_CRC32_64}'
-
 .include <bsd.prog.mk>

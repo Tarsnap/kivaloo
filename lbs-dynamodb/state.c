@@ -19,6 +19,7 @@
 /* Internal state structure. */
 struct state {
 	uint32_t blklen;	/* Block size. */
+	uint64_t lastblk;	/* Last block # written. */
 	uint64_t nextblk;	/* Next block # to write. */
 	struct wire_requestqueue * Q;	/* Connected to DDBKV daemon. */
 	struct metadata * M;	/* Metadata handler. */
@@ -36,7 +37,7 @@ struct get_cookie {
 	int consistent;
 };
 
-int callback_append_put_nextblk(void *, int);
+int callback_append_put_nextblk(void *);
 int callback_append_put_blks(void *, int);
 int callback_append_put_finalblk(void *, int);
 
@@ -77,29 +78,30 @@ state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
 	S->npending = 0;
 
 	/* Read "nextblk"; we *might* have written anything prior to here. */
-	if (metadata_nextblk_read(S->M, &S->nextblk))
-		goto err1;
+	S->nextblk = metadata_nextblk_read(S->M);
+	S->lastblk = S->nextblk - 1;
 
 	/* Success! */
 	return (S);
 
-err1:
-	free(S);
 err0:
 	/* Failure! */
 	return (NULL);
 }
 
 /**
- * state_params(S, blklen, nextblk):
- * Return the block size and next block # to write via the provided pointers.
+ * state_params(S, blklen, lastblk, nextblk):
+ * Return the block size, the last stored block #, and next block # to write
+ * via the provided pointers.
  */
 void
-state_params(struct state * S, uint32_t * blklen, uint64_t * nextblk)
+state_params(struct state * S, uint32_t * blklen, uint64_t * lastblk,
+    uint64_t * nextblk)
 {
 
 	/* Extract the requested fields from our internal state. */
 	*blklen = S->blklen;
+	*lastblk = S->lastblk;
 	*nextblk = S->nextblk;
 }
 
@@ -224,6 +226,7 @@ state_append(struct state * S, struct proto_lbs_request * R,
 
 	/* Update nextblk. */
 	S->nextblk += R->r.append.nblks;
+	S->lastblk = S->nextblk - 1;
 	if (metadata_nextblk_write(S->M, S->nextblk,
 	    callback_append_put_nextblk, C))
 		goto err1;
@@ -243,18 +246,12 @@ err0:
 
 /* Callback when "nextblk" has been written. */
 int
-callback_append_put_nextblk(void * cookie, int status)
+callback_append_put_nextblk(void * cookie)
 {
 	struct append_cookie * C = cookie;
 	struct state * S = C->S;
 	struct proto_lbs_request * R = C->R;
 	size_t i;
-
-	/* Failures are bad. */
-	if (status) {
-		warn0("DynamoDB-KV failed storing \"nextblk\"");
-		goto err0;
-	}
 
 	/* Store all the blocks except the last one. */
 	for (i = 0; i + 1 < R->r.append.nblks; i++) {

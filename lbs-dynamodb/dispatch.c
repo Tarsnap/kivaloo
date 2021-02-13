@@ -70,6 +70,7 @@ gotrequest(void * cookie, int status)
 	struct dispatch_state * D = cookie;
 	struct proto_lbs_request * R;
 	uint32_t blklen;
+	uint64_t lastblk;
 	uint64_t nextblk;
 
 	/* We're no longer waiting for a packet to arrive. */
@@ -102,9 +103,9 @@ gotrequest(void * cookie, int status)
 		case PROTO_LBS_PARAMS2:
 			if (D->appendip != 0)
 				goto drop1;
-			state_params(D->S, &blklen, &nextblk);
+			state_params(D->S, &blklen, &lastblk, &nextblk);
 			if (proto_lbs_response_params2(D->writeq, R->ID,
-			    blklen, nextblk, nextblk - 1))
+			    blklen, nextblk, lastblk))
 				goto err1;
 			free(R);
 			break;
@@ -114,7 +115,7 @@ gotrequest(void * cookie, int status)
 				goto err1;
 			break;
 		case PROTO_LBS_APPEND:
-			state_params(D->S, &blklen, &nextblk);
+			state_params(D->S, &blklen, &lastblk, &nextblk);
 			if (R->r.append.blklen != blklen)
 				goto drop2;
 			if ((R->r.append.blkno != nextblk) ||

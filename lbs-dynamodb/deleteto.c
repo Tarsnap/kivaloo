@@ -21,6 +21,7 @@ struct deleteto {
 	int shutdown;		/* Everything is done. */
 };
 
+static int callback_poke(void *);
 static int callback_done(void *, int);
 
 /**
@@ -45,14 +46,11 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
 	D->shutdown = 0;
 
 	/* Read "DeletedTo" into M. */
-	if (metadata_deletedto_read(D->MD, &D->M))
-		goto err1;
+	D->M = metadata_deletedto_read(D->MD);
 
 	/* Success! */
 	return (D);
 
-err1:
-	free(D);
 err0:
 	/* Failure! */
 	return (NULL);
@@ -72,7 +70,7 @@ poke(struct deleteto * D)
 	 * progress, we're guaranteed to have deleted everything below M.
 	 */
 	if (D->updateDeletedTo) {
-		if (metadata_deletedto_write(D->MD, D->M, callback_done, D))
+		if (metadata_deletedto_write(D->MD, D->M, callback_poke, D))
 			goto err0;
 		D->npending++;
 		D->updateDeletedTo = 0;
@@ -139,6 +137,22 @@ callback_done(void * cookie, int status)
 err0:
 	/* Failure! */
 	return (-1);
+}
+
+/* The deletedto metadata value has been updated. */
+static int
+callback_poke(void * cookie)
+{
+	struct deleteto * D = cookie;
+
+	/* Sanity-check. */
+	assert(D->npending > 0);
+
+	/* We've finished an operation. */
+	D->npending -= 1;
+
+	/* Check what we should do next. */
+	return (poke(D));
 }
 
 /**

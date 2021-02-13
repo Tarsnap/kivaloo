@@ -31,7 +31,7 @@ mkdir $TMPDIR
 $DDBKV -1 -s $SOCKDDBKV -r $REGION -t $TABLE -k $AWSKEY -l $LOGFILE
 $DDBKV -1 -s $SOCKDDBKVM -r $REGION -t $TABLEM -k $AWSKEY -l $LOGFILEM
 
-# Start LBS
+# Start LBS (the small block size should have more nodes being paged in/out)
 $LBS -1 -s $SOCKL -t $SOCKDDBKV -m $SOCKDDBKVM -b 512
 
 # Start KVLDS (the small number of pages should trigger evictions)

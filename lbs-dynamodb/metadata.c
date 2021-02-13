@@ -9,15 +9,22 @@
 
 #include "metadata.h"
 
-/* Internal state. */
-struct metadata {
-	struct wire_requestqueue * Q;
+/* Metadata tuple. */
+struct mtuple {
 	uint64_t nextblk;
 	uint64_t deletedto;
 	uint64_t generation;
-	int (* callback_nextblk)(void *, int);
+};
+
+/* Internal state. */
+struct metadata {
+	struct wire_requestqueue * Q;
+	struct mtuple M_stored;
+	struct mtuple M_storing;
+	struct mtuple M_latest;
+	int (* callback_nextblk)(void *);
 	void * cookie_nextblk;
-	int (* callback_deletedto)(void *, int);
+	int (* callback_deletedto)(void *);
 	void * cookie_deletedto;
 	int callbacks;
 #define CB_NEXTBLK 1
@@ -112,13 +119,16 @@ writemetadata(struct metadata * M)
 		M->timer_cookie = NULL;
 	}
 
-	/* Increment metadata generation. */
-	M->generation++;
+	/* We're going to store the latest metadata values. */
+	M->M_storing = M->M_latest;
+
+	/* Increment metadata generation for the next metadata stored. */
+	M->M_latest.generation++;
 
 	/* Encode metadata. */
-	be64enc(&buf[0], M->nextblk);
-	be64enc(&buf[8], M->deletedto);
-	be64enc(&buf[16], M->generation);
+	be64enc(&buf[0], M->M_storing.nextblk);
+	be64enc(&buf[8], M->M_storing.deletedto);
+	be64enc(&buf[16], M->M_storing.generation);
 
 	/* Record which callbacks to perform later. */
 	if (M->callback_nextblk)
@@ -143,10 +153,19 @@ static int
 callback_writemetadata(void * _M, int status)
 {
 	struct metadata * M = _M;
-	int (* callback)(void *, int);
+	int (* callback)(void *);
 	void * cookie;
 	int rc = 0;
 	int rc2;
+
+	/* If we failed to write metadata, something went very wrong. */
+	if (status) {
+		warn0("Failed to store metadata to DynamoDB!");
+		goto err0;
+	}
+
+	/* The values we were storing have now been stored. */
+	M->M_stored = M->M_storing;
 
 	/* Perform callbacks as appropriate. */
 	if (M->callbacks & CB_NEXTBLK) {
@@ -154,7 +173,7 @@ callback_writemetadata(void * _M, int status)
 		cookie = M->cookie_nextblk;
 		M->callback_nextblk = NULL;
 		M->cookie_nextblk = NULL;
-		if ((rc2 = (callback)(cookie, status)) != 0)
+		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
 	if (M->callbacks & CB_DELETEDTO) {
@@ -162,7 +181,7 @@ callback_writemetadata(void * _M, int status)
 		cookie = M->cookie_deletedto;
 		M->callback_deletedto = NULL;
 		M->cookie_deletedto = NULL;
-		if ((rc2 = (callback)(cookie, status)) != 0)
+		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
 
@@ -181,6 +200,10 @@ callback_writemetadata(void * _M, int status)
 
 	/* Return status from callbacks or writemetadata. */
 	return (rc);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 static int
@@ -224,9 +247,13 @@ metadata_init(struct wire_requestqueue * Q)
 	/* Read metadata. */
 	if (readmetadata(Q, &R))
 		goto err1;
-	M->nextblk = R.nextblk;
-	M->deletedto = R.deletedto;
-	M->generation = R.generation;
+	M->M_stored.nextblk = R.nextblk;
+	M->M_stored.deletedto = R.deletedto;
+	M->M_stored.generation = R.generation;
+
+	/* The next metadata will be the same except one higher generation. */
+	M->M_latest = M->M_stored;
+	M->M_latest.generation++;
 
 	/* Nothing in progress yet. */
 	M->callback_nextblk = NULL;
@@ -247,17 +274,15 @@ err0:
 }
 
 /**
- * metadata_nextblk_read(M, nextblk):
- * Read the "nextblk" value.
+ * metadata_nextblk_read(M):
+ * Return the "nextblk" value.
  */
-int
-metadata_nextblk_read(struct metadata * M, uint64_t * nextblk)
+uint64_t
+metadata_nextblk_read(struct metadata * M)
 {
 
-	*nextblk = M->nextblk;
-
-	/* Success! */
-	return (0);
+	/* Return currently stored value. */
+	return (M->M_stored.nextblk);
 }
 
 /**
@@ -266,14 +291,14 @@ metadata_nextblk_read(struct metadata * M, uint64_t * nextblk)
  */
 int
 metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
-    int (*callback)(void *, int), void * cookie)
+    int (*callback)(void *), void * cookie)
 {
 
 	/* We shouldn't be storing nextblk already. */
 	assert(M->callback_nextblk == NULL);
 
 	/* Record the new value and callback parameters. */
-	M->nextblk = nextblk;
+	M->M_latest.nextblk = nextblk;
 	M->callback_nextblk = callback;
 	M->cookie_nextblk = cookie;
 
@@ -292,17 +317,15 @@ err0:
 }
 
 /**
- * metadata_deletedto_read(M, deletedto):
- * Read the "deletedto" value.
+ * metadata_deletedto_read(M):
+ * Return the "deletedto" value.
  */
-int
-metadata_deletedto_read(struct metadata * M, uint64_t * deletedto)
+uint64_t
+metadata_deletedto_read(struct metadata * M)
 {
 
-	*deletedto = M->deletedto;
-
-	/* Success! */
-	return (0);
+	/* Return currently stored value. */
+	return (M->M_stored.deletedto);
 }
 
 /**
@@ -311,14 +334,14 @@ metadata_deletedto_read(struct metadata * M, uint64_t * deletedto)
  */
 int
 metadata_deletedto_write(struct metadata * M, uint64_t deletedto,
-    int (*callback)(void *, int), void * cookie)
+    int (*callback)(void *), void * cookie)
 {
 
 	/* We shouldn't be storing deletedto already. */
 	assert(M->callback_deletedto == NULL);
 
 	/* Record the new value and callback parameters. */
-	M->deletedto = deletedto;
+	M->M_latest.deletedto = deletedto;
 	M->callback_deletedto = callback;
 	M->cookie_deletedto = cookie;
 

@@ -22,12 +22,12 @@ struct metadata {
 	struct mtuple M_stored;
 	struct mtuple M_storing;
 	struct mtuple M_latest;
-	int (* callback_nextblk)(void *);
-	void * cookie_nextblk;
+	int (* callback_state)(void *);
+	void * cookie_state;
 	int (* callback_deletedto)(void *);
 	void * cookie_deletedto;
 	int callbacks;
-#define CB_NEXTBLK 1
+#define CB_STATE 1
 #define CB_DELETEDTO 2
 	void * timer_cookie;
 };
@@ -131,8 +131,8 @@ writemetadata(struct metadata * M)
 	be64enc(&buf[16], M->M_storing.generation);
 
 	/* Record which callbacks to perform later. */
-	if (M->callback_nextblk)
-		M->callbacks += CB_NEXTBLK;
+	if (M->callback_state)
+		M->callbacks += CB_STATE;
 	if (M->callback_deletedto)
 		M->callbacks += CB_DELETEDTO;
 
@@ -168,11 +168,11 @@ callback_writemetadata(void * _M, int status)
 	M->M_stored = M->M_storing;
 
 	/* Perform callbacks as appropriate. */
-	if (M->callbacks & CB_NEXTBLK) {
-		callback = M->callback_nextblk;
-		cookie = M->cookie_nextblk;
-		M->callback_nextblk = NULL;
-		M->cookie_nextblk = NULL;
+	if (M->callbacks & CB_STATE) {
+		callback = M->callback_state;
+		cookie = M->cookie_state;
+		M->callback_state = NULL;
+		M->cookie_state = NULL;
 		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
@@ -192,7 +192,7 @@ callback_writemetadata(void * _M, int status)
 	 * Start another write if we have a new value of nextblk, or if we
 	 * have a new value of deletedto and the timer has expired.
 	 */
-	if ((M->callback_nextblk != NULL) ||
+	if ((M->callback_state != NULL) ||
 	    ((M->callback_deletedto != NULL) && (M->timer_cookie == NULL))) {
 		if ((rc2 = writemetadata(M)) != 0)
 			rc = rc2;
@@ -256,8 +256,8 @@ metadata_init(struct wire_requestqueue * Q)
 	M->M_latest.generation++;
 
 	/* Nothing in progress yet. */
-	M->callback_nextblk = NULL;
-	M->cookie_nextblk = NULL;
+	M->callback_state = NULL;
+	M->cookie_state = NULL;
 	M->callback_deletedto = NULL;
 	M->cookie_deletedto = NULL;
 	M->callbacks = 0;
@@ -295,12 +295,12 @@ metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
 {
 
 	/* We shouldn't be storing nextblk already. */
-	assert(M->callback_nextblk == NULL);
+	assert(M->callback_state == NULL);
 
 	/* Record the new value and callback parameters. */
 	M->M_latest.nextblk = nextblk;
-	M->callback_nextblk = callback;
-	M->cookie_nextblk = cookie;
+	M->callback_state = callback;
+	M->cookie_state = cookie;
 
 	/* Write metadata if a write is not already in progress. */
 	if (M->callbacks == 0) {
@@ -371,7 +371,7 @@ metadata_free(struct metadata * M)
 		return;
 
 	/* We shouldn't have any updates or callbacks in flight. */
-	assert(M->callback_nextblk == NULL);
+	assert(M->callback_state == NULL);
 	assert(M->callback_deletedto == NULL);
 	assert(M->timer_cookie == NULL);
 

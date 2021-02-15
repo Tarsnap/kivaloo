@@ -6,6 +6,7 @@
 #include "events.h"
 #include "kivaloo.h"
 #include "kvldskey.h"
+#include "parsenum.h"
 #include "proto_kvlds.h"
 #include "sysendian.h"
 #include "warnp.h"
@@ -587,13 +588,23 @@ main(int argc, char * argv[])
 {
 	struct wire_requestqueue * Q;
 	struct kivaloo_cookie * K;
+	size_t num_pairs = 40000;
 
 	WARNP_INIT;
 
 	/* Check number of arguments. */
-	if (argc != 2) {
-		fprintf(stderr, "usage: test_kvlds %s\n", "<socketname>");
+	if ((argc != 2) && (argc != 3)) {
+		fprintf(stderr, "usage: test_kvlds %s %s\n", "<socketname>",
+		    "[num_pairs]");
 		exit(1);
+	}
+
+	/* Override the default number of pairs to test. */
+	if (argc == 3) {
+		if (PARSENUM(&num_pairs, argv[2])) {
+			warnp("parsnum");
+			exit(1);
+		}
 	}
 
 	/* Open a connection to KVLDS. */
@@ -610,8 +621,8 @@ main(int argc, char * argv[])
 	if (mutate(Q))
 		exit(1);
 
-	/* Test creating 40000 key-value pairs and reading them back. */
-	if (createmany(Q, 40000))
+	/* Test creating key-value pairs and reading them back. */
+	if (createmany(Q, num_pairs))
 		exit(1);
 
 	/* Free the request queue and network connection. */

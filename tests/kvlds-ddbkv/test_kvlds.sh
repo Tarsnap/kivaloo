@@ -13,6 +13,7 @@ SOCKK=$TMPDIR/sock_kvlds
 REGION=${REGION:-us-east-1}
 TABLE=${TABLE:-kivaloo-testing}
 TABLEM=${TABLEM:-kivaloo-testing-m}
+NUM_PAIRS=${NUM_PAIRS:-40000}
 LOGFILE=dynamodb-kv.log
 LOGFILEM=dynamodb-kv-m.log
 AWSKEY=~/.dynamodb/aws.key
@@ -39,7 +40,7 @@ $KVLDS -s $SOCKK -l $SOCKL -v 104 -k 40 -C 1024
 
 # Test basic operations
 printf "Testing KVLDS operations against LBS-DDBKV... "
-if $TESTKVLDS $SOCKK; then
+if $TESTKVLDS $SOCKK $NUM_PAIRS; then
 	echo " PASSED!"
 else
 	echo " FAILED!"

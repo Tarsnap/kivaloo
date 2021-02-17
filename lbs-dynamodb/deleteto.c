@@ -28,6 +28,7 @@ struct deleteto {
 	struct metadata * MD;
 	uint64_t N;		/* Delete objects below this number. */
 	uint64_t M;		/* We've issued deletes up to this number. */
+	uint64_t flushed;	/* Value when we last flushed metadata. */
 	size_t npending;	/* DELETE operations in progress. */
 	int shuttingdown;	/* Stop issuing DELETEs. */
 	int shutdown;		/* Everything is done. */
@@ -54,6 +55,7 @@ deleteto_init(struct wire_requestqueue * Q_DDBKV, struct metadata * M)
 	D->Q = Q_DDBKV;
 	D->MD = M;
 	D->N = 0;
+	D->flushed = 0;
 	D->npending = 0;
 	D->shuttingdown = 0;
 	D->shutdown = 0;
@@ -87,20 +89,31 @@ poke(void * cookie)
 		deletedto = D->ip_head->N;
 	else
 		deletedto = D->M;
-	if (metadata_deletedto_write(D->MD, deletedto))
-		goto err0;
+	metadata_deletedto_write(D->MD, deletedto);
 
 	/* Are we waiting to shut down? */
 	if (D->shuttingdown) {
-		/*
-		 * If there's no deletes in progress and the metadata is up to
-		 * date with how far we've deleted, we're done.
-		 */
-		if ((D->npending == 0) &&
-		    (metadata_deletedto_read(D->MD) == deletedto))
-			D->shutdown = 1;
+		/* If there are deletes in progress, we're not done yet. */
+		if (D->npending != 0)
+			return (0);
 
-		/* Either way, return without sending any more. */
+		/*
+		 * If the metadata is up to date with how far we've deleted,
+		 * we're done.
+		 */
+		if (metadata_deletedto_read(D->MD) == deletedto) {
+			D->shutdown = 1;
+			return (0);
+		}
+
+		/* If we haven't requested a metadata flush, ask for one now. */
+		if (D->shuttingdown == 1) {
+			if (metadata_flush(D->MD))
+				goto err0;
+			D->shuttingdown = 2;
+		}
+
+		/* Either way, return without issuing any more deletes. */
 		return (0);
 	}
 
@@ -129,6 +142,20 @@ poke(void * cookie)
 
 		/* We've issued deletes for everything under one more. */
 		D->M++;
+	}
+
+	/*
+	 * If the stored deletedto value is far behind, ask for a flush.  Under
+	 * normal circumstances this won't be necessary as the metadata will be
+	 * flushed frequently enough in response to data being written; this
+	 * will only kick in if writes are quiescent and we're catching up on a
+	 * large backlog of deletes.
+	 */
+	if ((deletedto - metadata_deletedto_read(D->MD) > MAXUNRECORDED / 2) &&
+	    (deletedto - D->flushed > MAXUNRECORDED / 4)) {
+		D->flushed = deletedto;
+		if (metadata_flush(D->MD))
+			goto err0;
 	}
 
 	/* Success! */

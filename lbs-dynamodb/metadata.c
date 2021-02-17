@@ -27,7 +27,6 @@ struct metadata {
 	struct mtuple M_latest;
 	int (* callback_deletedto)(void *);
 	void * cookie_deletedto;
-	void * timer_cookie;
 	int write_inprogress;
 	int write_wanted;
 };
@@ -126,12 +125,6 @@ writemetadata(struct metadata * M)
 	M->write_inprogress = 1;
 	M->write_wanted = 0;
 
-	/* If we have a timer in progress, cancel it. */
-	if (M->timer_cookie != NULL) {
-		events_timer_cancel(M->timer_cookie);
-		M->timer_cookie = NULL;
-	}
-
 	/* We're going to store the latest metadata values. */
 	M->M_storing = M->M_latest;
 
@@ -212,26 +205,6 @@ err0:
 	return (-1);
 }
 
-static int
-callback_timer(void * cookie)
-{
-	struct metadata * M = cookie;
-
-	/* This callback is no longer pending. */
-	M->timer_cookie = NULL;
-
-	/* We want to write metadata as soon as possible. */
-	if (writemetadata(M))
-		goto err0;
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
 /**
  * metadata_init(Q):
  * Prepare for metadata operations using the queue ${Q}.  This function may
@@ -265,7 +238,6 @@ metadata_init(struct wire_requestqueue * Q)
 	M->M_latest.cookie_state = NULL;
 	M->callback_deletedto = NULL;
 	M->cookie_deletedto = NULL;
-	M->timer_cookie = NULL;
 	M->write_inprogress = 0;
 	M->write_wanted = 0;
 
@@ -377,29 +349,12 @@ metadata_deletedto_read(struct metadata * M)
  * metadata_deletedto_write(M, deletedto, callback, cookie):
  * Store "deletedto" value.
  */
-int
+void
 metadata_deletedto_write(struct metadata * M, uint64_t deletedto)
 {
 
-	/* If we already have the value in question, don't do anything. */
-	if (M->M_latest.deletedto == deletedto)
-		return (0);
-
-	/* Record the new value and callback parameters. */
+	/* Record the new value. */
 	M->M_latest.deletedto = deletedto;
-
-	/* Write metadata in 1 second if not triggered previously. */
-	if ((M->timer_cookie == NULL) &&
-	    (M->timer_cookie =
-	    events_timer_register_double(callback_timer, M, 1.0)) == NULL)
-		goto err0;
-
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
 }
 
 /**
@@ -420,6 +375,18 @@ metadata_deletedto_register(struct metadata * M,
 }
 
 /**
+ * metadata_flush(M):
+ * Trigger a flush of pending metadata updates.
+ */
+int
+metadata_flush(struct metadata * M)
+{
+
+	/* We want to write metadata as soon as possible. */
+	return (writemetadata(M));
+}
+
+/**
  * metadata_free(M):
  * Stop metadata operations.
  */
@@ -434,7 +401,6 @@ metadata_free(struct metadata * M)
 	/* We shouldn't have any updates or callbacks in flight. */
 	assert(M->M_latest.callback_state == NULL);
 	assert(M->callback_deletedto == NULL);
-	assert(M->timer_cookie == NULL);
 
 	/* Free our structure. */
 	free(M);

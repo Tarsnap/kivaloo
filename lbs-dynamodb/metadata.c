@@ -14,6 +14,9 @@ struct mtuple {
 	uint64_t nextblk;
 	uint64_t deletedto;
 	uint64_t generation;
+	uint64_t lastblk;
+	int (* callback_state)(void *);
+	void * cookie_state;
 };
 
 /* Internal state. */
@@ -22,14 +25,10 @@ struct metadata {
 	struct mtuple M_stored;
 	struct mtuple M_storing;
 	struct mtuple M_latest;
-	int (* callback_nextblk)(void *);
-	void * cookie_nextblk;
 	int (* callback_deletedto)(void *);
 	void * cookie_deletedto;
-	int callbacks;
-#define CB_NEXTBLK 1
-#define CB_DELETEDTO 2
-	void * timer_cookie;
+	int write_inprogress;
+	int write_wanted;
 };
 
 static int callback_readmetadata(void *, int, const uint8_t *, size_t);
@@ -40,6 +39,7 @@ struct readmetadata {
 	uint64_t nextblk;
 	uint64_t deletedto;
 	uint64_t generation;
+	uint64_t lastblk;
 	int done;
 };
 
@@ -83,11 +83,12 @@ callback_readmetadata(void * cookie, int status,
 		R->nextblk = 0;
 		R->deletedto = 0;
 		R->generation = 0;
+		R->lastblk = (uint64_t)(-1);
 		goto done;
 	}
 
-	/* We should have 24 bytes. */
-	if (len != 24) {
+	/* We should have 32 bytes. */
+	if (len != 32) {
 		warn0("metadata has incorrect size: %zu", len);
 		goto err0;
 	}
@@ -96,6 +97,7 @@ callback_readmetadata(void * cookie, int status,
 	R->nextblk = be64dec(&buf[0]);
 	R->deletedto = be64dec(&buf[8]);
 	R->generation = be64dec(&buf[16]);
+	R->lastblk = be64dec(&buf[24]);
 
 done:
 	R->done = 1;
@@ -111,16 +113,23 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
-	uint8_t buf[24];
+	uint8_t buf[32];
 
-	/* If we have a timer in progress, cancel it. */
-	if (M->timer_cookie != NULL) {
-		events_timer_cancel(M->timer_cookie);
-		M->timer_cookie = NULL;
+	/* Is a write already in progress? */
+	if (M->write_inprogress == 1) {
+		M->write_wanted = 1;
+		return (0);
 	}
+
+	/* We're going to start a write now. */
+	M->write_inprogress = 1;
+	M->write_wanted = 0;
 
 	/* We're going to store the latest metadata values. */
 	M->M_storing = M->M_latest;
+
+	/* The requested callback will be performed when the store completes. */
+	M->M_latest.callback_state = NULL;
 
 	/* Increment metadata generation for the next metadata stored. */
 	M->M_latest.generation++;
@@ -129,15 +138,10 @@ writemetadata(struct metadata * M)
 	be64enc(&buf[0], M->M_storing.nextblk);
 	be64enc(&buf[8], M->M_storing.deletedto);
 	be64enc(&buf[16], M->M_storing.generation);
-
-	/* Record which callbacks to perform later. */
-	if (M->callback_nextblk)
-		M->callbacks += CB_NEXTBLK;
-	if (M->callback_deletedto)
-		M->callbacks += CB_DELETEDTO;
+	be64enc(&buf[24], M->M_storing.lastblk);
 
 	/* Write metadata. */
-	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 24,
+	if (proto_dynamodb_kv_request_put(M->Q, "metadata", buf, 32,
 	    callback_writemetadata, M))
 		goto err0;
 
@@ -158,70 +162,43 @@ callback_writemetadata(void * _M, int status)
 	int rc = 0;
 	int rc2;
 
+	/* Sanity-check. */
+	assert(M->write_inprogress);
+
 	/* If we failed to write metadata, something went very wrong. */
 	if (status) {
 		warn0("Failed to store metadata to DynamoDB!");
 		goto err0;
 	}
 
+	/* We're no longer storing metadata. */
+	M->write_inprogress = 0;
+
 	/* The values we were storing have now been stored. */
 	M->M_stored = M->M_storing;
 
 	/* Perform callbacks as appropriate. */
-	if (M->callbacks & CB_NEXTBLK) {
-		callback = M->callback_nextblk;
-		cookie = M->cookie_nextblk;
-		M->callback_nextblk = NULL;
-		M->cookie_nextblk = NULL;
+	if (M->M_stored.callback_state != NULL) {
+		callback = M->M_stored.callback_state;
+		cookie = M->M_stored.cookie_state;
 		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
-	if (M->callbacks & CB_DELETEDTO) {
+	if (M->callback_deletedto != NULL) {
 		callback = M->callback_deletedto;
 		cookie = M->cookie_deletedto;
-		M->callback_deletedto = NULL;
-		M->cookie_deletedto = NULL;
 		if ((rc2 = (callback)(cookie)) != 0)
 			rc = rc2;
 	}
 
-	/* All callbacks have been performed. */
-	M->callbacks = 0;
-
-	/*
-	 * Start another write if we have a new value of nextblk, or if we
-	 * have a new value of deletedto and the timer has expired.
-	 */
-	if ((M->callback_nextblk != NULL) ||
-	    ((M->callback_deletedto != NULL) && (M->timer_cookie == NULL))) {
+	/* Start another write if needed. */
+	if (M->write_wanted) {
 		if ((rc2 = writemetadata(M)) != 0)
 			rc = rc2;
 	}
 
 	/* Return status from callbacks or writemetadata. */
 	return (rc);
-
-err0:
-	/* Failure! */
-	return (-1);
-}
-
-static int
-callback_timer(void * cookie)
-{
-	struct metadata * M = cookie;
-
-	/* This callback is no longer pending. */
-	M->timer_cookie = NULL;
-
-	/* Write metadata if a write is not already in progress. */
-	if (M->callbacks == 0) {
-		if (writemetadata(M))
-			goto err0;
-	}
-
-	/* Success! */
-	return (0);
 
 err0:
 	/* Failure! */
@@ -250,18 +227,19 @@ metadata_init(struct wire_requestqueue * Q)
 	M->M_stored.nextblk = R.nextblk;
 	M->M_stored.deletedto = R.deletedto;
 	M->M_stored.generation = R.generation;
+	M->M_stored.lastblk = R.lastblk;
 
 	/* The next metadata will be the same except one higher generation. */
 	M->M_latest = M->M_stored;
 	M->M_latest.generation++;
 
 	/* Nothing in progress yet. */
-	M->callback_nextblk = NULL;
-	M->cookie_nextblk = NULL;
+	M->M_latest.callback_state = NULL;
+	M->M_latest.cookie_state = NULL;
 	M->callback_deletedto = NULL;
 	M->cookie_deletedto = NULL;
-	M->callbacks = 0;
-	M->timer_cookie = NULL;
+	M->write_inprogress = 0;
+	M->write_wanted = 0;
 
 	/* Success! */
 	return (M);
@@ -294,19 +272,58 @@ metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
     int (*callback)(void *), void * cookie)
 {
 
-	/* We shouldn't be storing nextblk already. */
-	assert(M->callback_nextblk == NULL);
+	/* We shouldn't have a callback already. */
+	assert(M->M_latest.callback_state == NULL);
 
 	/* Record the new value and callback parameters. */
 	M->M_latest.nextblk = nextblk;
-	M->callback_nextblk = callback;
-	M->cookie_nextblk = cookie;
+	M->M_latest.callback_state = callback;
+	M->M_latest.cookie_state = cookie;
 
-	/* Write metadata if a write is not already in progress. */
-	if (M->callbacks == 0) {
-		if (writemetadata(M))
-			goto err0;
-	}
+	/* We want to write metadata as soon as possible. */
+	if (writemetadata(M))
+		goto err0;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+/**
+ * metadata_lastblk_read(M):
+ * Return the "lastblk" value.
+ */
+uint64_t
+metadata_lastblk_read(struct metadata * M)
+{
+
+	/* Return currently stored value. */
+	return (M->M_stored.lastblk);
+}
+
+/**
+ * metadata_lastblk_write(M, lastblk, callback, cookie):
+ * Store "lastblk" value.  Invoke ${callback}(${cookie}) on success.
+ */
+int
+metadata_lastblk_write(struct metadata * M, uint64_t lastblk,
+    int (*callback)(void *), void * cookie)
+{
+
+	/* We shouldn't have a callback already. */
+	assert(M->M_latest.callback_state == NULL);
+
+	/* Record the new value and callback parameters. */
+	M->M_latest.lastblk = lastblk;
+	M->M_latest.callback_state = callback;
+	M->M_latest.cookie_state = cookie;
+
+	/* We want to write metadata as soon as possible. */
+	if (writemetadata(M))
+		goto err0;
 
 	/* Success! */
 	return (0);
@@ -330,32 +347,43 @@ metadata_deletedto_read(struct metadata * M)
 
 /**
  * metadata_deletedto_write(M, deletedto, callback, cookie):
- * Store "deletedto" value.  Invoke ${callback}(${cookie}) on success.
+ * Store "deletedto" value.
  */
-int
-metadata_deletedto_write(struct metadata * M, uint64_t deletedto,
+void
+metadata_deletedto_write(struct metadata * M, uint64_t deletedto)
+{
+
+	/* Record the new value. */
+	M->M_latest.deletedto = deletedto;
+}
+
+/**
+ * metadata_deletedto_register(M, callback, cookie):
+ * Register ${callback}(${cookie}) to be called every time metadata is stored.
+ * This API exists for the benefit of the deletedto code; only one callback can
+ * be registered in this manner at once, and the callback must be reset to NULL
+ * before metadata_free is called.
+ */
+void
+metadata_deletedto_register(struct metadata * M,
     int (*callback)(void *), void * cookie)
 {
 
-	/* We shouldn't be storing deletedto already. */
-	assert(M->callback_deletedto == NULL);
-
-	/* Record the new value and callback parameters. */
-	M->M_latest.deletedto = deletedto;
+	/* Record the callback and cookie. */
 	M->callback_deletedto = callback;
 	M->cookie_deletedto = cookie;
+}
 
-	/* Write metadata in 1 second if not triggered previously. */
-	if ((M->timer_cookie =
-	    events_timer_register_double(callback_timer, M, 1.0)) == NULL)
-		goto err0;
+/**
+ * metadata_flush(M):
+ * Trigger a flush of pending metadata updates.
+ */
+int
+metadata_flush(struct metadata * M)
+{
 
-	/* Success! */
-	return (0);
-
-err0:
-	/* Failure! */
-	return (-1);
+	/* We want to write metadata as soon as possible. */
+	return (writemetadata(M));
 }
 
 /**
@@ -371,9 +399,8 @@ metadata_free(struct metadata * M)
 		return;
 
 	/* We shouldn't have any updates or callbacks in flight. */
-	assert(M->callback_nextblk == NULL);
+	assert(M->M_latest.callback_state == NULL);
 	assert(M->callback_deletedto == NULL);
-	assert(M->timer_cookie == NULL);
 
 	/* Free our structure. */
 	free(M);

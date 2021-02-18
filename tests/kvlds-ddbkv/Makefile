@@ -36,7 +36,7 @@ clean:
 ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
-main.o: ../kvlds/main.c ../../libcperciva/events/events.h ../../lib/util/kivaloo.h ../../lib/datastruct/kvldskey.h ../../libcperciva/util/ctassert.h ../../lib/proto_kvlds/proto_kvlds.h ../../libcperciva/util/sysendian.h ../../libcperciva/util/warnp.h
+main.o: ../kvlds/main.c ../../libcperciva/events/events.h ../../lib/util/kivaloo.h ../../lib/datastruct/kvldskey.h ../../libcperciva/util/ctassert.h ../../libcperciva/util/parsenum.h ../../lib/proto_kvlds/proto_kvlds.h ../../libcperciva/util/sysendian.h ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../kvlds/main.c -o main.o
 cpusupport_arm_crc32_64.o: ../../libcperciva/cpusupport/cpusupport_arm_crc32_64.c ../../libcperciva/cpusupport/cpusupport.h ../../cpusupport-config.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../../libcperciva/cpusupport/cpusupport_arm_crc32_64.c -o cpusupport_arm_crc32_64.o

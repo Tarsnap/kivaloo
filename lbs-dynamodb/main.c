@@ -186,7 +186,10 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 
-	/* Create a metadata handler. */
+	/*
+	 * Create a metadata handler; this also atomically takes ownership of
+	 * the metadata with respect to other lbs-dynamodb processes.
+	 */
 	if ((M = metadata_init(Q_DDBKV_M)) == NULL) {
 		warnp("Error initializing state metadata handler");
 		exit(1);

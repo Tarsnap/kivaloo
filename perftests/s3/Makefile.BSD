@@ -7,6 +7,7 @@ LIB_DIR	=	../../lib
 
 # CPU features detection
 .PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
+SRCS	+=	cpusupport_arm_sha256.c
 SRCS	+=	cpusupport_x86_shani.c
 SRCS	+=	cpusupport_x86_sse2.c
 SRCS	+=	cpusupport_x86_ssse3.c
@@ -15,6 +16,7 @@ IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
 SRCS	+=	sha256.c
+SRCS	+=	sha256_arm.c
 SRCS	+=	sha256_shani.c
 SRCS	+=	sha256_sse2.c
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg

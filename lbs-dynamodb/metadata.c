@@ -41,16 +41,6 @@ static int callback_readmetadata(void *, int, const uint8_t *, size_t);
 static int callback_claimmetadata(void *, int);
 static int callback_writemetadata(void *, int);
 
-/* Fake metadata used if no metadata exists. */
-static uint8_t metadata_null[64] = {
-	0, 0, 0, 0, 0, 0, 0, 0,				/* nextblk */
-	0, 0, 0, 0, 0, 0, 0, 0,				/* deletedto */
-	0, 0, 0, 0, 0, 0, 0, 0,				/* generation */
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,	/* lastblk */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0	/* process_id */
-};
-
 static int
 callback_readmetadata(void * cookie, int status,
     const uint8_t * buf, size_t len)
@@ -64,9 +54,8 @@ callback_readmetadata(void * cookie, int status,
 
 	/* Did the item exist? */
 	if (status == 2) {
-		/* Use fake metadata. */
-		buf = metadata_null;
-		len = 64;
+		warnp("metadata table is not initialized");
+		goto err0;
 	}
 
 	/* We should have 64 bytes. */
@@ -90,15 +79,9 @@ callback_readmetadata(void * cookie, int status,
 	/* Write new metadata back. */
 	memcpy(nbuf, buf, 32);
 	memcpy(&nbuf[32], M->process_id, 32);
-	if (buf != metadata_null) {
-		if (proto_dynamodb_kv_request_icas(M->Q, "metadata", buf, 64,
-		nbuf, 64, callback_claimmetadata, M))
-			goto err0;
-	} else {
-		if (proto_dynamodb_kv_request_create(M->Q, "metadata",
-		nbuf, 64, callback_claimmetadata, M))
-			goto err0;
-	}
+	if (proto_dynamodb_kv_request_icas(M->Q, "metadata", buf, 64,
+	    nbuf, 64, callback_claimmetadata, M))
+		goto err0;
 
 	/* Success! */
 	return (0);

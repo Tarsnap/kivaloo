@@ -14,8 +14,8 @@ It stores metadata in Amazon DynamoDB via the metadata socket using the same
 protocol.
 
 The user is responsible for ensuring that the DynamoDB tables at which the
-dynamodb-kv daemons are pointed are initialized with a string partition key
-"K" and no items.
+dynamodb-kv daemons are pointed have been created and initialized using the
+lbs-dynamodb-init utility.
 
 The other options are:
   -p <pidfile>

@@ -8,11 +8,12 @@ struct wire_requestqueue;
 struct metadata;
 
 /**
- * metadata_init(Q):
+ * metadata_init(Q, itemsz):
  * Prepare for metadata operations using the queue ${Q}, and take ownership of
- * the metadata item.  This function may call events_run() internally.
+ * the metadata item.  This function may call events_run() internally.  Return
+ * the DynamoDB item size via ${itemsz}.
  */
-struct metadata * metadata_init(struct wire_requestqueue *);
+struct metadata * metadata_init(struct wire_requestqueue *, uint64_t *);
 
 /**
  * metadata_nextblk_read(M):

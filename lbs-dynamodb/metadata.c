@@ -35,6 +35,7 @@ struct metadata {
 	int write_wanted;
 	int init_done;
 	int init_lostrace;
+	uint64_t itemsz;
 };
 
 static int callback_readmetadata(void *, int, const uint8_t *, size_t);
@@ -46,7 +47,7 @@ callback_readmetadata(void * cookie, int status,
     const uint8_t * buf, size_t len)
 {
 	struct metadata * M = cookie;
-	uint8_t nbuf[64];
+	uint8_t nbuf[72];
 
 	/* Failures are bad. */
 	if (status == 1)
@@ -58,8 +59,8 @@ callback_readmetadata(void * cookie, int status,
 		goto err0;
 	}
 
-	/* We should have 64 bytes. */
-	if (len != 64) {
+	/* We should have 72 bytes. */
+	if (len != 72) {
 		warn0("metadata has incorrect size: %zu", len);
 		goto err0;
 	}
@@ -69,6 +70,7 @@ callback_readmetadata(void * cookie, int status,
 	M->M_stored.deletedto = be64dec(&buf[8]);
 	M->M_stored.generation = be64dec(&buf[16]);
 	M->M_stored.lastblk = be64dec(&buf[24]);
+	M->itemsz = be64dec(&buf[64]);
 
 	/* Generate a random process ID. */
 	if (entropy_read(M->process_id, 32)) {
@@ -77,10 +79,10 @@ callback_readmetadata(void * cookie, int status,
 	}
 
 	/* Write new metadata back. */
-	memcpy(nbuf, buf, 32);
+	memcpy(nbuf, buf, 72);
 	memcpy(&nbuf[32], M->process_id, 32);
-	if (proto_dynamodb_kv_request_icas(M->Q, "metadata", buf, 64,
-	    nbuf, 64, callback_claimmetadata, M))
+	if (proto_dynamodb_kv_request_icas(M->Q, "metadata", buf, 72,
+	    nbuf, 72, callback_claimmetadata, M))
 		goto err0;
 
 	/* Success! */
@@ -126,8 +128,8 @@ err0:
 static int
 writemetadata(struct metadata * M)
 {
-	uint8_t obuf[64];
-	uint8_t buf[64];
+	uint8_t obuf[72];
+	uint8_t buf[72];
 
 	/* Is a write already in progress? */
 	if (M->write_inprogress == 1) {
@@ -154,14 +156,16 @@ writemetadata(struct metadata * M)
 	be64enc(&obuf[16], M->M_stored.generation);
 	be64enc(&obuf[24], M->M_stored.lastblk);
 	memcpy(&obuf[32], M->process_id, 32);
+	be64enc(&obuf[64], M->itemsz);
 	be64enc(&buf[0], M->M_storing.nextblk);
 	be64enc(&buf[8], M->M_storing.deletedto);
 	be64enc(&buf[16], M->M_storing.generation);
 	be64enc(&buf[24], M->M_storing.lastblk);
 	memcpy(&buf[32], M->process_id, 32);
+	be64enc(&buf[64], M->itemsz);
 
 	/* Write metadata. */
-	if (proto_dynamodb_kv_request_icas(M->Q, "metadata", obuf, 64, buf, 64,
+	if (proto_dynamodb_kv_request_icas(M->Q, "metadata", obuf, 72, buf, 72,
 	    callback_writemetadata, M))
 		goto err0;
 
@@ -241,12 +245,13 @@ err0:
 }
 
 /**
- * metadata_init(Q):
+ * metadata_init(Q, itemsz):
  * Prepare for metadata operations using the queue ${Q}, and take ownership of
- * the metadata item.  This function may call events_run() internally.
+ * the metadata item.  This function may call events_run() internally.  Return
+ * the DynamoDB item size via ${itemsz}.
  */
 struct metadata *
-metadata_init(struct wire_requestqueue * Q)
+metadata_init(struct wire_requestqueue * Q, uint64_t * itemsz)
 {
 	struct metadata * M;
 
@@ -285,6 +290,9 @@ tryagain:
 	M->cookie_deletedto = NULL;
 	M->write_inprogress = 0;
 	M->write_wanted = 0;
+
+	/* Return the item size. */
+	*itemsz = M->itemsz;
 
 	/* Success! */
 	return (M);

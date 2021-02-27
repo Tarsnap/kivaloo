@@ -4,14 +4,14 @@ LBS-DynamoDB design
 The lbs-dynamodb block store is invoked as
 
 # kivaloo-lbs-dynamodb -s <lbs socket> -t <dynamodb-kv socket>
-      -m <dynamodb-kv metadata socket> -b <item size> [-1] [-p <pidfile>]
+      -m <dynamodb-kv metadata socket> [-1] [-p <pidfile>]
 
 It creates a socket <lbs socket> on which it listens for incoming connections,
 accepts one at a time, and performs I/Os following the LBS protocol.  It
 stores data in Amazon DynamoDB via the kivaloo-dynamodb-kv protocol, using
-DynamoDB items of size <item size>; the LBS block size is slightly smaller.
-It stores metadata in Amazon DynamoDB via the metadata socket using the same
-protocol.
+DynamoDB items of the size specified when the tables were created using the
+lbs-dynamodb-init utility; the LBS block size is slightly smaller.  It stores
+metadata in Amazon DynamoDB via the metadata socket using the same protocol.
 
 The user is responsible for ensuring that the DynamoDB tables at which the
 dynamodb-kv daemons are pointed have been created and initialized using the

@@ -193,9 +193,9 @@ err0:
 static int
 createmetadata(const char * key_id, const char * key_secret,
     const char * region, struct sock_addr * const * sas_ddb,
-    const char * tablename)
+    const char * tablename, size_t itemsz)
 {
-	uint8_t metadata[64];
+	uint8_t metadata[72];
 	char * ddbreq;
 	char * body;
 
@@ -208,10 +208,11 @@ createmetadata(const char * key_id, const char * key_secret,
 	be64enc(&metadata[16], 0);		/* generation */
 	be64enc(&metadata[24], (uint64_t)(-1));	/* lastblk */
 	memset(&metadata[32], 0, 32);		/* process_id */
+	be64enc(&metadata[64], (uint64_t)(itemsz));	/* itemsz */
 
 	/* Construct a request to store metadata. */
 	if ((ddbreq = dynamodb_kv_create(tablename, "metadata",
-	    metadata, 64)) == NULL) {
+	    metadata, 72)) == NULL) {
 		warnp("dynamodb_kv_create");
 		goto err0;
 	}
@@ -244,9 +245,9 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: kivaloo-lbs-dynamodb-init %s %s %s %s\n",
+	fprintf(stderr, "usage: kivaloo-lbs-dynamodb-init %s %s %s %s %s\n",
 	    "-k <keyfile>", "-r <region>", "-t <data table name>",
-	    "-m <metadata table name>");
+	    "-m <metadata table name>", "-b <item size>");
 	fprintf(stderr, "       kivaloo-lbs-dynamodb-init --version\n");
 	exit(1);
 }
@@ -262,6 +263,7 @@ main(int argc, char * argv[])
 {
 
 	/* Command-line parameters. */
+	size_t opt_b = 0;
 	char * opt_k = NULL;
 	char * opt_m = NULL;
 	char * opt_r = NULL;
@@ -279,6 +281,12 @@ main(int argc, char * argv[])
 	/* Parse the command line. */
 	while ((ch = GETOPT(argc, argv)) != NULL) {
 		GETOPT_SWITCH(ch) {
+		GETOPT_OPTARG("-b"):
+			if (opt_b != 0)
+				usage();
+			if (PARSENUM(&opt_b, optarg, 512, 8192))
+				OPT_EPARSE(ch, optarg);
+			break;
 		GETOPT_OPTARG("-k"):
 			if (opt_k != NULL)
 				usage();
@@ -323,6 +331,8 @@ main(int argc, char * argv[])
 	(void)argv; /* argv is not used beyond this point. */
 
 	/* Sanity-check options. */
+	if (opt_b == 0)
+		usage();
 	if (opt_k == NULL)
 		usage();
 	if (opt_m == NULL)
@@ -331,6 +341,12 @@ main(int argc, char * argv[])
 		usage();
 	if (opt_t == NULL)
 		usage();
+
+	/* Warn about poor choices of block sizes. */
+	if (opt_b % 1024) {
+		warn0("DynamoDB item size is unlikely to be optimal: %zu",
+		    opt_b);
+	}
 
 	/* Construct the DynamoDB endpoint host name. */
 	if (asprintf(&dynamodb_host, "dynamodb.%s.amazonaws.com:443",
@@ -362,7 +378,8 @@ main(int argc, char * argv[])
 	}
 
 	/* Store a metadata blob in the metadata table. */
-	if (createmetadata(key_id, key_secret, opt_r, sas_ddb, opt_m)) {
+	if (createmetadata(key_id, key_secret, opt_r, sas_ddb, opt_m,
+	    opt_b)) {
 		warnp("Failed to store metadata");
 		exit(1);
 	}

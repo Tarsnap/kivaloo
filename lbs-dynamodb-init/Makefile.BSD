@@ -34,6 +34,7 @@ IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
 .PATH.c	:	${LIBCPERCIVA_DIR}/util
 SRCS	+=	asprintf.c
 SRCS	+=	b64encode.c
+SRCS	+=	entropy.c
 SRCS	+=	getopt.c
 SRCS	+=	hexify.c
 SRCS	+=	insecure_memzero.c

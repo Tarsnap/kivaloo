@@ -61,6 +61,7 @@ main(int argc, char * argv[])
 	struct sock_addr ** sas_t;
 	struct sock_addr ** sas_m;
 	uint64_t itemsz;
+	uint8_t tableid[32];
 	const char * ch;
 
 	WARNP_INIT;
@@ -179,7 +180,7 @@ main(int argc, char * argv[])
 	 * Create a metadata handler; this also atomically takes ownership of
 	 * the metadata with respect to other lbs-dynamodb processes.
 	 */
-	if ((M = metadata_init(Q_DDBKV_M, &itemsz)) == NULL) {
+	if ((M = metadata_init(Q_DDBKV_M, &itemsz, tableid)) == NULL) {
 		warnp("Error initializing state metadata handler");
 		exit(1);
 	}
@@ -197,7 +198,7 @@ main(int argc, char * argv[])
 	}
 
 	/* Initialize the internal state. */
-	if ((S = state_init(Q_DDBKV, itemsz, M)) == NULL) {
+	if ((S = state_init(Q_DDBKV, itemsz, tableid, M)) == NULL) {
 		warnp("Error initializing state from DynamoDB");
 		exit(1);
 	}

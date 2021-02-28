@@ -7,6 +7,7 @@
 #include "aws_readkeys.h"
 #include "dynamodb_kv.h"
 #include "dynamodb_request.h"
+#include "entropy.h"
 #include "events.h"
 #include "getopt.h"
 #include "http.h"
@@ -191,11 +192,53 @@ err0:
 }
 
 static int
+storetableid(const char * key_id, const char * key_secret,
+    const char * region, struct sock_addr * const * sas_ddb,
+    const char * tablename, uint8_t * tableid)
+{
+	char * ddbreq;
+	char * body;
+
+	/* Tell the user what we're doing. */
+	fprintf(stderr, "Recording table ID");
+
+	/* Construct a request to store the table ID. */
+	if ((ddbreq = dynamodb_kv_create(tablename,
+	    "tableid", tableid, 32)) == NULL) {
+		warnp("dynamodb_kv_create");
+		goto err0;
+	}
+
+	/* Send the request. */
+	if ((body = request(key_id, key_secret, region, sas_ddb,
+	    "PutItem", ddbreq)) == NULL) {
+		warnp("Table ID PutItem failed: %s", ddbreq);
+		goto err1;
+	}
+
+	/* Free request and response. */
+	free(body);
+	free(ddbreq);
+
+	/* Print delayed EOL. */
+	fprintf(stderr, "\n");
+
+	/* Success! */
+	return (0);
+
+err1:
+	free(ddbreq);
+err0:
+	/* Failure! */
+	return (-1);
+}
+
+static int
 createmetadata(const char * key_id, const char * key_secret,
     const char * region, struct sock_addr * const * sas_ddb,
-    const char * tablename, size_t itemsz)
+    const char * tablename, size_t itemsz, uint8_t * tableid)
 {
-	uint8_t metadata[72];
+	uint8_t metadata[104];
 	char * ddbreq;
 	char * body;
 
@@ -209,10 +252,11 @@ createmetadata(const char * key_id, const char * key_secret,
 	be64enc(&metadata[24], (uint64_t)(-1));	/* lastblk */
 	memset(&metadata[32], 0, 32);		/* process_id */
 	be64enc(&metadata[64], (uint64_t)(itemsz));	/* itemsz */
+	memcpy(&metadata[72], tableid, 32);	/* table ID */
 
 	/* Construct a request to store metadata. */
 	if ((ddbreq = dynamodb_kv_create(tablename, "metadata",
-	    metadata, 72)) == NULL) {
+	    metadata, 104)) == NULL) {
 		warnp("dynamodb_kv_create");
 		goto err0;
 	}
@@ -275,6 +319,7 @@ main(int argc, char * argv[])
 	char * key_secret;
 	struct sock_addr ** sas_ddb;
 	const char * ch;
+	uint8_t tableid[32];
 
 	WARNP_INIT;
 
@@ -377,9 +422,21 @@ main(int argc, char * argv[])
 		exit(1);
 	}
 
+	/* Generate a random table ID. */
+	if (entropy_read(tableid, 32)) {
+		warnp("Error generating table ID");
+		exit(1);
+	}
+
+	/* Record the table ID in the data table. */
+	if (storetableid(key_id, key_secret, opt_r, sas_ddb, opt_t, tableid)) {
+		warnp("Failed to store table ID");
+		exit(1);
+	}
+
 	/* Store a metadata blob in the metadata table. */
 	if (createmetadata(key_id, key_secret, opt_r, sas_ddb, opt_m,
-	    opt_b)) {
+	    opt_b, tableid)) {
 		warnp("Failed to store metadata");
 		exit(1);
 	}

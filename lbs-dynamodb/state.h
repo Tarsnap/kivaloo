@@ -9,14 +9,15 @@ struct metadata;
 struct proto_lbs_request;
 struct wire_requestqueue;
 
-/*
- * state_init(Q_DDBKV, itemsz, M):
+/**
+ * state_init(Q_DDBKV, itemsz, tableid, M):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
- * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
- * metadata handler ${M} to handle metadata.  Return a state which can be
- * passed to other state_* functions.
+ * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Verify that
+ * the (data) table matches the provided table ID.  Use the metadata handler
+ * ${M} to handle metadata.  Return a state which can be passed to other
+ * state_* functions.  This function may call events_run() internally.
  */
-struct state * state_init(struct wire_requestqueue *, size_t,
+struct state * state_init(struct wire_requestqueue *, size_t, uint8_t *,
     struct metadata *);
 
 /**

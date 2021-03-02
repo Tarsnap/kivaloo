@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +24,7 @@ usage(void)
 
 	fprintf(stderr, "usage: kivaloo-lbs-dynamodb -s <lbs socket>"
 	    " -t <dynamodb-kv data socket> -m <dynamodb-kv metadata socket>"
-	    " -b <item size> [-1] [-p <pidfile>]\n");
+	    " [-1] [-p <pidfile>]\n");
 	fprintf(stderr, "       kivaloo-lbs-dynamodb --version\n");
 	exit(1);
 }
@@ -52,7 +53,6 @@ main(int argc, char * argv[])
 	char * opt_s = NULL;
 	char * opt_t = NULL;
 	char * opt_m = NULL;
-	size_t opt_b = 0;
 	char * opt_p = NULL;
 	int opt_1 = 0;
 
@@ -60,6 +60,8 @@ main(int argc, char * argv[])
 	struct sock_addr ** sas_s;
 	struct sock_addr ** sas_t;
 	struct sock_addr ** sas_m;
+	uint64_t itemsz;
+	uint8_t tableid[32];
 	const char * ch;
 
 	WARNP_INIT;
@@ -67,12 +69,6 @@ main(int argc, char * argv[])
 	/* Parse the command line. */
 	while ((ch = GETOPT(argc, argv)) != NULL) {
 		GETOPT_SWITCH(ch) {
-		GETOPT_OPTARG("-b"):
-			if (opt_b != 0)
-				usage();
-			if (PARSENUM(&opt_b, optarg, 512, 8192))
-				OPT_EPARSE(ch, optarg);
-			break;
 		GETOPT_OPTARG("-p"):
 			if (opt_p != NULL)
 				usage();
@@ -128,12 +124,6 @@ main(int argc, char * argv[])
 		usage();
 	if (opt_m == NULL)
 		usage();
-	if (opt_b == 0)
-		usage();
-	if (opt_b % 1024) {
-		warn0("DynamoDB item size is unlikely to be optimal: %zu",
-		    opt_b);
-	}
 
 	/* Resolve the listening address. */
 	if ((sas_s = sock_resolve(opt_s)) == NULL) {
@@ -190,8 +180,14 @@ main(int argc, char * argv[])
 	 * Create a metadata handler; this also atomically takes ownership of
 	 * the metadata with respect to other lbs-dynamodb processes.
 	 */
-	if ((M = metadata_init(Q_DDBKV_M)) == NULL) {
+	if ((M = metadata_init(Q_DDBKV_M, &itemsz, tableid)) == NULL) {
 		warnp("Error initializing state metadata handler");
+		exit(1);
+	}
+
+	/* Sanity-check the item size recorded in the metadata. */
+	if ((itemsz < 512) || (itemsz > 8192)) {
+		warn0("Invalid lbs-dynamodb item size: %" PRIu64, itemsz);
 		exit(1);
 	}
 
@@ -202,7 +198,7 @@ main(int argc, char * argv[])
 	}
 
 	/* Initialize the internal state. */
-	if ((S = state_init(Q_DDBKV, opt_b, M)) == NULL) {
+	if ((S = state_init(Q_DDBKV, itemsz, tableid, M)) == NULL) {
 		warnp("Error initializing state from DynamoDB");
 		exit(1);
 	}

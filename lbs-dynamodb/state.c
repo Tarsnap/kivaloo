@@ -26,6 +26,11 @@ struct state {
 	size_t npending;	/* Callbacks not performed yet. */
 };
 
+struct readtableid {
+	int done;
+	uint8_t tableid[32];
+};
+
 static int callback_get(void *, int, const uint8_t *, size_t);
 
 struct get_cookie {
@@ -53,18 +58,58 @@ struct append_cookie {
 /* Overhead per KV item: Item size minus block size. */
 #define KVOVERHEAD 18
 
+/* Callback for reading tableid. */
+static int
+callback_init(void * cookie, int status, const uint8_t * buf, size_t buflen)
+{
+	struct readtableid * RT = cookie;
+
+	/* Sanity-check. */
+	assert((status == 0) || (status == 1) || (status == 2));
+
+	/* Check status. */
+	if (status == 1) {
+		warn0("Failed to read tableid");
+		goto err0;
+	} else if (status == 2) {
+		warn0("Tableid not initialized");
+		goto err0;
+	}
+
+	/* Check buffer length. */
+	if (buflen != 32) {
+		warn0("Tableid is not 32 bytes");
+		goto err0;
+	}
+
+	/* Copy the table ID out. */
+	memcpy(RT->tableid, buf, 32);
+
+	/* We've finished reading this value. */
+	RT->done = 1;
+
+	/* Success! */
+	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
+}
+
 /**
- * state_init(Q_DDBKV, itemsz, M):
+ * state_init(Q_DDBKV, itemsz, tableid, M):
  * Initialize the internal state for handling DynamoDB items of ${itemsz}
- * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Use the
- * metadata handler ${M} to handle metadata.  Return a state which can be
- * passed to other state_* functions.
+ * bytes, using the DynamoDB-KV daemon connected to ${Q_DDBKV}.  Verify that
+ * the (data) table matches the provided table ID.  Use the metadata handler
+ * ${M} to handle metadata.  Return a state which can be passed to other
+ * state_* functions.  This function may call events_run() internally.
  */
 struct state *
-state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
+state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz, uint8_t * tableid,
     struct metadata * M)
 {
 	struct state * S;
+	struct readtableid RT;
 
 	/* Sanity check. */
 	assert(itemsz - KVOVERHEAD <= UINT32_MAX);
@@ -81,9 +126,26 @@ state_init(struct wire_requestqueue * Q_DDBKV, size_t itemsz,
 	S->nextblk = metadata_nextblk_read(S->M);
 	S->lastblk = metadata_lastblk_read(S->M);
 
+	/* Read tableid from the table. */
+	RT.done = 0;
+	if (proto_dynamodb_kv_request_getc(S->Q, "tableid", callback_init, &RT))
+		goto err1;
+	if (events_spin(&RT.done)) {
+		warnp("Error reading tableid");
+		goto err1;
+	}
+
+	/* Verify that the table IDs match. */
+	if (memcmp(RT.tableid, tableid, 32)) {
+		warn0("Data table ID does not match metadata table ID!");
+		goto err1;
+	}
+
 	/* Success! */
 	return (S);
 
+err1:
+	free(S);
 err0:
 	/* Failure! */
 	return (NULL);

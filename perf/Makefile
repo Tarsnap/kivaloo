@@ -42,7 +42,7 @@ dispatch.o: dispatch.c ../libcperciva/util/monoclock.h ../libcperciva/datastruct
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 perfstats.o: perfstats.c ../libcperciva/util/asprintf.h ../libcperciva/datastruct/elasticarray.h ../libcperciva/events/events.h ../lib/logging/logging.h ../lib/datastruct/onlinequantile.h reqtypes.h perfstats.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c perfstats.c -o perfstats.o
-reqtypes.o: reqtypes.c ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../lib/proto_kvlds/proto_kvlds.h ../lib/proto_lbs/proto_lbs.h ../lib/proto_s3/proto_s3.h
+reqtypes.o: reqtypes.c ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../lib/proto_kvlds/proto_kvlds.h ../lib/proto_lbs/proto_lbs.h ../lib/proto_s3/proto_s3.h reqtypes.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c reqtypes.c -o reqtypes.o
 cpusupport_arm_crc32_64.o: ../libcperciva/cpusupport/cpusupport_arm_crc32_64.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/cpusupport/cpusupport_arm_crc32_64.c -o cpusupport_arm_crc32_64.o

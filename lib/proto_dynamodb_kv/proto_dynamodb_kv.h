@@ -83,7 +83,7 @@ int proto_dynamodb_kv_request_delete(struct wire_requestqueue *, const char *,
 #define PROTO_DDBKV_CREATE	0x00010102
 #define PROTO_DDBKV_GET		0x00010110
 #define PROTO_DDBKV_GETC	0x00010111
-#define PROTO_DDBKV_DELETE	0x00010200
+#define PROTO_DDBKV_DELETE	0x00010120
 #define PROTO_DDBKV_NONE	((uint32_t)(-1))
 
 /* DynamoDB-KV request structure. */

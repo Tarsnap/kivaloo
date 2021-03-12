@@ -21,6 +21,7 @@ lbs-dynamodb-init/lbs-dynamodb-init
 lbs-s3/lbs-s3
 lbs/lbs
 mux/mux
+perf/perf
 perftests/dynamodb_kv/test_dynamodb_kv
 perftests/dynamodb_request/test_dynamodb_request
 perftests/dynamodb_sign/dynamodb_sign

@@ -1,6 +1,6 @@
 PKG=	kivaloo
 PROGS=	lbs kvlds mux s3 lbs-s3 dynamodb-kv lbs-dynamodb	\
-	lbs-dynamodb-init kvlds-dump kvlds-undump
+	lbs-dynamodb-init kvlds-dump kvlds-undump perf
 BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 	bench/hotspot_read bench/random_mixed bench/random_read	\
 	bench/mkpairs bench/tokyo

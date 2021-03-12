@@ -13,14 +13,6 @@ struct onlinequantile;
 struct onlinequantile * onlinequantile_init(double);
 
 /**
- * onlinequantile_create(S, N, q):
- * For 0 <= ${q} <= 1, prepare to compute (online) quantiles of doubles, and
- * initialize with the ${N} values in ${S}. This is faster than creating an
- * empty structure and adding the elements individually.
- */
-struct onlinequantile * onlinequantile_create(const double *, size_t, double);
-
-/**
  * onlinequantile_get(Q, x):
  * Set *${x} to the current quantile value from the structure ${Q} and
  * return 0.  If there is no data, return 1.

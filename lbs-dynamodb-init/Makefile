@@ -37,7 +37,7 @@ clean:
 ${PROG}:${SRCS:.c=.o}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
-main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../lib/dynamodb/dynamodb_kv.h ../lib/dynamodb/dynamodb_request.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../lib/http/http.h ../libcperciva/util/insecure_memzero.h ../libcperciva/util/json.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h
+main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../lib/dynamodb/dynamodb_kv.h ../lib/dynamodb/dynamodb_request.h ../libcperciva/util/entropy.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../lib/http/http.h ../libcperciva/util/insecure_memzero.h ../libcperciva/util/json.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 cpusupport_arm_sha256.o: ../libcperciva/cpusupport/cpusupport_arm_sha256.c ../libcperciva/cpusupport/cpusupport.h ../cpusupport-config.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c ../libcperciva/cpusupport/cpusupport_arm_sha256.c -o cpusupport_arm_sha256.o

@@ -5,6 +5,8 @@
 #include "proto_lbs.h"
 #include "proto_s3.h"
 
+#include "reqtypes.h"
+
 /**
  * reqtypes_lookup(id):
  * Return the symbolic name associated with a kivaloo request type.

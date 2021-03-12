@@ -38,8 +38,8 @@ onlinequantile_init(double q)
 	/* Allocate structure and initialize parameters. */
 	if ((Q = malloc(sizeof(struct onlinequantile))) == NULL)
 		goto err0;
-	Q->larger_min = INFINITY;
-	Q->smaller_max = - INFINITY;
+	Q->larger_min = (double)INFINITY;
+	Q->smaller_max = - (double)INFINITY;
 	Q->N = 0;
 	Q->N_smaller = 0;
 	Q->q = q;
@@ -63,112 +63,6 @@ err0:
 	/* Failure! */
 	return (NULL);
 }
-
-#ifdef XXX
-/* Callback for qsort to sort doubles. */
-static int
-compar(const void * _x, const void * _y)
-{
-	const double * x = _x;
-	const double * y = _y;
-
-	if (*x < *y)
-		return (-1);
-	else if (*x == *y)
-		return (0);
-	else
-		return (1);
-}
-
-/**
- * onlinequantile_create(S, N, q):
- * For 0 <= ${q} <= 1, prepare to compute (online) quantiles of doubles, and
- * initialize with the ${N} values in ${S}. This is faster than creating an
- * empty structure and adding the elements individually.
- */
-struct onlinequantile *
-onlinequantile_create(const double * S, size_t N, double q)
-{
-	struct onlinequantile * Q;
-	double * tmp;
-	size_t i, j;
-	double r;
-
-	/* Allocate structure and initialize parameters. */
-	if ((Q = malloc(sizeof(struct onlinequantile))) == NULL)
-		goto err0;
-	Q->N = N;
-	Q->q = q;
-
-	/* Copy input doubles into temporary space so they can be reordered. */
-	if (IMALLOC(tmp, N, double))
-		goto err1;
-	memcpy(tmp, S, N * sizeof(double));
-
-	/*
-	 * NOTE: We separate the inputs S into "larger" and "smaller" heaps by
-	 * sorting them, which is highly inefficient.  A far better algorithm
-	 * would use a linear-time quantile algorithm, such as the "median of
-	 * medians" algorithm; we currently eschew that approach simply for
-	 * simplicity of implementation.
-	 */
-
-	/* Sort input doubles. */
-	qsort(tmp, N, sizeof(double), compar);
-
-	/* Figure how many elements we need in the smaller heap. */
-	if (N > 0) {
-		hazenquantile(Q->N, Q->q, &i, &r);
-		i++;
-	} else {
-		i = 0;
-	}
-
-	/* Elements [0 .. i - 1] are smaller; elements [i .. N-1] are bigger. */
-
-	/* Negate smaller elements to convert min-heap to max-heap. */
-	for (j = 0; j < i; j++)
-		tmp[j] = - tmp[j];
-
-	/* Create "smaller" heap. */
-	if ((Q->smaller = doubleheap_create(tmp, i)) == NULL)
-		goto err2;
-	Q->N_smaller = i;
-
-	/* Create "larger" heap. */
-	if ((Q->larger = doubleheap_create(&tmp[i], N - i)) == NULL)
-		goto err3;
-
-	/* Free temporary storage. */
-	free(tmp);
-
-	/* Record values on either side of the quantile. */
-	if (i > 0) {
-		doubleheap_getmin(Q->smaller, &Q->smaller_max);
-		Q->smaller_max = - Q->smaller_max;
-	} else {
-		Q->smaller_max = - INFINITY;
-	}
-	if (i < N) {
-		doubleheap_getmin(Q->larger, &Q->larger_min);
-	} else {
-		Q->larger_min = INFINITY;
-	}
-
-	/* Success! */
-	return (Q);
-
-err3:
-	doubleheap_free(Q->smaller);
-err2:
-	free(tmp);
-err1:
-	free(Q);
-err0:
-	/* Failure! */
-	return (NULL);
-}
-#endif
 
 /**
  * onlinequantile_get(Q, x):

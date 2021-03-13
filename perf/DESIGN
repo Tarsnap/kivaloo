@@ -18,7 +18,7 @@ will exit (thus closing the connection it accepted).
 Performance statistics are written to <logfile> periodically, reporting for
 each type of request:
  * The number of requests completed,
- * The average time to complete,
+ * The mean time to complete,
  * The median time to complete,
  * The 99th percentile time to complete, and
  * The 100th percentile time to complete.

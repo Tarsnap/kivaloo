@@ -1,0 +1,52 @@
+perf design
+===========
+
+The performance monitor is invoked as
+
+# kivaloo-perf -t <target socket> -s <source socket> -l <logfile> [-w secs]
+      [-p <pidfile>] [-1]
+
+It creates a socket at the address <source socket> on which it listens for
+incoming connections and accepts one at a time.  It opens a connection to
+<target socket> and forwards requests and responses back and forth.
+
+No attempt is made to confirm that requests are appropriate for the service
+being connected to or even that requests are valid; the user is responsible
+for ensuring this.  If the target service closes the connection, the daemon
+will exit (thus closing the connection it accepted).
+
+Performance statistics are written to <logfile> periodically, reporting for
+each type of request:
+ * The number of requests completed,
+ * The mean time to complete,
+ * The median time to complete,
+ * The 99th percentile time to complete, and
+ * The 100th percentile time to complete.
+
+Statistics will be printed whenever the time, rounded down to a 60-second (or
+otherwise configured) boundary, changes.  Note that this may yield unexpected
+results if the clock is adjusted discontinuously; the statistics printed will
+nonetheless be accurate as they are generated from the system monotonic clock.
+
+The other options are:
+  -p <pidfile>
+	Write the daemon's process ID to the file <pidfile>.  Defaults to
+	-p <source socket>.pid based on the first '-s <source socket>' option
+	specified.  (Note that if <source socket> is not an absolute path, the
+	default pid file location is in the current directory.)
+  -w secs
+	Seconds to wait between output.  Defaults to 60 seconds.
+  -1
+	Exit after handling one connection.
+
+Code structure
+--------------
+main.c		-- Processes command line, connects to the target, creates a
+		   listening socket, initializes logging, daemonizes, accepts
+		   one connection at once, and runs the event loop.
+dispatch.c	-- Reads requests and forwards them to the target; reads
+		   responses, and forwards them back to the source.  Measures
+		   how long each request takes.
+perfstats.c	-- Takes per-request performance data and logs aggregated
+		   statistics for each request type.
+reqtypes.c	-- Translates numeric request types to symbolic names.

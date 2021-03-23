@@ -1,0 +1,180 @@
+# Library name
+LIB	=	all
+
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../libcperciva
+LIB_DIR	=	../lib
+BENCHLIB_DIR	=	../bench/lib
+
+# Fundamental algorithms
+.PATH.c	:	${LIBCPERCIVA_DIR}/alg
+SRCS	+=	crc32c.c
+SRCS	+=	crc32c_arm.c
+SRCS	+=	crc32c_sse42.c
+SRCS	+=	md5.c
+SRCS	+=	sha1.c
+SRCS	+=	sha256.c
+SRCS	+=	sha256_arm.c
+SRCS	+=	sha256_shani.c
+SRCS	+=	sha256_sse2.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/alg
+
+# Amazon Web Services
+.PATH.c	:	${LIBCPERCIVA_DIR}/aws
+SRCS	+=	aws_readkeys.c
+SRCS	+=	aws_sign.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/aws
+
+# CPU features detection
+.PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
+SRCS	+=	cpusupport_arm_crc32_64.c
+SRCS	+=	cpusupport_arm_sha256.c
+SRCS	+=	cpusupport_x86_crc32_64.c
+SRCS	+=	cpusupport_x86_shani.c
+SRCS	+=	cpusupport_x86_sse2.c
+SRCS	+=	cpusupport_x86_ssse3.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
+
+# Data structures
+.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
+SRCS	+=	elasticarray.c
+SRCS	+=	elasticqueue.c
+SRCS	+=	ptrheap.c
+SRCS	+=	seqptrmap.c
+SRCS	+=	timerqueue.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/datastruct
+
+# Event loop
+.PATH.c	:	${LIBCPERCIVA_DIR}/events
+SRCS	+=	events.c
+SRCS	+=	events_immediate.c
+SRCS	+=	events_network.c
+SRCS	+=	events_network_selectstats.c
+SRCS	+=	events_timer.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/events
+
+# Event-driven networking
+.PATH.c	:	${LIBCPERCIVA_DIR}/network
+SRCS	+=	network_accept.c
+SRCS	+=	network_connect.c
+SRCS	+=	network_read.c
+SRCS	+=	network_write.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/network
+
+# Utility functions
+.PATH.c	:	${LIBCPERCIVA_DIR}/util
+SRCS	+=	asprintf.c
+SRCS	+=	b64encode.c
+SRCS	+=	daemonize.c
+SRCS	+=	entropy.c
+SRCS	+=	getopt.c
+SRCS	+=	hexify.c
+SRCS	+=	humansize.c
+SRCS	+=	insecure_memzero.c
+SRCS	+=	json.c
+SRCS	+=	monoclock.c
+SRCS	+=	noeintr.c
+SRCS	+=	sock.c
+SRCS	+=	sock_util.c
+SRCS	+=	warnp.c
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/util
+
+# Data structures
+.PATH.c	:	${LIB_DIR}/datastruct
+SRCS	+=	doubleheap.c
+SRCS	+=	kvldskey.c
+SRCS	+=	kvhash.c
+SRCS	+=	kvpair.c
+SRCS	+=	onlinequantile.c
+SRCS	+=	pool.c
+IDIRS	+=	-I ${LIB_DIR}/datastruct
+
+# DynamoDB protocol
+.PATH.c	:	${LIB_DIR}/dynamodb
+SRCS	+=	dynamodb_kv.c
+SRCS	+=	dynamodb_request.c
+SRCS	+=	dynamodb_request_queue.c
+IDIRS	+=	-I ${LIB_DIR}/dynamodb
+
+# HTTP client protocol
+.PATH.c	:	${LIB_DIR}/http
+SRCS	+=	http.c
+SRCS	+=	https.c
+IDIRS	+=	-I ${LIB_DIR}/http
+
+# Logging code
+.PATH.c	:	${LIB_DIR}/logging
+SRCS	+=	logging.c
+IDIRS	+=	-I ${LIB_DIR}/logging
+
+# Buffered networking
+.PATH.c	:	${LIB_DIR}/netbuf
+SRCS	+=	netbuf_read.c
+SRCS	+=	netbuf_ssl.c
+SRCS	+=	netbuf_write.c
+IDIRS	+=	-I ${LIB_DIR}/netbuf
+
+# SSL layer
+.PATH.c	:	${LIB_DIR}/network_ssl
+SRCS	+=	network_ssl.c
+SRCS	+=	network_ssl_compat.c
+IDIRS	+=	-I ${LIB_DIR}/network_ssl
+
+# DynamoDB-KV request/response packets
+.PATH.c	:	${LIB_DIR}/proto_dynamodb_kv
+SRCS	+=	proto_dynamodb_kv_client.c
+SRCS	+=	proto_dynamodb_kv_server.c
+IDIRS	+=	-I ${LIB_DIR}/proto_dynamodb_kv
+
+# KVLDS request/response packet
+.PATH.c	:	${LIB_DIR}/proto_kvlds
+SRCS	+=	proto_kvlds_client.c
+SRCS	+=	proto_kvlds_server.c
+IDIRS	+=	-I ${LIB_DIR}/proto_kvlds
+
+# LBS request/response packets
+.PATH.c	:	${LIB_DIR}/proto_lbs
+SRCS	+=	proto_lbs_client.c
+SRCS	+=	proto_lbs_server.c
+IDIRS	+=	-I ${LIB_DIR}/proto_lbs
+
+# S3 request/response packets
+.PATH.c	:	${LIB_DIR}/proto_s3
+SRCS	+=	proto_s3_client.c
+SRCS	+=	proto_s3_server.c
+IDIRS	+=	-I ${LIB_DIR}/proto_s3
+
+# S3 client protocol and request queue
+.PATH.c	:	${LIB_DIR}/s3
+SRCS	+=	s3_request.c
+SRCS	+=	s3_request_queue.c
+SRCS	+=	s3_serverpool.c
+SRCS	+=	s3_verifyetag.c
+IDIRS	+=	-I ${LIB_DIR}/s3
+
+# Server pool management
+.PATH.c	:	${LIB_DIR}/serverpool
+SRCS	+=	serverpool.c
+IDIRS	+=	-I ${LIB_DIR}/serverpool
+
+# Wire protocol
+.PATH.c	:	${LIB_DIR}/wire
+SRCS	+=	wire_packet.c
+SRCS	+=	wire_readpacket.c
+SRCS	+=	wire_requestqueue.c
+SRCS	+=	wire_writepacket.c
+IDIRS	+=	-I ${LIB_DIR}/wire
+
+# Kivaloo utility functions
+.PATH.c	:	${LIB_DIR}/util
+SRCS	+=	kivaloo.c
+SRCS	+=	kvlds.c
+IDIRS	+=	-I ${LIB_DIR}/util
+
+# Benchmark utility functions
+.PATH.c	:	${BENCHLIB_DIR}
+SRCS	+=	bench.c
+SRCS	+=	mkpair.c
+IDIRS	+=	-I ${BENCHLIB_DIR}
+
+.include <bsd.lib.mk>

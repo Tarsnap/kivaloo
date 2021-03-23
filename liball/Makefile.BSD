@@ -4,7 +4,6 @@ LIB	=	all
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../libcperciva
 LIB_DIR	=	../lib
-BENCHLIB_DIR	=	../bench/lib
 
 # Fundamental algorithms
 .PATH.c	:	${LIBCPERCIVA_DIR}/alg
@@ -78,6 +77,12 @@ SRCS	+=	sock.c
 SRCS	+=	sock_util.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/util
+
+# Benchmark utility functions
+.PATH.c	:	${LIB_DIR}/bench
+SRCS	+=	bench.c
+SRCS	+=	mkpair.c
+IDIRS	+=	-I ${LIB_DIR}/bench
 
 # Data structures
 .PATH.c	:	${LIB_DIR}/datastruct
@@ -170,11 +175,5 @@ IDIRS	+=	-I ${LIB_DIR}/wire
 SRCS	+=	kivaloo.c
 SRCS	+=	kvlds.c
 IDIRS	+=	-I ${LIB_DIR}/util
-
-# Benchmark utility functions
-.PATH.c	:	${BENCHLIB_DIR}
-SRCS	+=	bench.c
-SRCS	+=	mkpair.c
-IDIRS	+=	-I ${BENCHLIB_DIR}
 
 .include <bsd.lib.mk>

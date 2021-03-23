@@ -3,13 +3,13 @@ SRCS=	main.c
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
-BENCHLIB_DIR	=	../lib
+LIB_DIR	=	../../lib
 
 # libcperciva imports
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
-# bench imports
-IDIRS	+=	-I ${BENCHLIB_DIR}
+# kivaloo imports
+IDIRS	+=	-I ${LIB_DIR}/bench
 
 # Debugging options
 #CFLAGS	+=	-g

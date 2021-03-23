@@ -8,19 +8,16 @@ LDADD	=	-lrt
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
-BENCHLIB_DIR	=	../lib
 
 # libcperciva imports
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo imports
+IDIRS	+=	-I ${LIB_DIR}/bench
 IDIRS	+=	-I ${LIB_DIR}/datastruct
 IDIRS	+=	-I ${LIB_DIR}/proto_kvlds
 IDIRS	+=	-I ${LIB_DIR}/wire
-
-# bench imports
-IDIRS	+=	-I ${BENCHLIB_DIR}
 
 # Debugging options
 #CFLAGS	+=	-g

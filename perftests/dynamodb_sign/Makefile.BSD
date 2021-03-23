@@ -9,35 +9,9 @@ LDADD	=	-lrt
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
 
-# CPU features detection
-.PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
-SRCS	+=	cpusupport_arm_sha256.c
-SRCS	+=	cpusupport_x86_shani.c
-SRCS	+=	cpusupport_x86_sse2.c
-SRCS	+=	cpusupport_x86_ssse3.c
-IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
-
-# Utility functions
-.PATH.c	:	${LIBCPERCIVA_DIR}/util
-SRCS	+=	asprintf.c
-SRCS	+=	hexify.c
-SRCS	+=	insecure_memzero.c
-SRCS	+=	warnp.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
-
-# Fundamental algorithms
-.PATH.c	:	${LIBCPERCIVA_DIR}/alg
-SRCS	+=	sha256.c
-SRCS	+=	sha256_arm.c
-SRCS	+=	sha256_shani.c
-SRCS	+=	sha256_sse2.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
-
-# AWS request signing
-.PATH.c	:	${LIBCPERCIVA_DIR}/aws
-SRCS	+=	aws_readkeys.c
-SRCS	+=	aws_sign.c
+# libcperciva imports
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 test: all
 	@./test_sign.sh

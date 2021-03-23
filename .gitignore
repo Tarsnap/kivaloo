@@ -16,6 +16,7 @@ dynamodb-kv/dynamodb-kv
 kvlds/kvlds
 kvlds-dump/kvlds-dump
 kvlds-undump/kvlds-undump
+liball/liball.a
 lbs-dynamodb/lbs-dynamodb
 lbs-dynamodb-init/lbs-dynamodb-init
 lbs-s3/lbs-s3

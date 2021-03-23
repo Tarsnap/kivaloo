@@ -9,42 +9,11 @@ LDADD_REQ	= -lssl -lcrypto
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
 
-# Data structures
-.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
-SRCS	+=	elasticarray.c
-SRCS	+=	ptrheap.c
-SRCS	+=	timerqueue.c
-#SRCS	+=	elasticqueue.c
-#SRCS	+=	seqptrmap.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
-
-# Utility functions
-.PATH.c	:	${LIBCPERCIVA_DIR}/util
-SRCS	+=	asprintf.c
-SRCS	+=	monoclock.c
-SRCS	+=	sock.c
-SRCS	+=	warnp.c
+# libcperciva imports
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
-# Event loop
-.PATH.c	:	${LIBCPERCIVA_DIR}/events
-SRCS	+=	events_immediate.c
-SRCS	+=	events_network.c
-SRCS	+=	events_network_selectstats.c
-SRCS	+=	events_timer.c
-SRCS	+=	events.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
-
-# Event-driven networking
-.PATH.c	:	${LIBCPERCIVA_DIR}/network
-SRCS	+=	network_read.c
-SRCS	+=	network_write.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
-
-# SSL layer
-.PATH.c	:	${LIB_DIR}/network_ssl
-SRCS	+=	network_ssl.c
-SRCS	+=	network_ssl_compat.c
+# kivaloo imports
 IDIRS	+=	-I ${LIB_DIR}/network_ssl
 
 test:	all

@@ -18,7 +18,7 @@ TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 	${BENCHES}
 SUBST_VERSION_FILES=	lbs/main.c kvlds/main.c mux/main.c s3/main.c \
 			lbs-s3/main.c
-PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE Makefile lib libcperciva bench perftests tests
+PUBLISH= ${PROGS} BUILDING CHANGELOG COPYRIGHT DESIGN INTERFACES STYLE Makefile lib liball libcperciva bench perftests tests
 
 ### Shared code between Tarsnap projects.
 
@@ -29,14 +29,14 @@ CFLAGS_HARDCODED=	-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CON
 
 # This creates (and deletes) a fake cpusupport-config.h that is
 # blank (and thus does not require any special CFLAGS to compile).
-.for D in ${PROGS} ${TESTS}
+.for D in liball ${PROGS} ${TESTS}
 ${D}/Makefile::
 	CPP="${CPP}" ./release-tools/metabuild.sh	\
 	    "${D}" "${MAKEBSD}"	"${CFLAGS_HARDCODED}"
 .endfor
 
 Makefiles:
-.for D in ${PROGS} ${TESTS}
+.for D in liball ${PROGS} ${TESTS}
 	${MAKEBSD} ${D}/Makefile
 .endfor
 

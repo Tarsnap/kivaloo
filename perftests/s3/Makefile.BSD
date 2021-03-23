@@ -5,76 +5,13 @@ SRCS=	main.c
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
 
-# CPU features detection
-.PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
-SRCS	+=	cpusupport_arm_sha256.c
-SRCS	+=	cpusupport_x86_shani.c
-SRCS	+=	cpusupport_x86_sse2.c
-SRCS	+=	cpusupport_x86_ssse3.c
-IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
-
-# Fundamental algorithms
-.PATH.c	:	${LIBCPERCIVA_DIR}/alg
-SRCS	+=	sha256.c
-SRCS	+=	sha256_arm.c
-SRCS	+=	sha256_shani.c
-SRCS	+=	sha256_sse2.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
-
-# Data structures
-.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
-SRCS	+=	elasticarray.c
-SRCS	+=	ptrheap.c
-SRCS	+=	timerqueue.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
-
-# Utility functions
-.PATH.c	:	${LIBCPERCIVA_DIR}/util
-SRCS	+=	asprintf.c
-SRCS	+=	b64encode.c
-SRCS	+=	hexify.c
-SRCS	+=	insecure_memzero.c
-SRCS	+=	monoclock.c
-SRCS	+=	sock.c
-SRCS	+=	warnp.c
+# libcperciva imports
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
-# Event loop
-.PATH.c	:	${LIBCPERCIVA_DIR}/events
-SRCS	+=	events_immediate.c
-SRCS	+=	events_network.c
-SRCS	+=	events_network_selectstats.c
-SRCS	+=	events_timer.c
-SRCS	+=	events.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
-
-# Event-driven networking
-.PATH.c	:	${LIBCPERCIVA_DIR}/network
-SRCS	+=	network_connect.c
-SRCS	+=	network_read.c
-SRCS	+=	network_write.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
-
-# AWS request signing
-.PATH.c	:	${LIBCPERCIVA_DIR}/aws
-SRCS	+=	aws_readkeys.c
-SRCS	+=	aws_sign.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
-
-# Buffered networking
-.PATH.c	:	${LIB_DIR}/netbuf
-SRCS	+=	netbuf_read.c
-SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ${LIB_DIR}/netbuf
-
-# HTTP protocol
-.PATH	:	${LIB_DIR}/http
-SRCS	+=	http.c
+# kivaloo imports
 IDIRS	+=	-I ${LIB_DIR}/http
-
-# S3 protocol
-.PATH	:	${LIB_DIR}/s3
-SRCS	+=	s3_request.c
 IDIRS	+=	-I ${LIB_DIR}/s3
 
 CFLAGS	+=	-g

@@ -5,6 +5,7 @@ SRCS=main.c cpusupport_arm_crc32_64.c cpusupport_x86_crc32_64.c elasticarray.c p
 IDIRS=-I../../libcperciva/cpusupport -I ../../libcperciva/datastruct -I ../../lib/datastruct -I ../../libcperciva/util -I ../../libcperciva/alg -I ../../libcperciva/events -I ../../libcperciva/network -I ../../lib/netbuf -I ../../lib/wire -I ../../lib/util -I ../../lib/proto_kvlds
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=tests/mux
+LIBALL=../../liball/liball.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
@@ -33,8 +34,8 @@ install:${PROG}
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
-${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+${PROG}:${SRCS:.c=.o} ${LIBALL}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../../libcperciva/events/events.h ../../lib/util/kivaloo.h ../../lib/datastruct/kvldskey.h ../../libcperciva/util/ctassert.h ../../lib/proto_kvlds/proto_kvlds.h ../../libcperciva/util/sysendian.h ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o

@@ -5,6 +5,7 @@ SRCS=main.c cpusupport_arm_sha256.c cpusupport_x86_shani.c cpusupport_x86_sse2.c
 IDIRS=-I../../libcperciva/cpusupport -I ../../libcperciva/util -I ../lib -I ../../libcperciva/alg
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=bench/mkpairs
+LIBALL=../../liball/liball.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
@@ -33,8 +34,8 @@ install:${PROG}
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
-${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+${PROG}:${SRCS:.c=.o} ${LIBALL}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../lib/mkpair.h ../../libcperciva/util/parsenum.h ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o

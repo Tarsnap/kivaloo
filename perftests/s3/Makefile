@@ -5,6 +5,7 @@ SRCS=main.c cpusupport_arm_sha256.c cpusupport_x86_shani.c cpusupport_x86_sse2.c
 IDIRS=-I../../libcperciva/cpusupport -I ../../libcperciva/alg -I ../../libcperciva/datastruct -I ../../libcperciva/util -I ../../libcperciva/events -I ../../libcperciva/network -I ../../libcperciva/aws -I ../../lib/netbuf -I ../../lib/http -I ../../lib/s3
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=perftests/s3
+LIBALL=../../liball/liball.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
@@ -33,8 +34,8 @@ install:${PROG}
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
-${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+${PROG}:${SRCS:.c=.o} ${LIBALL}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../../libcperciva/aws/aws_readkeys.h ../../libcperciva/events/events.h ../../lib/http/http.h ../../lib/s3/s3_request.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o

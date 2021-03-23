@@ -6,6 +6,7 @@ IDIRS=-I ../../libcperciva/datastruct -I ../../libcperciva/util -I ../../libcper
 LDADD_REQ=-lssl -lcrypto
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=perftests/network-ssl
+LIBALL=../../liball/liball.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
@@ -34,8 +35,8 @@ install:${PROG}
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
-${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+${PROG}:${SRCS:.c=.o} ${LIBALL}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../../libcperciva/util/asprintf.h ../../libcperciva/events/events.h ../../libcperciva/util/sock.h ../../libcperciva/util/warnp.h ../../lib/network_ssl/network_ssl.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o

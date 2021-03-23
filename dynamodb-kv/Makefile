@@ -6,6 +6,7 @@ IDIRS=-I../libcperciva/cpusupport -I ../libcperciva/datastruct -I ../libcperciva
 LDADD_REQ=-lssl -lcrypto
 SUBDIR_DEPTH=..
 RELATIVE_DIR=dynamodb-kv
+LIBALL=../liball/liball.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
@@ -34,8 +35,8 @@ install:${PROG}
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
-${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+${PROG}:${SRCS:.c=.o} ${LIBALL}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../libcperciva/util/daemonize.h ../lib/dynamodb/dynamodb_request_queue.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/insecure_memzero.h ../lib/logging/logging.h ../lib/serverpool/serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h capacity.h dispatch.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o

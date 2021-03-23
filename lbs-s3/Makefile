@@ -5,6 +5,7 @@ SRCS=main.c dispatch.c s3state.c deleteto.c findlast.c objmap.c cpusupport_arm_c
 IDIRS=-I../libcperciva/cpusupport -I ../libcperciva/datastruct -I ../libcperciva/util -I ../libcperciva/alg -I ../libcperciva/events -I ../libcperciva/network -I ../lib/netbuf -I ../lib/wire -I ../lib/proto_s3 -I ../lib/proto_lbs
 SUBDIR_DEPTH=..
 RELATIVE_DIR=lbs-s3
+LIBALL=../liball/liball.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \
@@ -33,8 +34,8 @@ install:${PROG}
 clean:
 	rm -f ${PROG} ${SRCS:.c=.o}
 
-${PROG}:${SRCS:.c=.o}
-	${CC} -o ${PROG} ${SRCS:.c=.o} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
+${PROG}:${SRCS:.c=.o} ${LIBALL}
+	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h dispatch.h s3state.h
 	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o

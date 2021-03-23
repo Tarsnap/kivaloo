@@ -6,78 +6,14 @@ MAN1=
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
 
-# CPU features detection
-.PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
-SRCS	+=	cpusupport_arm_crc32_64.c
-SRCS	+=	cpusupport_x86_crc32_64.c
-IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
-
-# Data structures (libcperciva)
-.PATH.c	:	${LIBCPERCIVA_DIR}/datastruct
-SRCS	+=	elasticarray.c
-SRCS	+=	ptrheap.c
-SRCS	+=	timerqueue.c
-SRCS	+=	elasticqueue.c
-SRCS	+=	seqptrmap.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
-
-# Data structures
-.PATH.c	:	${LIB_DIR}/datastruct
-SRCS	+=	kvldskey.c
-IDIRS	+=	-I ${LIB_DIR}/datastruct
-
-# Utility functions
-.PATH.c	:	${LIBCPERCIVA_DIR}/util
-SRCS	+=	monoclock.c
-SRCS	+=	sock.c
-SRCS	+=	warnp.c
+# libcperciva includes
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
-# Fundamental algorithms
-.PATH.c	:	${LIBCPERCIVA_DIR}/alg
-SRCS	+=	crc32c.c
-SRCS	+=	crc32c_arm.c
-SRCS	+=	crc32c_sse42.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/alg
-
-# Event loop
-.PATH.c	:	${LIBCPERCIVA_DIR}/events
-SRCS	+=	events_immediate.c
-SRCS	+=	events_network.c
-SRCS	+=	events_network_selectstats.c
-SRCS	+=	events_timer.c
-SRCS	+=	events.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
-
-# Event-driven networking
-.PATH.c	:	${LIBCPERCIVA_DIR}/network
-SRCS	+=	network_read.c
-SRCS	+=	network_write.c
-IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
-
-# Buffered networking
-.PATH.c	:	${LIB_DIR}/netbuf
-SRCS	+=	netbuf_read.c
-SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ${LIB_DIR}/netbuf
-
-# Wire protocol
-.PATH.c	:	${LIB_DIR}/wire
-SRCS	+=	wire_packet.c
-SRCS	+=	wire_readpacket.c
-SRCS	+=	wire_writepacket.c
-SRCS	+=	wire_requestqueue.c
-IDIRS	+=	-I ${LIB_DIR}/wire
-
-# Utility functions
-.PATH.c	:	${LIB_DIR}/util
-SRCS	+=	kivaloo.c
-IDIRS	+=	-I ${LIB_DIR}/util
-
-# LBS request/response packets
-.PATH.c	:	${LIB_DIR}/proto_kvlds
-SRCS	+=	proto_kvlds_client.c
+# kivaloo includes
+IDIRS	+=	-I ${LIB_DIR}/datastruct
 IDIRS	+=	-I ${LIB_DIR}/proto_kvlds
+IDIRS	+=	-I ${LIB_DIR}/util
 
 # Debugging options
 #CFLAGS	+=	-g

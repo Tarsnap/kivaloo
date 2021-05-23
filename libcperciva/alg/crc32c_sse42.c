@@ -1,7 +1,7 @@
 #include "cpusupport.h"
-#ifdef CPUSUPPORT_X86_CRC32_64
+#ifdef CPUSUPPORT_X86_SSE42_64
 /**
- * CPUSUPPORT CFLAGS: X86_CRC32_64
+ * CPUSUPPORT CFLAGS: X86_SSE42_64
  */
 
 #include <assert.h>
@@ -13,7 +13,7 @@
  * CRC32C_Update_SSE42(state, buf, len):
  * Feed ${len} bytes from the buffer ${buf} into the CRC32C whose state is
  * ${state}.  This implementation uses x86 SSE4.2 instructions, and should only
- * be used if CPUSUPPORT_X86_CRC32_64 is defined and cpusupport_x86_crc32()
+ * be used if CPUSUPPORT_X86_SSE42_64 is defined and cpusupport_x86_sse42()
  * returns nonzero.  ${len} must be greater than, or equal to, 8.
  */
 uint32_t
@@ -64,4 +64,4 @@ CRC32C_Update_SSE42(uint32_t state, const uint8_t * buf, size_t len)
 	return (state);
 }
 
-#endif /* CPUSUPPORT_X86_CRC32_64 */
+#endif /* CPUSUPPORT_X86_SSE42_64 */

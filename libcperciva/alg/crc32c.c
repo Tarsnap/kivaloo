@@ -9,12 +9,12 @@
 
 #include "crc32c.h"
 
-#if defined(CPUSUPPORT_X86_CRC32_64) || defined(CPUSUPPORT_ARM_CRC32_64)
+#if defined(CPUSUPPORT_X86_SSE42_64) || defined(CPUSUPPORT_ARM_CRC32_64)
 #define HWACCEL
 
 static enum {
 	HW_SOFTWARE = 0,
-#if defined(CPUSUPPORT_X86_CRC32_64)
+#if defined(CPUSUPPORT_X86_SSE42_64)
 	HW_X86_CRC32_64,
 #endif
 #if defined(CPUSUPPORT_ARM_CRC32_64)
@@ -115,7 +115,7 @@ hwtest(void)
 	uint32_t state = T_0_0x80;
 
 	/* Test hardware transform function. */
-#if defined(CPUSUPPORT_X86_CRC32_64)
+#if defined(CPUSUPPORT_X86_SSE42_64)
 	state = CRC32C_Update_SSE42(state, (const uint8_t *)testcase.buf,
 	    strlen(testcase.buf));
 #elif defined(CPUSUPPORT_ARM_CRC32_64)
@@ -139,8 +139,8 @@ hwaccel_init(void)
 	/* Default to software. */
 	hwaccel = HW_SOFTWARE;
 
-#if defined(CPUSUPPORT_X86_CRC32_64)
-	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_CRC32_64, cpusupport_x86_crc32_64(),
+#if defined(CPUSUPPORT_X86_SSE42_64)
+	CPUSUPPORT_VALIDATE(hwaccel, HW_X86_CRC32_64, cpusupport_x86_sse42(),
 	    hwtest());
 #endif
 #if defined(CPUSUPPORT_ARM_CRC32_64)
@@ -183,7 +183,7 @@ void
 CRC32C_Update(CRC32C_CTX * ctx, const uint8_t * buf, size_t len)
 {
 
-#if defined(CPUSUPPORT_X86_CRC32_64)
+#if defined(CPUSUPPORT_X86_SSE42_64)
 	if ((len >= 8) && (hwaccel == HW_X86_CRC32_64)) {
 		ctx->state = CRC32C_Update_SSE42(ctx->state, buf, len);
 		return;

@@ -405,7 +405,7 @@ metadata_deletedto_read(struct metadata * M)
 }
 
 /**
- * metadata_deletedto_write(M, deletedto, callback, cookie):
+ * metadata_deletedto_write(M, deletedto):
  * Store "deletedto" value.
  */
 void

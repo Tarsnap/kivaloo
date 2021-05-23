@@ -188,7 +188,8 @@ doubleheap_getmin(struct doubleheap * H, double * x)
 
 /**
  * doubleheap_setmin(H, x):
- * Replace the minimum element in the heap ${H} with ${x}.
+ * Replace the minimum element in the heap ${H} with ${x}; this is equivalent
+ * to deletemin + add, but is guaranteed to succeed.
  */
 void
 doubleheap_setmin(struct doubleheap * H, double x)

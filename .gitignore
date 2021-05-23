@@ -1,4 +1,6 @@
 *.o
+# Development tools
+devel-tools/
 # Build system configuration
 cflags-filter.sh
 cpusupport-config.h

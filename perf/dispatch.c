@@ -46,7 +46,7 @@ static int callback_gotresponse(void *, uint8_t *, size_t);
 /**
  * dispatch_accept(s, Q, P):
  * Initialize a dispatcher to accept a connection from the listening socket
- * ${s} and shuttle request/respones to/from the request queue ${Q}, recording
+ * ${s} and shuttle request/responses to/from the request queue ${Q}, recording
  * performance for each request via ${P}.
  */
 struct dispatch_state *

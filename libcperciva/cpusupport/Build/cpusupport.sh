@@ -70,6 +70,10 @@ feature X86 SSE2 ""							\
     "-Wno-cast-align"							\
     "-msse2"								\
     "-msse2 -Wno-cast-align"
+feature X86 SSE42 "" "-msse4.2"						\
+    "-msse4.2 -Wno-cast-align"						\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\
+    "-msse4.2 -Wno-cast-align -fno-strict-aliasing -Wno-cast-qual"
 feature X86 SSE42_64 "" "-msse4.2"					\
     "-msse4.2 -Wno-cast-align"						\
     "-msse4.2 -Wno-cast-align -fno-strict-aliasing"			\

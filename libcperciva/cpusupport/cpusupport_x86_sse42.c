@@ -6,7 +6,7 @@
 #define CPUID_SSE42_BIT (1 << 20)
 #endif
 
-CPUSUPPORT_FEATURE_DECL(x86, crc32_64)
+CPUSUPPORT_FEATURE_DECL(x86, sse42)
 {
 #ifdef CPUSUPPORT_X86_CPUID
 	unsigned int eax, ebx, ecx, edx;

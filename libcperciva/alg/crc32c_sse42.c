@@ -1,7 +1,12 @@
 #include "cpusupport.h"
-#ifdef CPUSUPPORT_X86_CRC32_64
+#ifdef CPUSUPPORT_X86_SSE42
 /**
- * CPUSUPPORT CFLAGS: X86_CRC32_64
+ * CPUSUPPORT CFLAGS: X86_SSE42 X86_SSE42_64
+ *
+ * The latter value will be unset on 32-bit systems, but that's ok.
+ * I'm not currently aware of any compiler/platform which requires additional
+ * flags for X86_SSE42_64 which are not also needed for X86_SSE42, but it's
+ * safest to include both sets of flags.
  */
 
 #include <assert.h>
@@ -13,8 +18,9 @@
  * CRC32C_Update_SSE42(state, buf, len):
  * Feed ${len} bytes from the buffer ${buf} into the CRC32C whose state is
  * ${state}.  This implementation uses x86 SSE4.2 instructions, and should only
- * be used if CPUSUPPORT_X86_CRC32_64 is defined and cpusupport_x86_crc32()
- * returns nonzero.  ${len} must be greater than, or equal to, 8.
+ * be used if CPUSUPPORT_X86_SSE42 is defined and cpusupport_x86_sse42()
+ * returns nonzero.  If CPUSUPPORT_X86_SSE42_64 is also defined, 64-bit
+ * instructions may be used.  ${len} must be greater than, or equal to, 8.
  */
 uint32_t
 CRC32C_Update_SSE42(uint32_t state, const uint8_t * buf, size_t len)
@@ -50,8 +56,16 @@ CRC32C_Update_SSE42(uint32_t state, const uint8_t * buf, size_t len)
 	 * if we start with i = 4 and want 1 block, we'll end up at i == 12.
 	 */
 	for (; i < in_block; i += 8) {
+#ifdef CPUSUPPORT_X86_SSE42_64
 		state = (uint32_t)_mm_crc32_u64(state,
 		    *(const uint64_t *)&buf[i]);
+#else
+		/* Only process 32 bits at once. */
+		state = (uint32_t)_mm_crc32_u32(state,
+		    *(const uint32_t *)&buf[i]);
+		state = (uint32_t)_mm_crc32_u32(state,
+		    *(const uint32_t *)&buf[i + 4]);
+#endif
 	}
 
 	/* Ensure that we don't have too many bytes remaining. */
@@ -64,4 +78,4 @@ CRC32C_Update_SSE42(uint32_t state, const uint8_t * buf, size_t len)
 	return (state);
 }
 
-#endif /* CPUSUPPORT_X86_CRC32_64 */
+#endif /* CPUSUPPORT_X86_SSE42 */

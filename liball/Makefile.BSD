@@ -28,9 +28,9 @@ IDIRS	+=	-I${LIBCPERCIVA_DIR}/aws
 .PATH.c	:	${LIBCPERCIVA_DIR}/cpusupport
 SRCS	+=	cpusupport_arm_crc32_64.c
 SRCS	+=	cpusupport_arm_sha256.c
-SRCS	+=	cpusupport_x86_crc32_64.c
 SRCS	+=	cpusupport_x86_shani.c
 SRCS	+=	cpusupport_x86_sse2.c
+SRCS	+=	cpusupport_x86_sse42.c
 SRCS	+=	cpusupport_x86_ssse3.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/cpusupport
 

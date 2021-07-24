@@ -15,6 +15,10 @@
 #endif /* __arm__ */
 #endif /* CPUSUPPORT_HWCAP_GETAUXVAL */
 
+#if defined(CPUSUPPORT_HWCAP_ELF_AUX_INFO)
+#include <sys/auxv.h>
+#endif /* CPUSUPPORT_HWCAP_ELF_AUX_INFO */
+
 CPUSUPPORT_FEATURE_DECL(arm, crc32_64)
 {
 	int supported = 0;
@@ -31,6 +35,20 @@ CPUSUPPORT_FEATURE_DECL(arm, crc32_64)
 	supported = (capabilities & HWCAP2_CRC32) ? 1 : 0;
 #endif
 #endif /* CPUSUPPORT_HWCAP_GETAUXVAL */
+
+#if defined(CPUSUPPORT_HWCAP_ELF_AUX_INFO)
+	unsigned long capabilities;
+
+#if defined(__aarch64__)
+	if (elf_aux_info(AT_HWCAP, &capabilities, sizeof(unsigned long)))
+		return (0);
+	supported = (capabilities & HWCAP_CRC32) ? 1 : 0;
+#else
+	if (elf_aux_info(AT_HWCAP2, &capabilities, sizeof(unsigned long)))
+		return (0);
+	supported = (capabilities & HWCAP2_CRC32) ? 1 : 0;
+#endif
+#endif /* CPUSUPPORT_HWCAP_ELF_AUX_INFO */
 #endif /* CPUSUPPORT_ARM_CRC32_64 */
 
 	/* Return the supported status. */

@@ -58,8 +58,8 @@ void netbuf_read_free(struct netbuf_read *);
  * Create and return a buffered writer attached to socket ${s}.  The caller
  * is responsible for ensuring that no attempts are made to write to said
  * socket except via the returned writer until netbuf_write_free() is called.
- * to destroy the writer.  If a write fails, ${fail_callback} will be invoked
- * with the parameter ${fail_cookie}.
+ * If a write fails, ${fail_callback} will be invoked with the parameter
+ * ${fail_cookie}.
  */
 struct netbuf_write * netbuf_write_init(int, int (*)(void *), void *);
 

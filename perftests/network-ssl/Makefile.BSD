@@ -7,14 +7,11 @@ LDADD_REQ	= -lssl -lcrypto
 
 # Useful relative directories
 LIBCPERCIVA_DIR	=	../../libcperciva
-LIB_DIR	=	../../lib
 
 # libcperciva imports
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
-
-# kivaloo imports
-IDIRS	+=	-I ${LIB_DIR}/network_ssl
 
 test:	all
 	@./test_network_ssl.sh

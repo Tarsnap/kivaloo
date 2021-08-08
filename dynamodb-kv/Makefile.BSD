@@ -20,14 +20,14 @@ SRCS	+=	dispatch.c
 # licperciva includes
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/netbuf
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo includes
 IDIRS	+=	-I ${LIB_DIR}/dynamodb
-IDIRS	+=	-I ${LIB_DIR}/http
 IDIRS	+=	-I ${LIB_DIR}/logging
-IDIRS	+=	-I ${LIB_DIR}/netbuf
 IDIRS	+=	-I ${LIB_DIR}/proto_dynamodb_kv
 IDIRS	+=	-I ${LIB_DIR}/serverpool
 IDIRS	+=	-I ${LIB_DIR}/wire

@@ -52,11 +52,26 @@ SRCS	+=	events_network_selectstats.c
 SRCS	+=	events_timer.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/events
 
+# HTTP client protocol
+.PATH.c	:	${LIBCPERCIVA_DIR}/http
+SRCS	+=	http.c
+SRCS	+=	https.c
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http
+
+# Buffered networking
+.PATH.c	:	${LIBCPERCIVA_DIR}/netbuf
+SRCS	+=	netbuf_read.c
+SRCS	+=	netbuf_ssl.c
+SRCS	+=	netbuf_write.c
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/netbuf
+
 # Event-driven networking
 .PATH.c	:	${LIBCPERCIVA_DIR}/network
 SRCS	+=	network_accept.c
 SRCS	+=	network_connect.c
 SRCS	+=	network_read.c
+SRCS	+=	network_ssl.c
+SRCS	+=	network_ssl_compat.c
 SRCS	+=	network_write.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/network
 
@@ -101,29 +116,10 @@ SRCS	+=	dynamodb_request.c
 SRCS	+=	dynamodb_request_queue.c
 IDIRS	+=	-I ${LIB_DIR}/dynamodb
 
-# HTTP client protocol
-.PATH.c	:	${LIB_DIR}/http
-SRCS	+=	http.c
-SRCS	+=	https.c
-IDIRS	+=	-I ${LIB_DIR}/http
-
 # Logging code
 .PATH.c	:	${LIB_DIR}/logging
 SRCS	+=	logging.c
 IDIRS	+=	-I ${LIB_DIR}/logging
-
-# Buffered networking
-.PATH.c	:	${LIB_DIR}/netbuf
-SRCS	+=	netbuf_read.c
-SRCS	+=	netbuf_ssl.c
-SRCS	+=	netbuf_write.c
-IDIRS	+=	-I ${LIB_DIR}/netbuf
-
-# SSL layer
-.PATH.c	:	${LIB_DIR}/network_ssl
-SRCS	+=	network_ssl.c
-SRCS	+=	network_ssl_compat.c
-IDIRS	+=	-I ${LIB_DIR}/network_ssl
 
 # DynamoDB-KV request/response packets
 .PATH.c	:	${LIB_DIR}/proto_dynamodb_kv

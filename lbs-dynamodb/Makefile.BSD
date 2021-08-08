@@ -19,11 +19,11 @@ SRCS	+=	objmap.c
 
 # libcperciva includes
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/netbuf
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo includes
-IDIRS	+=	-I ${LIB_DIR}/netbuf
 IDIRS	+=	-I ${LIB_DIR}/proto_dynamodb_kv
 IDIRS	+=	-I ${LIB_DIR}/proto_lbs
 IDIRS	+=	-I ${LIB_DIR}/wire

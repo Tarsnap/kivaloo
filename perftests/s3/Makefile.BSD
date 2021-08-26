@@ -8,10 +8,10 @@ LIB_DIR	=	../../lib
 # libcperciva imports
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo imports
-IDIRS	+=	-I ${LIB_DIR}/http
 IDIRS	+=	-I ${LIB_DIR}/s3
 
 CFLAGS	+=	-g

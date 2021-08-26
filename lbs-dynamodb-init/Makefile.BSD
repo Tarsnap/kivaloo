@@ -18,10 +18,10 @@ SRCS	=	main.c
 # libcperciva includes
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo includes
 IDIRS	+=	-I ${LIB_DIR}/dynamodb
-IDIRS	+=	-I ${LIB_DIR}/http
 
 .include <bsd.prog.mk>

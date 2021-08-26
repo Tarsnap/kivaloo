@@ -11,12 +11,11 @@ BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
 TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
 	tests/kvlds-blocking tests/kvlds-dump tests/kvlds-ddbkv \
 	tests/msleep						\
-	perftests/kvldsperf perftests/kvldsclean perftests/http \
+	perftests/kvldsperf perftests/kvldsclean		 \
 	perftests/s3 perftests/s3_put perftests/serverpool	\
 	perftests/dynamodb_sign perftests/dynamodb_request	\
 	perftests/dynamodb_queue perftests/dynamodb_kv		\
-	perftests/kvldsclean-ddbkv perftests/network-ssl	\
-	perftests/https						\
+	perftests/kvldsclean-ddbkv				\
 	${BENCHES}
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2

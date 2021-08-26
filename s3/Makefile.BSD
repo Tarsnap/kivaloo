@@ -17,13 +17,13 @@ SRCS	+=	dispatch.c
 # libcperciva includes
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/netbuf
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo includes
-IDIRS	+=	-I ${LIB_DIR}/http
 IDIRS	+=	-I ${LIB_DIR}/logging
-IDIRS	+=	-I ${LIB_DIR}/netbuf
 IDIRS	+=	-I ${LIB_DIR}/proto_s3
 IDIRS	+=	-I ${LIB_DIR}/s3
 IDIRS	+=	-I ${LIB_DIR}/wire

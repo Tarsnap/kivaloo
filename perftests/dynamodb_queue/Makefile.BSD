@@ -11,11 +11,11 @@ LDADD_REQ	= -lssl -lcrypto
 # libcperciva imports
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo imports
 IDIRS	+=	-I ${LIB_DIR}/dynamodb
-IDIRS	+=	-I ${LIB_DIR}/http
 IDIRS	+=	-I ${LIB_DIR}/logging
 IDIRS	+=	-I ${LIB_DIR}/serverpool
 

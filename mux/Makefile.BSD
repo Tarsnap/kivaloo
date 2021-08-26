@@ -16,11 +16,11 @@ SRCS	+=	dispatch.c
 # libcperciva includes
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/datastruct
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/netbuf
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/network
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
 
 # kivaloo includes
-IDIRS	+=	-I ${LIB_DIR}/netbuf
 IDIRS	+=	-I ${LIB_DIR}/wire
 
 # Debugging options

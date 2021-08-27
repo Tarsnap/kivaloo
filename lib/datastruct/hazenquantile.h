@@ -58,7 +58,7 @@ hazenquantile(size_t N, double x, size_t * i, double * r)
 	}
 
 	/* Sanity-check. */
-	assert((*i + *r < N));
+	assert((double)*i + *r <= (double)(N-1));
 	assert((0.0 <= *r) && (*r < 1.0));
 }
 

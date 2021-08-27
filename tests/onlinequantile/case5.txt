@@ -1,0 +1,20 @@
+# This test takes the 75% percentile value
+q	0.75
+
+# P75 of {2} is 2.0
+a	2.0
+g		2.0
+# P75 of {1, 2} is 2.0
+a	1.0
+g		2.0
+# P75 of {1, 1, 2} is 1.75
+a	1.0
+g		1.75
+# P75 of {1, 1, 2, 3, 4, 5} is 4.0
+a	3
+a	4
+a	5
+g		4.0
+# P75 of {1, 1, 2, 3, 4, 5, 5} is 4.75
+a	5
+g		4.75

@@ -263,7 +263,7 @@ perfstats_add(struct perfstats * P, uint32_t reqtype, double t)
 	/* Add to the statistics for this request type. */
 	r = *reqstatslist_get(P->stats, i);
 	r->N++;
-	r->mu += (t - r->mu) / r->N;
+	r->mu += (t - r->mu) / (double)r->N;
 	if (onlinequantile_add(r->p50, t))
 		goto err0;
 	if (onlinequantile_add(r->p99, t))

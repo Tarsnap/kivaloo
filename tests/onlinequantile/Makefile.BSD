@@ -1,0 +1,18 @@
+PROG=	test_onlinequantile
+SRCS=	main.c
+MAN1=
+
+# Useful relative directories
+LIBCPERCIVA_DIR	=	../../libcperciva
+LIB_DIR	=	../../lib
+
+# libcperciva includes
+IDIRS	+=	-I ${LIBCPERCIVA_DIR}/util
+
+# kivaloo includes
+IDIRS	+=	-I ${LIB_DIR}/datastruct
+
+test:	all
+	@./test_onlinequantile.sh
+
+.include <bsd.prog.mk>

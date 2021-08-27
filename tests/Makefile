@@ -1,6 +1,6 @@
 .POSIX:
 
-SUBDIR=	lbs kvlds mux s3 kvlds-s3 kvlds-ddbkv
+SUBDIR=	lbs kvlds mux s3 kvlds-s3 kvlds-ddbkv onlinequantile
 
 test:
 	for D in ${SUBDIR}; do				\

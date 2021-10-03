@@ -25,8 +25,8 @@ env:
                         -Wno-documentation
   CFLAGS_GCC_PROJECT: -Wno-float-equal -Wno-alloc-zero -Wno-format-overflow
                       -Wno-jump-misses-init
-  CFLAGS_OSX: -Wno-poison-system-directories -I/usr/local/opt/openssl/include
-  LDFLAGS_OSX: -L/usr/local/opt/openssl/lib
+  CFLAGS_OSX: -Wno-poison-system-directories -I/usr/local/opt/openssl@1.1/include
+  LDFLAGS_OSX: -L/usr/local/opt/openssl@1.1/lib
 
 jobs:
   Ubuntu:

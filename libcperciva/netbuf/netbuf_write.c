@@ -193,7 +193,10 @@ netbuf_write_init2(int s, struct network_ssl_ctx * ssl,
 	W->curr = NULL;
 
 	/* Additional configuration if we're using a socket. */
-	if (W->ssl != NULL) {
+	if (W->ssl == NULL) {
+		/* Sanity check. */
+		assert(W->s >= 0);
+
 		/*
 		 * Request that the OS not attempt to coalesce small segments.
 		 * We do this ourselves, and we're smarter than the OS is.  We

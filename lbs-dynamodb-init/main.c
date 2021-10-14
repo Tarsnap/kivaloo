@@ -52,13 +52,18 @@ callback_reqdone(void * cookie, struct http_response * res)
 
 	/* Record status and duplicate response body. */
 	C->status = res->status;
-	C->body = malloc(res->bodylen + 1);
+	if ((C->body = malloc(res->bodylen + 1)) == NULL)
+		goto err0;
 	memcpy(C->body, res->body, res->bodylen);
 	C->body[res->bodylen] = '\0';
 
 done:
 	/* Success! */
 	return (0);
+
+err0:
+	/* Failure! */
+	return (-1);
 }
 
 static char *

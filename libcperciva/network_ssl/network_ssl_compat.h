@@ -15,6 +15,20 @@
 /* LibreSSL claims to be OpenSSL 2.0; ignore that. */
 #undef OPENSSL_VERSION_NUMBER
 
+#if LIBRESSL_VERSION_NUMBER >= 0x3030200fL
+/* Compatibility for LibreSSL 3.3.2+ */
+#define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#elif LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+/* Compatibility for LibreSSL 2.7.0 to 3.3.2. */
+#define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+#define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#else
+/* No compatibility for LibreSSL below 2.7.0. */
+#error "LibreSSL before 2.7.0 not supported."
+#endif
+
 #else /* end LibreSSL section */
 
 /* Compatibility for OpenSSL. */

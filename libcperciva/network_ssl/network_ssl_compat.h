@@ -21,7 +21,8 @@
 
 /* Compatibility for OpenSSL pre-1.1.0 */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define NETWORK_SSL_COMPAT_TLS_VERSION
+#define NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
+#define NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
 #define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
 #endif
 
@@ -30,7 +31,7 @@
 #define NETWORK_SSL_COMPAT_READ_WRITE_EX
 #endif
 
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 /**
  * network_ssl_compat_TLS_client_method(void):
  * Create a SSL_METHOD.
@@ -40,7 +41,7 @@
 const SSL_METHOD * network_ssl_compat_TLS_client_method(void);
 #endif
 
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#ifdef NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
 /**
  * network_ssl_compat_CTL_set_min_proto_version(ctx, version):
  * Set the minimum protocol version to ${version}.

@@ -10,14 +10,12 @@
 #error "OPENSSL_VERSION_NUMBER must be defined"
 #endif
 
-/*
- * LibreSSL claims to be OpenSSL 2.0, but (currently) has APIs compatible with
- * OpenSSL 1.0.1g.
- */
+/* Which library are we using? */
 #ifdef LIBRESSL_VERSION_NUMBER
+/* LibreSSL claims to be OpenSSL 2.0; ignore that. */
 #undef OPENSSL_VERSION_NUMBER
-#define OPENSSL_VERSION_NUMBER 0x1000107fL
-#endif
+
+#else /* end LibreSSL section */
 
 /* Compatibility for OpenSSL. */
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL
@@ -35,6 +33,7 @@
 #define NETWORK_SSL_COMPAT_READ_WRITE_EX
 
 #endif /* End of OpenSSL compatibility section. */
+#endif
 
 #ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 /**

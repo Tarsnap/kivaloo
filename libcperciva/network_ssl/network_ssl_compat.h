@@ -19,17 +19,22 @@
 #define OPENSSL_VERSION_NUMBER 0x1000107fL
 #endif
 
-/* Compatibility for OpenSSL pre-1.1.0 */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+/* Compatibility for OpenSSL. */
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL
+/* Compatibility for OpenSSL 1.1.1+: nothing needed. */
+
+#elif OPENSSL_VERSION_NUMBER >= 0x1010000fL
+/* Compatibility for OpenSSL 1.1.0. */
+#define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#else
+/* Compatibility for OpenSSL pre-1.1.0. */
 #define NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 #define NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
 #define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
-#endif
-
-/* Compatibility for OpenSSL pre-1.1.1. */
-#if OPENSSL_VERSION_NUMBER < 0x10101000L
 #define NETWORK_SSL_COMPAT_READ_WRITE_EX
-#endif
+
+#endif /* End of OpenSSL compatibility section. */
 
 #ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 /**

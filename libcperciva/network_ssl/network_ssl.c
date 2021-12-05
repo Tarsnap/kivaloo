@@ -20,8 +20,11 @@
 #include "network_ssl_compat.h"
 
 /* Compatibility for OpenSSL versions. */
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 #define TLS_client_method network_ssl_compat_TLS_client_method
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
 #define SSL_CTX_set_min_proto_version network_ssl_compat_CTL_set_min_proto_version
 #endif
 

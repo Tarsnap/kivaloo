@@ -7,7 +7,7 @@
 
 #include "network_ssl_compat.h"
 
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 /**
  * network_ssl_compat_TLS_client_method(void):
  * Create a SSL_METHOD.
@@ -22,7 +22,7 @@ network_ssl_compat_TLS_client_method()
 }
 #endif
 
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#ifdef NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
 /**
  * network_ssl_compat_CTL_set_min_proto_version(ctx, version):
  * Set the minimum protocol version to ${version}.

@@ -10,27 +10,46 @@
 #error "OPENSSL_VERSION_NUMBER must be defined"
 #endif
 
-/*
- * LibreSSL claims to be OpenSSL 2.0, but (currently) has APIs compatible with
- * OpenSSL 1.0.1g.
- */
+/* Which library are we using? */
 #ifdef LIBRESSL_VERSION_NUMBER
+/* LibreSSL claims to be OpenSSL 2.0; ignore that. */
 #undef OPENSSL_VERSION_NUMBER
-#define OPENSSL_VERSION_NUMBER 0x1000107fL
-#endif
 
-/* Compatibility for OpenSSL pre-1.1.0 */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define NETWORK_SSL_COMPAT_TLS_VERSION
-#define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
-#endif
-
-/* Compatibility for OpenSSL pre-1.1.1. */
-#if OPENSSL_VERSION_NUMBER < 0x10101000L
+#if LIBRESSL_VERSION_NUMBER >= 0x3030200fL
+/* Compatibility for LibreSSL 3.3.2+ */
 #define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#elif LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+/* Compatibility for LibreSSL 2.7.0 to 3.3.2. */
+#define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+#define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#else
+/* No compatibility for LibreSSL below 2.7.0. */
+#error "LibreSSL before 2.7.0 not supported."
 #endif
 
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#else /* end LibreSSL section */
+
+/* Compatibility for OpenSSL. */
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fL
+/* Compatibility for OpenSSL 1.1.1+: nothing needed. */
+
+#elif OPENSSL_VERSION_NUMBER >= 0x1010000fL
+/* Compatibility for OpenSSL 1.1.0. */
+#define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#else
+/* Compatibility for OpenSSL pre-1.1.0. */
+#define NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
+#define NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
+#define NETWORK_SSL_COMPAT_CHECK_HOSTNAME
+#define NETWORK_SSL_COMPAT_READ_WRITE_EX
+
+#endif /* End of OpenSSL compatibility section. */
+#endif
+
+#ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 /**
  * network_ssl_compat_TLS_client_method(void):
  * Create a SSL_METHOD.
@@ -40,7 +59,7 @@
 const SSL_METHOD * network_ssl_compat_TLS_client_method(void);
 #endif
 
-#ifdef NETWORK_SSL_COMPAT_TLS_VERSION
+#ifdef NETWORK_SSL_COMPAT_SET_MIN_PROTO_VERSION
 /**
  * network_ssl_compat_CTL_set_min_proto_version(ctx, version):
  * Set the minimum protocol version to ${version}.

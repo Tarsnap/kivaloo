@@ -119,7 +119,7 @@ skip_array(const uint8_t * buf, const uint8_t * end)
 
 		/* Otherwise we should have a comma. */
 		if (*buf++ != ',')
-			return(end);
+			return (end);
 	} while(1);
 
 	/* NOTREACHED */
@@ -165,7 +165,7 @@ skip_object(const uint8_t * buf, const uint8_t * end)
 
 		/* Otherwise we should have a comma. */
 		if (*buf++ != ',')
-			return(end);
+			return (end);
 	} while(1);
 
 	/* NOTREACHED */

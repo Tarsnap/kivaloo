@@ -126,9 +126,9 @@ poke(struct netbuf_write * W)
 		    WB->datalen, WB->datalen, writbuf, W)) == NULL)
 			goto err0;
 	}
+	W->curr = WB;
 
 	/* Remove the buffer from the queue. */
-	W->curr = WB;
 	W->head = WB->next;
 	if (W->head == NULL)
 		W->tail = NULL;
@@ -238,9 +238,10 @@ netbuf_write_reserve(struct netbuf_write * W, size_t len)
 	W->reserved = 1;
 
 	/* Do we have a buffer with enough space?  Return it. */
-	if ((W->tail != NULL) &&
-	    (W->tail->buflen - W->tail->datalen >= len))
-		goto oldbuf;
+	if ((WB = W->tail) != NULL) {
+		if (WB->buflen - WB->datalen >= len)
+			goto oldbuf;
+	}
 
 	/* We need to add a new buffer to the queue. */
 	if ((WB = malloc(sizeof(struct writebuf))) == NULL)
@@ -272,7 +273,7 @@ netbuf_write_reserve(struct netbuf_write * W, size_t len)
 
 oldbuf:
 	/* Return a pointer into the old buffer. */
-	return (&W->tail->buf[W->tail->datalen]);
+	return (&WB->buf[WB->datalen]);
 
 err1:
 	free(WB);
@@ -289,12 +290,19 @@ err0:
 int
 netbuf_write_consume(struct netbuf_write * W, size_t len)
 {
+	struct writebuf * WB;
 
 	/* Sanity-check: We must have space reserved. */
 	assert(W->reserved == 1);
 
+	/* Get the old buffer. */
+	WB = W->tail;
+
+	/* Sanity-check: We must have a buffer. */
+	assert(WB != NULL);
+
 	/* Sanity-check: We must have enough space reserved. */
-	assert(W->tail->buflen - W->tail->datalen >= len);
+	assert(WB->buflen - WB->datalen >= len);
 
 	/*
 	 * Advance the buffer pointer, unless we've failed -- if we've failed
@@ -302,7 +310,7 @@ netbuf_write_consume(struct netbuf_write * W, size_t len)
 	 * data anyway.
 	 */
 	if (W->failed == 0)
-		W->tail->datalen += len;
+		WB->datalen += len;
 
 	/* We no longer have space reserved. */
 	W->reserved = 0;

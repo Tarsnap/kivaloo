@@ -97,6 +97,9 @@ SRCS	+=	sock_util.c
 SRCS	+=	warnp.c
 IDIRS	+=	-I${LIBCPERCIVA_DIR}/util
 
+# External headers
+IDIRS	+=	-I${LIBCPERCIVA_DIR}/external/queue
+
 # Benchmark utility functions
 .PATH.c	:	${LIB_DIR}/bench
 SRCS	+=	bench.c

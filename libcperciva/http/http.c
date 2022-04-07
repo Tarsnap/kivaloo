@@ -834,12 +834,16 @@ http_request_cancel(void * cookie)
  * http_findheader(headers, nheaders, header):
  * Search for ${header} in the ${nheaders} header structures ${headers}.
  * Return a pointer to the associated value or NULL if it is not found.
+ * If ${nheaders} is zero, then ${headers} may be NULL.
  */
 const char *
 http_findheader(struct http_header * headers, size_t nheaders,
     const char * header)
 {
 	size_t i;
+
+	/* Sanity check. */
+	assert((headers != NULL) || (nheaders == 0));
 
 	/* Search for the header. */
 	for (i = 0; i < nheaders; i++) {

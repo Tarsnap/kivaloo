@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "network.h"
+#include "queue.h"
 #include "warnp.h"
 
 #include "netbuf.h"
@@ -31,7 +32,7 @@ struct writebuf {
 	uint8_t * buf;			/* The buffer to be written. */
 	size_t buflen;			/* Size of buffer. */
 	size_t datalen;			/* Amount of data in buffer. */
-	struct writebuf * next;		/* Next buffer in queue. */
+	STAILQ_ENTRY(writebuf) entries;
 };
 
 /* Buffered writer structure. */
@@ -46,8 +47,7 @@ struct netbuf_write {
 	void * fail_cookie;		/* Cookie for failure callback. */
 
 	/* Queued buffers. */
-	struct writebuf * head;		/* Queue of buffers to write. */
-	struct writebuf * tail;		/* Last buffer in queue. */
+	STAILQ_HEAD(buffers, writebuf) buffers;	/* Queue of buffers to write. */
 
 	/* Current write. */
 	void * write_cookie;		/* Cookie from network_write. */
@@ -105,7 +105,7 @@ poke(struct netbuf_write * W)
 	struct writebuf * WB;
 
 	/* If a write is in progress or we have nothing to write, return. */
-	if ((W->write_cookie != NULL) || (W->head == NULL))
+	if ((W->write_cookie != NULL) || (STAILQ_EMPTY(&W->buffers)))
 		return (0);
 
 	/* If we've failed, don't try to do anything more. */
@@ -116,7 +116,7 @@ poke(struct netbuf_write * W)
 	assert(W->curr == NULL);
 
 	/* Start writing a buffer. */
-	WB = W->head;
+	WB = STAILQ_FIRST(&W->buffers);
 	if (W->ssl) {
 		if ((W->write_cookie = (netbuf_write_ssl_func)(W->ssl,
 		    WB->buf, WB->datalen, WB->datalen, writbuf, W)) == NULL)
@@ -126,12 +126,10 @@ poke(struct netbuf_write * W)
 		    WB->datalen, WB->datalen, writbuf, W)) == NULL)
 			goto err0;
 	}
+	W->curr = WB;
 
 	/* Remove the buffer from the queue. */
-	W->curr = WB;
-	W->head = WB->next;
-	if (W->head == NULL)
-		W->tail = NULL;
+	STAILQ_REMOVE(&W->buffers, WB, writebuf, entries);
 
 	/* Success! */
 	return (0);
@@ -188,7 +186,7 @@ netbuf_write_init2(int s, struct network_ssl_ctx * ssl,
 	W->failed = 0;
 	W->fail_callback = (fail_callback != NULL) ? fail_callback : dummyfail;
 	W->fail_cookie = fail_cookie;
-	W->head = W->tail = NULL;
+	STAILQ_INIT(&W->buffers);
 	W->write_cookie = NULL;
 	W->curr = NULL;
 
@@ -238,9 +236,10 @@ netbuf_write_reserve(struct netbuf_write * W, size_t len)
 	W->reserved = 1;
 
 	/* Do we have a buffer with enough space?  Return it. */
-	if ((W->tail != NULL) &&
-	    (W->tail->buflen - W->tail->datalen >= len))
-		goto oldbuf;
+	if ((WB = STAILQ_LAST(&W->buffers, writebuf, entries)) != NULL) {
+		if (WB->buflen - WB->datalen >= len)
+			goto oldbuf;
+	}
 
 	/* We need to add a new buffer to the queue. */
 	if ((WB = malloc(sizeof(struct writebuf))) == NULL)
@@ -260,19 +259,14 @@ netbuf_write_reserve(struct netbuf_write * W, size_t len)
 	WB->datalen = 0;
 
 	/* Add this buffer to the queue. */
-	if (W->tail == NULL)
-		W->head = WB;
-	else
-		W->tail->next = WB;
-	W->tail = WB;
-	WB->next = NULL;
+	STAILQ_INSERT_TAIL(&W->buffers, WB, entries);
 
 	/* Return a pointer to the new buffer. */
 	return (WB->buf);
 
 oldbuf:
 	/* Return a pointer into the old buffer. */
-	return (&W->tail->buf[W->tail->datalen]);
+	return (&WB->buf[WB->datalen]);
 
 err1:
 	free(WB);
@@ -289,12 +283,19 @@ err0:
 int
 netbuf_write_consume(struct netbuf_write * W, size_t len)
 {
+	struct writebuf * WB;
 
 	/* Sanity-check: We must have space reserved. */
 	assert(W->reserved == 1);
 
+	/* Get the old buffer. */
+	WB = STAILQ_LAST(&W->buffers, writebuf, entries);
+
+	/* Sanity-check: We must have a buffer. */
+	assert(WB != NULL);
+
 	/* Sanity-check: We must have enough space reserved. */
-	assert(W->tail->buflen - W->tail->datalen >= len);
+	assert(WB->buflen - WB->datalen >= len);
 
 	/*
 	 * Advance the buffer pointer, unless we've failed -- if we've failed
@@ -302,7 +303,7 @@ netbuf_write_consume(struct netbuf_write * W, size_t len)
 	 * data anyway.
 	 */
 	if (W->failed == 0)
-		W->tail->datalen += len;
+		WB->datalen += len;
 
 	/* We no longer have space reserved. */
 	W->reserved = 0;
@@ -363,8 +364,9 @@ netbuf_write_free(struct netbuf_write * W)
 	}
 
 	/* Free write buffers. */
-	while ((WB = W->head) != NULL) {
-		W->head = WB->next;
+	while (!STAILQ_EMPTY(&W->buffers)) {
+		WB = STAILQ_FIRST(&W->buffers);
+		STAILQ_REMOVE_HEAD(&W->buffers, entries);
 		free(WB->buf);
 		free(WB);
 	}

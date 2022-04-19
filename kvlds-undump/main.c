@@ -109,7 +109,7 @@ callback_pair(void * cookie, struct kvldskey ** key, struct kvldskey ** value)
 			if ((strcmp(d->d_name, ".") != 0) &&
 			    (strcmp(d->d_name, "..") != 0))
 				break;
-		} while(1);
+		} while (1);
 
 		/* Read key and value. */
 		if ((*key = readfile(d->d_name, "k")) == NULL)

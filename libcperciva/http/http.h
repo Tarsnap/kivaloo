@@ -27,7 +27,7 @@ struct http_request {
 struct http_response {
 	int status;
 	size_t nheaders;
-	struct http_header * headers;
+	struct http_header * headers;	/* May be NULL if nheaders == 0. */
 	size_t bodylen;
 	uint8_t * body;
 };
@@ -70,6 +70,7 @@ void http_request_cancel(void *);
  * http_findheader(headers, nheaders, header):
  * Search for ${header} in the ${nheaders} header structures ${headers}.
  * Return a pointer to the associated value or NULL if it is not found.
+ * If ${nheaders} is zero, then ${headers} may be NULL.
  */
 const char * http_findheader(struct http_header *, size_t, const char *);
 

@@ -321,11 +321,11 @@ SHA1_Buf(const void * in, size_t len, uint8_t digest[20])
  * Initialize the HMAC-SHA1 context ${ctx} with ${Klen} bytes of key from ${K}.
  */
 void
-HMAC_SHA1_Init(HMAC_SHA1_CTX * ctx, const void * _K, size_t Klen)
+HMAC_SHA1_Init(HMAC_SHA1_CTX * ctx, const void * _k, size_t Klen)
 {
 	uint8_t pad[64];
 	uint8_t khash[20];
-	const uint8_t * K = _K;
+	const uint8_t * K = _k;
 	size_t i;
 
 	/* If Klen > 64, the key is really SHA1(K). */

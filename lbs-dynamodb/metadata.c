@@ -96,9 +96,9 @@ err0:
 }
 
 static int
-callback_claimmetadata(void * _M, int status)
+callback_claimmetadata(void * _m, int status)
 {
-	struct metadata * M = _M;
+	struct metadata * M = _m;
 
 	/* Did we succeed? */
 	switch (status) {
@@ -182,9 +182,9 @@ err0:
 }
 
 static int
-callback_writemetadata(void * _M, int status)
+callback_writemetadata(void * _m, int status)
 {
-	struct metadata * M = _M;
+	struct metadata * M = _m;
 	int (* callback)(void *);
 	void * cookie;
 	int rc = 0;

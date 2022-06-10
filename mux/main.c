@@ -178,7 +178,7 @@ main(int argc, char * argv[])
 
 	/* Initialize the dispatcher. */
 	if ((dstate = dispatch_init(socks_s, opt_s_size,
-	    Q_t, opt_n ? (size_t)opt_n : SIZE_MAX)) == NULL) {
+	    Q_t, opt_n ? opt_n : SIZE_MAX)) == NULL) {
 		warnp("Failed to initialize dispatcher");
 		exit(1);
 	}

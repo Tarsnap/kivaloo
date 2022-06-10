@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "events.h"
-#include "metadata.h"
 #include "proto_dynamodb_kv.h"
 #include "proto_lbs.h"
 #include "warnp.h"

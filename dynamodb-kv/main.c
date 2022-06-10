@@ -260,9 +260,6 @@ main(int argc, char * argv[])
 	/* Stop DNS lookups. */
 	serverpool_free(SP);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Free string allocated by asprintf. */
 	free(dynamodb_host);
 

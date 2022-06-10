@@ -291,9 +291,6 @@ main(int argc, char * argv[])
 	sock_addr_freelist(sas_l);
 	sock_addr_freelist(sas_s);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Free option strings. */
 	free(opt_l);
 	free(opt_p);

@@ -206,9 +206,6 @@ main(int argc, char * argv[])
 	/* Free the request queue and network connection. */
 	kivaloo_close(K);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Close all streams, in order to free malloced internal buffers. */
 	fclose(stdin);
 	fclose(stdout);

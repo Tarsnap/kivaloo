@@ -211,9 +211,6 @@ main(int argc, char * argv[])
 	/* Close the listening socket. */
 	close(s);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Free the address structures. */
 	sock_addr_freelist(sas);
 

@@ -203,9 +203,6 @@ main(int argc, char * argv[])
 	/* Free socket addresses. */
 	sock_addr_freelist(sas);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Success! */
 	exit(0);
 }

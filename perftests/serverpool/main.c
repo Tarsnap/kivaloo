@@ -93,9 +93,6 @@ main(int argc, char * argv[])
 	/* Shut down the DNS lookups. */
 	serverpool_free(SP);
 
-	/* Shut down events loop (in case we're checking for memory leaks). */
-	events_shutdown();
-
 	/* Success! */
 	exit(0);
 }

@@ -251,9 +251,6 @@ main(int argc, char * argv[])
 	/* Free buffer used for holding blocks. */
 	free(buf);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Success! */
 	exit(0);
 }

@@ -221,9 +221,6 @@ main(int argc, char * argv[])
 		sock_addr_free(*addrlist_get(opt_s, i));
 	addrlist_free(opt_s);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Free option strings. */
 	free(opt_p);
 	free(opt_s_1);

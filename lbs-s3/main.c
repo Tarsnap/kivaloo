@@ -230,9 +230,6 @@ main(int argc, char * argv[])
 	sock_addr_freelist(sas_t);
 	sock_addr_freelist(sas_s);
 
-	/* Shut down the event subsystem. */
-	events_shutdown();
-
 	/* Free option strings. */
 	free(opt_s);
 	free(opt_p);

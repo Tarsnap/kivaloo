@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "events.h"
 #include "kivaloo.h"
 #include "kvlds.h"
 #include "kvldskey.h"
@@ -77,9 +76,6 @@ main(int argc, char * argv[])
 
 	/* Free the request queue and network connection. */
 	kivaloo_close(K);
-
-	/* Shut down the event subsystem. */
-	events_shutdown();
 
 	/* Success! */
 	exit(0);

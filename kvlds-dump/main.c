@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #include "asprintf.h"
-#include "events.h"
 #include "getopt.h"
 #include "kivaloo.h"
 #include "kvlds.h"
@@ -227,9 +226,8 @@ main(int argc, char * argv[])
 	/* Free memory allocated by kvldskey_create. */
 	kvldskey_free(nullkey);
 
-	/* Close the connection to KVLDS and the events layer. */
+	/* Close the connection to KVLDS. */
 	kivaloo_close(K);
-	events_shutdown();
 
 	/* Free option strings. */
 	free(opt_t);

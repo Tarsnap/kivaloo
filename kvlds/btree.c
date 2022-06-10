@@ -162,11 +162,13 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 	/* Sanity check: at least one of {npages, npagebytes} must be unset. */
 	assert((npages == (uint64_t)(-1)) || (npagebytes == (uint64_t)(-1)));
 
+#if SIZE_MAX < UINT64_MAX
 	/* Sanity check: must be able to fit npagebytes in memory. */
 	assert((npagebytes == (uint64_t)(-1)) || (npagebytes <= SIZE_MAX));
 
 	/* Sanity check: must be able to fit npages in memory. */
 	assert((npages == (uint64_t)(-1)) || (npages <= SIZE_MAX));
+#endif
 
 	/* Allocate space for the B+Tree. */
 	if ((T = malloc(sizeof(struct btree))) == NULL)

@@ -178,7 +178,7 @@ main(int argc, char * argv[])
 
 	/* Initialize the dispatcher. */
 	if ((dstate = dispatch_init(socks_s, opt_s_size,
-	    Q_t, opt_n ? (size_t)opt_n : SIZE_MAX)) == NULL) {
+	    Q_t, opt_n ? opt_n : SIZE_MAX)) == NULL) {
 		warnp("Failed to initialize dispatcher");
 		exit(1);
 	}
@@ -220,9 +220,6 @@ main(int argc, char * argv[])
 	for (i = 0; i < addrlist_getsize(opt_s); i++)
 		sock_addr_free(*addrlist_get(opt_s, i));
 	addrlist_free(opt_s);
-
-	/* Shut down the event subsystem. */
-	events_shutdown();
 
 	/* Free option strings. */
 	free(opt_p);

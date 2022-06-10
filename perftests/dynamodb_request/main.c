@@ -126,9 +126,6 @@ main(int argc, char * argv[])
 	/* Free address structures. */
 	sock_addr_freelist(sas);
 
-	/* Shut down events loop (in case we're checking for memory leaks). */
-	events_shutdown();
-
 	/* Success! */
 	exit(0);
 }

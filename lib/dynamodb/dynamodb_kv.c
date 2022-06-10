@@ -380,6 +380,10 @@ dynamodb_kv_extractv(const uint8_t * inbuf, size_t inlen,
 	if (&p[slen] == end)
 		goto novalue;
 
+	/* Bail if the value of "B" is less than 4 characters. */
+	if (slen < 4)
+		goto novalue;
+
 	/* Allocate a buffer. */
 	if ((*outbuf = malloc((slen / 4) * 3)) == NULL)
 		goto err0;

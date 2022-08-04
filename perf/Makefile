@@ -38,10 +38,10 @@ ${PROG}:${SRCS:.c=.o} ${LIBALL}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../lib/logging/logging.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h perfstats.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dispatch.o: dispatch.c ../libcperciva/util/monoclock.h ../libcperciva/datastruct/mpool.h ../libcperciva/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h ../lib/wire/wire.h perfstats.h dispatch.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 perfstats.o: perfstats.c ../libcperciva/util/asprintf.h ../libcperciva/datastruct/elasticarray.h ../libcperciva/events/events.h ../lib/logging/logging.h ../lib/datastruct/onlinequantile.h reqtypes.h perfstats.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c perfstats.c -o perfstats.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c perfstats.c -o perfstats.o
 reqtypes.o: reqtypes.c ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../lib/proto_kvlds/proto_kvlds.h ../lib/proto_lbs/proto_lbs.h ../lib/proto_s3/proto_s3.h reqtypes.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c reqtypes.c -o reqtypes.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c reqtypes.c -o reqtypes.o

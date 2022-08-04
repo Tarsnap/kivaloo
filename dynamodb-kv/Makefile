@@ -39,8 +39,8 @@ ${PROG}:${SRCS:.c=.o} ${LIBALL}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../libcperciva/util/daemonize.h ../lib/dynamodb/dynamodb_request_queue.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/insecure_memzero.h ../lib/logging/logging.h ../lib/serverpool/serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h capacity.h dispatch.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 capacity.o: capacity.c ../libcperciva/util/asprintf.h ../lib/dynamodb/dynamodb_request.h ../lib/dynamodb/dynamodb_request_queue.h ../libcperciva/events/events.h ../libcperciva/http/http.h ../libcperciva/util/insecure_memzero.h ../libcperciva/util/json.h ../libcperciva/util/parsenum.h ../lib/serverpool/serverpool.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h capacity.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c capacity.c -o capacity.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c capacity.c -o capacity.o
 dispatch.o: dispatch.c ../lib/dynamodb/dynamodb_kv.h ../lib/dynamodb/dynamodb_request_queue.h ../libcperciva/http/http.h ../libcperciva/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o

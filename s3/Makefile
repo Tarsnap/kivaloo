@@ -38,8 +38,8 @@ ${PROG}:${SRCS:.c=.o} ${LIBALL}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/aws/aws_readkeys.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/insecure_memzero.h ../lib/logging/logging.h ../libcperciva/util/parsenum.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h dns.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dns.o: dns.c ../libcperciva/network/network.h ../libcperciva/util/noeintr.h ../lib/s3/s3_request_queue.h ../libcperciva/util/sock.h ../libcperciva/util/sock_util.h ../libcperciva/util/warnp.h dns.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dns.c -o dns.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dns.c -o dns.o
 dispatch.o: dispatch.c ../libcperciva/util/asprintf.h ../libcperciva/http/http.h ../libcperciva/netbuf/netbuf.h ../libcperciva/network/network.h ../libcperciva/util/parsenum.h ../lib/proto_s3/proto_s3.h ../lib/s3/s3_request.h ../lib/s3/s3_request_queue.h ../lib/s3/s3_verifyetag.h ../libcperciva/util/warnp.h ../lib/wire/wire.h dispatch.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o

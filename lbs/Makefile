@@ -39,20 +39,20 @@ ${PROG}:${SRCS:.c=.o} ${LIBALL}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h dispatch.h storage.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dispatch.o: dispatch.c ../libcperciva/util/imalloc.h ../libcperciva/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h worker.h dispatch.h dispatch_internal.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 dispatch_request.o: dispatch_request.c ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch_request.c -o dispatch_request.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch_request.c -o dispatch_request.o
 dispatch_response.o: dispatch_response.c ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h dispatch.h storage.h worker.h dispatch_internal.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch_response.c -o dispatch_response.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch_response.c -o dispatch_response.o
 worker.o: worker.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h storage.h worker.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c worker.c -o worker.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c worker.c -o worker.o
 storage.o: storage.c ../libcperciva/datastruct/elasticqueue.h ../libcperciva/util/warnp.h disk.h storage_findfiles.h storage_internal.h storage_util.h storage.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c storage.c -o storage.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c storage.c -o storage.o
 storage_findfiles.o: storage_findfiles.c ../libcperciva/util/asprintf.h ../libcperciva/datastruct/elasticqueue.h ../libcperciva/util/hexify.h ../libcperciva/datastruct/ptrheap.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h storage_findfiles.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c storage_findfiles.c -o storage_findfiles.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c storage_findfiles.c -o storage_findfiles.o
 storage_util.o: storage_util.c ../libcperciva/util/asprintf.h ../libcperciva/util/warnp.h storage_internal.h storage_util.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c storage_util.c -o storage_util.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c storage_util.c -o storage_util.o
 disk.o: disk.c ../libcperciva/util/noeintr.h ../libcperciva/util/warnp.h disk.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c disk.c -o disk.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c disk.c -o disk.o

@@ -39,7 +39,7 @@ ${PROG}:${SRCS:.c=.o} ${LIBALL}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../../libcperciva/aws/aws_readkeys.h ../../lib/dynamodb/dynamodb_kv.h ../../lib/dynamodb/dynamodb_request_queue.h ../../libcperciva/events/events.h ../../libcperciva/http/http.h ../../lib/logging/logging.h ../../lib/serverpool/serverpool.h ../../libcperciva/util/warnp.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I../.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 
 test:	test_dynamodb_queue
 	./test_dynamodb_queue ~/.dynamodb/aws.key dynamodb.log

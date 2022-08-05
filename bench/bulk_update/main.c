@@ -116,6 +116,7 @@ bulkupdate(struct wire_requestqueue * Q, FILE * f)
 	C.done = 0;
 
 	/* Allocate key and value structures. */
+	memset(buf, 0, 40);
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
 		goto err0;
 	if ((C.val = kvldskey_create(buf, 40)) == NULL)

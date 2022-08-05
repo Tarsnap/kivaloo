@@ -118,6 +118,7 @@ hotspotread(struct wire_requestqueue * Q, uint64_t N)
 	C.done = 0;
 
 	/* Allocate key structure. */
+	memset(buf, 0, 40);
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
 		goto err0;
 

@@ -98,6 +98,7 @@ tokyo(struct wire_requestqueue * Q, char ** keys)
 	C.done = 0;
 
 	/* Allocate key structure. */
+	memset(buf, 0, 8);
 	if ((C.key = kvldskey_create(buf, 8)) == NULL)
 		return (-1);
 

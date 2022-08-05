@@ -134,11 +134,11 @@ randommixed(struct wire_requestqueue * Q, uint64_t N)
 	C.done = 0;
 
 	/* Allocate key and value structures. */
+	memset(buf, 0, 40);
 	if ((C.key = kvldskey_create(buf, 40)) == NULL)
 		goto err0;
 	if ((C.val = kvldskey_create(buf, 40)) == NULL)
 		goto err1;
-	memset(C.val->buf, 0, 40);
 
 	/* Prepare benchmark time handling. */
 	if ((C.B = bench_init(BENCHMARK_START, BENCHMARK_SECONDS)) == NULL) {

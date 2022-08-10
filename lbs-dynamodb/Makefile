@@ -38,14 +38,14 @@ ${PROG}:${SRCS:.c=.o} ${LIBALL}
 	${CC} -o ${PROG} ${SRCS:.c=.o} ${LIBALL} ${LDFLAGS} ${LDADD_EXTRA} ${LDADD_REQ} ${LDADD_POSIX}
 
 main.o: main.c ../libcperciva/util/asprintf.h ../libcperciva/util/daemonize.h ../libcperciva/events/events.h ../libcperciva/util/getopt.h ../libcperciva/util/parsenum.h ../libcperciva/util/sock.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h dispatch.h metadata.h state.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c main.c -o main.o
 dispatch.o: dispatch.c ../libcperciva/netbuf/netbuf.h ../libcperciva/network/network.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h deleteto.h state.h dispatch.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c dispatch.c -o dispatch.o
 state.o: state.c ../libcperciva/events/events.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../lib/proto_lbs/proto_lbs.h ../libcperciva/util/warnp.h ../lib/wire/wire.h metadata.h objmap.h state.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c state.c -o state.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c state.c -o state.o
 deleteto.o: deleteto.c ../libcperciva/events/events.h metadata.h objmap.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/warnp.h deleteto.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c deleteto.c -o deleteto.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c deleteto.c -o deleteto.o
 metadata.o: metadata.c ../libcperciva/util/entropy.h ../libcperciva/events/events.h ../lib/proto_dynamodb_kv/proto_dynamodb_kv.h ../libcperciva/util/sysendian.h ../libcperciva/util/warnp.h metadata.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c metadata.c -o metadata.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c metadata.c -o metadata.o
 objmap.o: objmap.c ../libcperciva/util/hexify.h ../libcperciva/util/sysendian.h objmap.h
-	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\"  -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c objmap.c -o objmap.o
+	${CC} ${CFLAGS_POSIX} -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -DCPUSUPPORT_CONFIG_FILE=\"cpusupport-config.h\" -I.. ${IDIRS} ${CPPFLAGS} ${CFLAGS} -c objmap.c -o objmap.o

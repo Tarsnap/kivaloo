@@ -1,3 +1,7 @@
+/**
+ * APISUPPORT CFLAGS: LIBSSL_HOST_NAME
+ */
+
 #include <sys/types.h>
 #include <sys/socket.h>
 

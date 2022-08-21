@@ -21,8 +21,7 @@ env:
                           -pedantic-errors -Wno-clobbered
   # Variables for specific projects / platforms / compilers.
   CFLAGS_CLANG_PROJECT: -Wno-comma -Wno-thread-safety-analysis
-                        -Wno-cast-qual -Wno-implicit-fallthrough
-                        -Wno-documentation
+                        -Wno-implicit-fallthrough -Wno-documentation
   CFLAGS_GCC_PROJECT: -Wno-float-equal -Wno-alloc-zero -Wno-format-overflow
                       -Wno-jump-misses-init
   CFLAGS_OSX: -Wno-poison-system-directories -I/usr/local/opt/openssl@1.1/include

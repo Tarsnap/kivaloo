@@ -353,6 +353,10 @@ netbuf_write_free(struct netbuf_write * W)
 {
 	struct writebuf * WB;
 
+        /* Behave consistently with free(NULL). */
+	if (W == NULL)
+		return;
+
 	/* Cancel any in-progress write. */
 	if (W->write_cookie != NULL) {
 		if (W->ssl)

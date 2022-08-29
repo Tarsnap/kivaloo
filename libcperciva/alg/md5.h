@@ -1,5 +1,5 @@
-#ifndef _MD5_H_
-#define _MD5_H_
+#ifndef MD5_H_
+#define MD5_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -83,4 +83,4 @@ void HMAC_MD5_Final(uint8_t[16], HMAC_MD5_CTX *);
  */
 void HMAC_MD5_Buf(const void *, size_t, const void *, size_t, uint8_t[16]);
 
-#endif /* !_MD5_H_ */
+#endif /* !MD5_H_ */

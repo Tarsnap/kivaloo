@@ -1,5 +1,5 @@
-#ifndef _NETWORK_SSL_COMPAT_H
-#define _NETWORK_SSL_COMPAT_H
+#ifndef NETWORK_SSL_COMPAT_H
+#define NETWORK_SSL_COMPAT_H
 
 #include <stddef.h>
 
@@ -123,4 +123,4 @@ int network_ssl_compat_write_ex(SSL *, const void *, size_t, size_t *);
 int network_ssl_compat_read_ex(SSL *, void *, size_t, size_t *);
 #endif
 
-#endif /* !_NETWORK_SSL_COMPAT_H */
+#endif /* !NETWORK_SSL_COMPAT_H */

@@ -1,5 +1,5 @@
-#ifndef _JSON_H_
-#define _JSON_H_
+#ifndef JSON_H_
+#define JSON_H_
 
 #include <stdint.h>
 
@@ -11,4 +11,4 @@
  */
 const uint8_t * json_find(const uint8_t *, const uint8_t *, const char *);
 
-#endif /* !_JSON_H_ */
+#endif /* !JSON_H_ */

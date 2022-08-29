@@ -1,5 +1,5 @@
-#ifndef _NETWORK_SSL_H_
-#define _NETWORK_SSL_H_
+#ifndef NETWORK_SSL_H_
+#define NETWORK_SSL_H_
 
 #include <stdint.h>
 #include <unistd.h>
@@ -55,4 +55,4 @@ void network_ssl_write_cancel(void *);
  */
 void network_ssl_close(struct network_ssl_ctx *);
 
-#endif /* !_NETWORK_SSL_H_ */
+#endif /* !NETWORK_SSL_H_ */

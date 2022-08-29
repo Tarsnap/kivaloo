@@ -1,5 +1,5 @@
-#ifndef _CRC32C_ARM_H_
-#define _CRC32C_ARM_H_
+#ifndef CRC32C_ARM_H_
+#define CRC32C_ARM_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -13,4 +13,4 @@
  */
 uint32_t CRC32C_Update_ARM(uint32_t, const uint8_t *, size_t);
 
-#endif /* !_CRC32C_ARM_H_ */
+#endif /* !CRC32C_ARM_H_ */

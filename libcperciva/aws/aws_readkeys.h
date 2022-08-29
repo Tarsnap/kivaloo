@@ -1,5 +1,5 @@
-#ifndef _AWS_READKEYS_H_
-#define _AWS_READKEYS_H_
+#ifndef AWS_READKEYS_H_
+#define AWS_READKEYS_H_
 
 /**
  * aws_readkeys(fname, key_id, key_secret):
@@ -8,4 +8,4 @@
  */
 int aws_readkeys(const char *, char **, char **);
 
-#endif /* !_AWS_READKEYS_H_ */
+#endif /* !AWS_READKEYS_H_ */

@@ -1,5 +1,5 @@
-#ifndef _HTTPS_INTERNAL_H_
-#define _HTTPS_INTERNAL_H_
+#ifndef HTTPS_INTERNAL_H_
+#define HTTPS_INTERNAL_H_
 
 /*
  * Function pointers defined in http.c; we set them from https_request in
@@ -21,4 +21,4 @@ void *
 http_request2(struct sock_addr * const *, struct http_request *, size_t,
     int (*)(void *, struct http_response *), void *, char *);
 
-#endif /* !_HTTPS_INTERNAL_H_ */
+#endif /* !HTTPS_INTERNAL_H_ */

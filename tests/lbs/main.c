@@ -140,30 +140,30 @@ main(int argc, char * argv[])
 	/* Check number of arguments. */
 	if (argc != 2) {
 		fprintf(stderr, "usage: test_lbs %s\n", "<socketname>");
-		exit(1);
+		goto err0;
 	}
 
 	/* Open a connection to LBS. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
 		warnp("Could not connect to LBS daemon.");
-		exit(1);
+		goto err0;
 	}
 
 	/* Send a PARAMS request and wait for it to complete. */
 	params_done = params_failed = 0;
 	if (proto_lbs_request_params(Q, callback_params, NULL)) {
 		warnp("Failed to send PARAMS request");
-		exit(1);
+		goto err1;
 	}
 	if (events_spin(&params_done) || params_failed) {
 		warnp("PARAMS request failed");
-		exit(1);
+		goto err1;
 	}
 
 	/* Allocate 16 blocks. */
 	if ((buf = malloc(16 * params_blklen)) == NULL) {
 		warnp("malloc");
-		exit(1);
+		goto err1;
 	}
 
 	/* Write 256 pages in batches of various sizes. */
@@ -177,11 +177,11 @@ main(int argc, char * argv[])
 		    params_nextblk, params_blklen, buf, callback_append,
 		    NULL)) {
 			warnp("Failed to send APPEND request");
-			exit(1);
+			goto err2;
 		}
 		if (events_spin(&append_done) || append_failed) {
 			warnp("APPEND request failed");
-			exit(1);
+			goto err2;
 		}
 	}
 
@@ -192,11 +192,11 @@ main(int argc, char * argv[])
 		if (proto_lbs_request_append(Q, 1, params_nextblk,
 		    params_blklen, buf, callback_append, NULL)) {
 			warnp("Failed to send APPEND request");
-			exit(1);
+			goto err2;
 		}
 		if (events_spin(&append_done) || append_failed) {
 			warnp("APPEND request failed");
-			exit(1);
+			goto err2;
 		}
 	}
 
@@ -206,17 +206,17 @@ main(int argc, char * argv[])
 		if (proto_lbs_request_get(Q, params_nextblk - 512 + i,
 		    params_blklen, callback_get, buf)) {
 			warnp("Failed to send GET request");
-			exit(1);
+			goto err2;
 		}
 		if (events_spin(&get_done) || get_failed) {
 			warnp("GET request failed");
-			exit(1);
+			goto err2;
 		}
 		if (((i < 256) && (buf[0] != i)) ||
 		    ((i >= 256) && (buf[0] != 0))) {
 			warn0("GET data is incorrect");
 			warn0("i = %d buf[0] = %d", (int)(i), (int)(buf[0]));
-			exit(1);
+			goto err2;
 		}
 	}
 
@@ -226,23 +226,23 @@ main(int argc, char * argv[])
 		if (proto_lbs_request_get(Q, params_nextblk - 512 + i,
 		    params_blklen, callback_gets, (void *)(uintptr_t)(i))) {
 			warnp("Failed to send GET request");
-			exit(1);
+			goto err2;
 		}
 	}
 	if (events_spin(&gets_done) || gets_failed) {
 		warnp("GET request(s) failed");
-		exit(1);
+		goto err2;
 	}
 
 	/* Free blocks. */
 	free_done = free_failed = 0;
 	if (proto_lbs_request_free(Q, params_nextblk, callback_free, NULL)) {
 		warnp("Failed to send FREE request");
-		exit(1);
+		goto err2;
 	}
 	if (events_spin(&free_done) || free_failed) {
 		warnp("FREE request failed");
-		exit(1);
+		goto err2;
 	}
 
 	/* Free the request queue and network connection. */
@@ -253,4 +253,12 @@ main(int argc, char * argv[])
 
 	/* Success! */
 	exit(0);
+
+err2:
+	free(buf);
+err1:
+	kivaloo_close(K);
+err0:
+	/* Failure! */
+	exit(1);
 }

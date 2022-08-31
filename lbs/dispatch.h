@@ -32,7 +32,7 @@ int dispatch_alive(struct dispatch_state *);
 
 /**
  * dispatch_close(D):
- * Clean up and close the current connection being handled by the dispatcher.
+ * Clean up and close the current connection being handled by the dispatcher
  * ${D}.  The function dispatch_alive() must have previously returned a
  * non-zero value.
  */

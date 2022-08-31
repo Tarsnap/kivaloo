@@ -64,7 +64,7 @@ main(int argc, char * argv[])
 				usage();
 			if (PARSENUM(&opt_b, optarg, 512, 128 * 1024)) {
 				warn0("Block size must be in [2^9, 2^17]");
-				exit(1);
+				goto err1;
 			}
 			break;
 		GETOPT_OPTARG("-d"):
@@ -78,7 +78,7 @@ main(int argc, char * argv[])
 				usage();
 			if (PARSENUM(&opt_l, optarg, 0, 999999999)) {
 				warn0("Read latency must be in [0, 10^9) ns");
-				exit(1);
+				goto err1;
 			}
 			break;
 		GETOPT_OPT("-L"):
@@ -91,7 +91,7 @@ main(int argc, char * argv[])
 				usage();
 			if (PARSENUM(&opt_n, optarg, 1, 1000)) {
 				warn0("Number of readers must be in [1, 1000]");
-				exit(1);
+				goto err1;
 			}
 			break;
 		GETOPT_OPTARG("-p"):
@@ -141,11 +141,11 @@ main(int argc, char * argv[])
 	/* Resolve the listening address. */
 	if ((sas = sock_resolve(opt_s)) == NULL) {
 		warnp("Error resolving socket address: %s", opt_s);
-		exit(1);
+		goto err1;
 	}
 	if (sas[0] == NULL) {
 		warn0("No addresses found for %s", opt_s);
-		exit(1);
+		goto err2;
 	}
 
 	/* Create and bind a socket, and mark it as listening. */
@@ -153,30 +153,30 @@ main(int argc, char * argv[])
 		warn0("Listening on first of multiple addresses found for %s",
 		    opt_s);
 	if ((s = sock_listener(sas[0])) == -1)
-		exit(1);
+		goto err2;
 
 	/* Initialize the storage back-end. */
 	if ((S = storage_init(opt_d, opt_b, opt_l, opt_L)) == NULL) {
 		warnp("Error initializing storage directory: %s", opt_d);
-		exit(1);
+		goto err3;
 	}
 
 	/* Daemonize and write pid. */
 	if (opt_p == NULL) {
 		if (asprintf(&opt_p, "%s.pid", opt_s) == -1) {
 			warnp("asprintf");
-			exit(1);
+			goto err4;
 		}
 	}
 	if (daemonize(opt_p)) {
 		warnp("Failed to daemonize");
-		exit(1);
+		goto err4;
 	}
 
 	/* Initialize the dispatcher. */
 	if ((D = dispatch_init(S, opt_b, opt_n)) == NULL) {
 		warnp("Error initializing work dispatcher");
-		exit(1);
+		goto err4;
 	}
 
 	/* Handle connections, one at once. */
@@ -184,25 +184,25 @@ main(int argc, char * argv[])
 		/* Get a connection and perform associated initialization. */
 		if (dispatch_accept(D, s)) {
 			warnp("Error accepting new connection");
-			exit(1);
+			goto err5;
 		}
 
 		/* Loop until the connection dies. */
 		do {
 			if (events_run()) {
 				warnp("Error running event loop");
-				exit(1);
+				goto err5;
 			}
 		} while (dispatch_alive(D));
 
 		/* Clean up the connection. */
 		if (dispatch_close(D))
-			exit(1);
+			goto err5;
 	} while (opt_1 == 0);
 
 	if (dispatch_done(D)) {
 		warnp("Failed to shut down dispatcher");
-		exit(1);
+		goto err4;
 	}
 
 	/* We're done with the storage state. */
@@ -220,5 +220,21 @@ main(int argc, char * argv[])
 	free(opt_d);
 
 	/* Success! */
-	return (0);
+	exit(0);
+
+err5:
+	dispatch_done(D);
+err4:
+	storage_done(S);
+err3:
+	close(s);
+err2:
+	sock_addr_freelist(sas);
+err1:
+	free(opt_s);
+	free(opt_p);
+	free(opt_d);
+
+	/* Failure! */
+	exit(1);
 }

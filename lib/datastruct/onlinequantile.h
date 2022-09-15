@@ -1,5 +1,5 @@
-#ifndef _ONLINEQUANTILE_H_
-#define _ONLINEQUANTILE_H_
+#ifndef ONLINEQUANTILE_H_
+#define ONLINEQUANTILE_H_
 
 #include <stddef.h>
 
@@ -31,4 +31,4 @@ int onlinequantile_add(struct onlinequantile *, double);
  */
 void onlinequantile_free(struct onlinequantile *);
 
-#endif /* !_ONLINEQUANTILE_H_ */
+#endif /* !ONLINEQUANTILE_H_ */

@@ -1,5 +1,5 @@
-#ifndef _OBJMAP_H_
-#define _OBJMAP_H_
+#ifndef OBJMAP_H_
+#define OBJMAP_H_
 
 #include <stdint.h>
 
@@ -10,4 +10,4 @@
  */
 const char * objmap(uint64_t);
 
-#endif /* !_OBJMAP_H_ */
+#endif /* !OBJMAP_H_ */

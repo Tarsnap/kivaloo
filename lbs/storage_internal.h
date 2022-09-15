@@ -1,5 +1,5 @@
-#ifndef _STORAGE_INTERNAL_H_
-#define _STORAGE_INTERNAL_H_
+#ifndef STORAGE_INTERNAL_H_
+#define STORAGE_INTERNAL_H_
 
 #include <pthread.h>
 #include <stdint.h>
@@ -33,4 +33,4 @@ struct storage_state {
  * 4. For consecutive entries x, y in files, x->start + x->len = y->start.
  */
 
-#endif /* !_STORAGE_INTERNAL_H_ */
+#endif /* !STORAGE_INTERNAL_H_ */

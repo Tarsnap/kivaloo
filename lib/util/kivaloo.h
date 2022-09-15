@@ -1,5 +1,5 @@
-#ifndef _KIVALOO_H_
-#define _KIVALOO_H_
+#ifndef KIVALOO_H_
+#define KIVALOO_H_
 
 /* Opaque types. */
 struct wire_requestqueue;
@@ -20,4 +20,4 @@ void * kivaloo_open(const char *, struct wire_requestqueue **);
  */
 void kivaloo_close(void *);
 
-#endif /* !_KIVALOO_H_ */
+#endif /* !KIVALOO_H_ */

@@ -1,5 +1,5 @@
-#ifndef _CAPACITY_H_
-#define _CAPACITY_H_
+#ifndef CAPACITY_H_
+#define CAPACITY_H_
 
 /* Opaque types. */
 struct serverpool;
@@ -27,4 +27,4 @@ struct capacity_reader * capacity_init(const char *, const char *,
  */
 void capacity_free(struct capacity_reader *);
 
-#endif /* !_CAPACITY_H_ */
+#endif /* !CAPACITY_H_ */

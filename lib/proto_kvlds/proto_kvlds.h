@@ -1,5 +1,5 @@
-#ifndef _PROTO_KVLDS_H_
-#define _PROTO_KVLDS_H_
+#ifndef PROTO_KVLDS_H_
+#define PROTO_KVLDS_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -230,4 +230,4 @@ int proto_kvlds_response_get(struct netbuf_write *, uint64_t, int,
 int proto_kvlds_response_range(struct netbuf_write *, uint64_t, size_t,
     const struct kvldskey *, struct kvldskey **, struct kvldskey **);
 
-#endif /* !_PROTO_KVLDS_H_ */
+#endif /* !PROTO_KVLDS_H_ */

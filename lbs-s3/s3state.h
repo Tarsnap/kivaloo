@@ -1,5 +1,5 @@
-#ifndef _S3STATE_H_
-#define _S3STATE_H_
+#ifndef S3STATE_H_
+#define S3STATE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -68,4 +68,4 @@ int s3state_gc(struct s3state *, uint64_t);
  */
 void s3state_free(struct s3state *);
 
-#endif /* !_S3STATE_H_ */
+#endif /* !S3STATE_H_ */

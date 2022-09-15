@@ -1,5 +1,5 @@
-#ifndef _DNS_H_
-#define _DNS_H_
+#ifndef DNS_H_
+#define DNS_H_
 
 /* Opaque types. */
 struct s3_request_queue;
@@ -17,4 +17,4 @@ struct dns_reader * dns_reader_start(struct s3_request_queue *, const char *);
  */
 void dns_reader_stop(struct dns_reader *);
 
-#endif /* !_DNS_H_ */
+#endif /* !DNS_H_ */

@@ -1,5 +1,5 @@
-#ifndef _PROTO_DYNAMODB_KV_H_
-#define _PROTO_DYNAMODB_KV_H_
+#ifndef PROTO_DYNAMODB_KV_H_
+#define PROTO_DYNAMODB_KV_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -151,4 +151,4 @@ int proto_dynamodb_kv_response_data(struct netbuf_write *, uint64_t, int,
 #define proto_dynamodb_kv_response_getc(Q, ID, status, len, buf)	\
 	proto_dynamodb_kv_response_data(Q, ID, status, len, buf)
 
-#endif /* !_PROTO_DYNAMODB_KV_H_ */
+#endif /* !PROTO_DYNAMODB_KV_H_ */

@@ -1,5 +1,5 @@
-#ifndef _DISPATCH_H_
-#define _DISPATCH_H_
+#ifndef DISPATCH_H_
+#define DISPATCH_H_
 
 #include <stddef.h>
 
@@ -54,4 +54,4 @@ int dispatch_nmr_launch(struct btree *, struct proto_kvlds_request *,
 int dispatch_mr_launch(struct btree *, struct proto_kvlds_request **, size_t,
     struct netbuf_write *, int (*)(void *), void *);
 
-#endif /* !_DISPATCH_H_ */
+#endif /* !DISPATCH_H_ */

@@ -1,5 +1,5 @@
-#ifndef _S3_SERVERPOOL_H_
-#define _S3_SERVERPOOL_H_
+#ifndef S3_SERVERPOOL_H_
+#define S3_SERVERPOOL_H_
 
 /* Opaque type. */
 struct s3_serverpool;
@@ -31,4 +31,4 @@ struct sock_addr * s3_serverpool_pick(struct s3_serverpool *);
  */
 void s3_serverpool_free(struct s3_serverpool *);
 
-#endif /* !_S3_SERVERPOOL_H_ */
+#endif /* !S3_SERVERPOOL_H_ */

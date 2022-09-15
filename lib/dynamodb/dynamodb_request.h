@@ -1,5 +1,5 @@
-#ifndef _DYNAMODB_REQUEST_H_
-#define _DYNAMODB_REQUEST_H_
+#ifndef DYNAMODB_REQUEST_H_
+#define DYNAMODB_REQUEST_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -42,4 +42,4 @@ void * dynamodb_request(struct sock_addr * const *, const char *,
     const char *, const char *, const char *, const uint8_t *, size_t,
     size_t, int (*)(void *, struct http_response *), void *);
 
-#endif /* !_DYNAMODB_REQUEST_H_ */
+#endif /* !DYNAMODB_REQUEST_H_ */

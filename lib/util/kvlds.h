@@ -1,5 +1,5 @@
-#ifndef _KVLDS_H_
-#define _KVLDS_H_
+#ifndef KVLDS_H_
+#define KVLDS_H_
 
 /* Opaque types. */
 struct kvldskey;
@@ -60,4 +60,4 @@ int kvlds_get(struct wire_requestqueue *, const struct kvldskey *,
  */
 int kvlds_delete(struct wire_requestqueue *, const struct kvldskey *);
 
-#endif /* !_KVLDS_H_ */
+#endif /* !KVLDS_H_ */

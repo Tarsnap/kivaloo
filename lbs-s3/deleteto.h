@@ -1,5 +1,5 @@
-#ifndef _DELETETO_H_
-#define _DELETETO_H_
+#ifndef DELETETO_H_
+#define DELETETO_H_
 
 #include <stdint.h>
 
@@ -27,4 +27,4 @@ int deleteto_deleteto(struct deleteto *, uint64_t);
  */
 int deleteto_stop(struct deleteto *);
 
-#endif /* !_DELETETO_H_ */
+#endif /* !DELETETO_H_ */

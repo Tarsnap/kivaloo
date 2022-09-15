@@ -1,5 +1,5 @@
-#ifndef _STATE_H_
-#define _STATE_H_
+#ifndef STATE_H_
+#define STATE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -53,4 +53,4 @@ int state_append(struct state *, struct proto_lbs_request *,
  */
 void state_free(struct state *);
 
-#endif /* !_STATE_H_ */
+#endif /* !STATE_H_ */

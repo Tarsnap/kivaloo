@@ -1,5 +1,5 @@
-#ifndef _KVHASH_H_
-#define _KVHASH_H_
+#ifndef KVHASH_H_
+#define KVHASH_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -52,4 +52,4 @@ int kvhash_postadd(struct kvhash *);
  */
 void kvhash_free(struct kvhash *);
 
-#endif /* !_KVHASH_H_ */
+#endif /* !KVHASH_H_ */

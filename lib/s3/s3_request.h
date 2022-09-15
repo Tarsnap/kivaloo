@@ -1,5 +1,5 @@
-#ifndef _S3_REQUEST_H_
-#define _S3_REQUEST_H_
+#ifndef S3_REQUEST_H_
+#define S3_REQUEST_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -31,4 +31,4 @@ void * s3_request(struct sock_addr * const *, const char *, const char *,
     const char *, struct s3_request *, size_t,
     int (*)(void *, struct http_response *), void *);
 
-#endif /* !_S3_REQUEST_H_ */
+#endif /* !S3_REQUEST_H_ */

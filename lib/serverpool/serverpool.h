@@ -1,5 +1,5 @@
-#ifndef _SERVERPOOL_H_
-#define _SERVERPOOL_H_
+#ifndef SERVERPOOL_H_
+#define SERVERPOOL_H_
 
 #include <time.h>
 
@@ -29,4 +29,4 @@ struct sock_addr * serverpool_pick(struct serverpool *);
  */
 void serverpool_free(struct serverpool *);
 
-#endif /* !_SERVERPOOL_H_ */
+#endif /* !SERVERPOOL_H_ */

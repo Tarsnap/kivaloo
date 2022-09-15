@@ -1,5 +1,5 @@
-#ifndef _DYNAMODB_REQUEST_QUEUE_H_
-#define _DYNAMODB_REQUEST_QUEUE_H_
+#ifndef DYNAMODB_REQUEST_QUEUE_H_
+#define DYNAMODB_REQUEST_QUEUE_H_
 
 #include <stddef.h>
 
@@ -74,4 +74,4 @@ void dynamodb_request_queue_flush(struct dynamodb_request_queue *);
  */
 void dynamodb_request_queue_free(struct dynamodb_request_queue *);
 
-#endif /* !_DYNAMODB_REQUEST_QUEUE_H_ */
+#endif /* !DYNAMODB_REQUEST_QUEUE_H_ */

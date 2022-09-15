@@ -1,5 +1,5 @@
-#ifndef _KVLDSKEY_H_
-#define _KVLDSKEY_H_
+#ifndef KVLDSKEY_H_
+#define KVLDSKEY_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -79,4 +79,4 @@ size_t kvldskey_mlen(const struct kvldskey *, const struct kvldskey *);
  */
 #define kvldskey_free(K) free(K)
 
-#endif /* !_KVLDSKEY_H_ */
+#endif /* !KVLDSKEY_H_ */

@@ -1,5 +1,5 @@
-#ifndef _LOGGING_H_
-#define _LOGGING_H_
+#ifndef LOGGING_H_
+#define LOGGING_H_
 
 #include <unistd.h>
 
@@ -45,4 +45,4 @@ ssize_t logging_printf(struct logging_file *, const char *, ...);
  */
 void logging_close(struct logging_file *);
 
-#endif /* !_LOGGING_H_ */
+#endif /* !LOGGING_H_ */

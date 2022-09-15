@@ -1,5 +1,5 @@
-#ifndef _DYNAMODB_KV_
-#define _DYNAMODB_KV_
+#ifndef DYNAMODB_KV_
+#define DYNAMODB_KV_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -58,4 +58,4 @@ char * dynamodb_kv_delete(const char *, const char *);
  */
 int dynamodb_kv_extractv(const uint8_t *, size_t, uint8_t **, uint32_t *);
 
-#endif /* !_DYNAMODB_KV_ */
+#endif /* !DYNAMODB_KV_ */

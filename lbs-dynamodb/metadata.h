@@ -1,5 +1,5 @@
-#ifndef _METADATA_H_
-#define _METADATA_H_
+#ifndef METADATA_H_
+#define METADATA_H_
 
 #include <stdint.h>
 
@@ -75,4 +75,4 @@ int metadata_flush(struct metadata *);
  */
 void metadata_free(struct metadata *);
 
-#endif /* !_METADATA_H_ */
+#endif /* !METADATA_H_ */

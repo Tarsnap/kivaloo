@@ -1,5 +1,5 @@
-#ifndef _STORAGE_UTIL_H_
-#define _STORAGE_UTIL_H_
+#ifndef STORAGE_UTIL_H_
+#define STORAGE_UTIL_H_
 
 #include <stdint.h>
 
@@ -31,4 +31,4 @@ int storage_util_unlock(struct storage_state *);
  */
 char * storage_util_mkpath(struct storage_state *, uint64_t);
 
-#endif /* !_STORAGE_UTIL_H_ */
+#endif /* !STORAGE_UTIL_H_ */

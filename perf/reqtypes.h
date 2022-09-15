@@ -1,5 +1,5 @@
-#ifndef _REQTYPES_H_
-#define _REQTYPES_H_
+#ifndef REQTYPES_H_
+#define REQTYPES_H_
 
 #include <stdint.h>
 
@@ -9,4 +9,4 @@
  */
 const char * reqtypes_lookup(uint32_t);
 
-#endif /* !_REQTYPES_H_ */
+#endif /* !REQTYPES_H_ */

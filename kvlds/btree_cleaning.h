@@ -1,5 +1,5 @@
-#ifndef _BTREE_CLEANING_H_
-#define _BTREE_CLEANING_H_
+#ifndef BTREE_CLEANING_H_
+#define BTREE_CLEANING_H_
 
 /* Opaque types. */
 struct btree;
@@ -41,4 +41,4 @@ int btree_cleaning_clean(struct cleaner *);
  */
 void btree_cleaning_stop(struct cleaner *);
 
-#endif /* !_BTREE_CLEANING_H_ */
+#endif /* !BTREE_CLEANING_H_ */

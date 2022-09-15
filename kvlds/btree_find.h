@@ -1,5 +1,5 @@
-#ifndef _BTREE_FIND_H_
-#define _BTREE_FIND_H_
+#ifndef BTREE_FIND_H_
+#define BTREE_FIND_H_
 
 #include <stddef.h>
 
@@ -45,4 +45,4 @@ int btree_find_leaf(struct btree *, struct node *, const struct kvldskey *,
 int btree_find_range(struct btree *, struct node *, const struct kvldskey *,
     int, int (*)(void *, struct node *, struct kvldskey *), void *);
 
-#endif /* !_BTREE_FIND_H_ */
+#endif /* !BTREE_FIND_H_ */

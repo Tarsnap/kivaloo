@@ -1,5 +1,5 @@
-#ifndef _S3_VERIFYETAG_H_
-#define _S3_VERIFYETAG_H_
+#ifndef S3_VERIFYETAG_H_
+#define S3_VERIFYETAG_H_
 
 /* Opaque types. */
 struct http_response;
@@ -12,4 +12,4 @@ struct http_response;
  */
 int s3_verifyetag(struct http_response *);
 
-#endif /* !_S3_VERIFYETAG_H_ */
+#endif /* !S3_VERIFYETAG_H_ */

@@ -1,5 +1,5 @@
-#ifndef _STORAGE_FINDFILES_H_
-#define _STORAGE_FINDFILES_H_
+#ifndef STORAGE_FINDFILES_H_
+#define STORAGE_FINDFILES_H_
 
 #include <sys/types.h>
 
@@ -19,4 +19,4 @@ struct storage_file {
  */
 struct elasticqueue * storage_findfiles(const char *);
 
-#endif /* !_STORAGE_FINDFILES_H_ */
+#endif /* !STORAGE_FINDFILES_H_ */

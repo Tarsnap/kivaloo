@@ -1,5 +1,5 @@
-#ifndef _DOUBLEHEAP_H_
-#define _DOUBLEHEAP_H_
+#ifndef DOUBLEHEAP_H_
+#define DOUBLEHEAP_H_
 
 #include <stddef.h>
 
@@ -59,4 +59,4 @@ void doubleheap_deletemin(struct doubleheap *);
  */
 void doubleheap_free(struct doubleheap *);
 
-#endif /* !_DOUBLEHEAP_H_ */
+#endif /* !DOUBLEHEAP_H_ */

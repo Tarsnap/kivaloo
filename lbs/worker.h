@@ -1,5 +1,5 @@
-#ifndef _WORKER_H_
-#define _WORKER_H_
+#ifndef WORKER_H_
+#define WORKER_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -39,4 +39,4 @@ int worker_getdone(struct workctl *,
  */
 int worker_kill(struct workctl *);
 
-#endif /* !_WORKER_H_ */
+#endif /* !WORKER_H_ */

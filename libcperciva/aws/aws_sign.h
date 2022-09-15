@@ -1,5 +1,5 @@
-#ifndef _AWS_SIGN_H_
-#define _AWS_SIGN_H_
+#ifndef AWS_SIGN_H_
+#define AWS_SIGN_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -79,4 +79,4 @@ int aws_sign_svc_headers(const char *, const char *, const char *,
 int aws_sign_dynamodb_headers(const char *, const char *, const char *,
     const char *, const uint8_t *, size_t, char **, char **, char **);
 
-#endif /* !_AWS_SIGN_H_ */
+#endif /* !AWS_SIGN_H_ */

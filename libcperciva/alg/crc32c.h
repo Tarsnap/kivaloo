@@ -1,5 +1,5 @@
-#ifndef _CRC32C_H_
-#define _CRC32C_H_
+#ifndef CRC32C_H_
+#define CRC32C_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -35,4 +35,4 @@ void CRC32C_Update(CRC32C_CTX *, const uint8_t *, size_t);
  */
 void CRC32C_Final(uint8_t[4], CRC32C_CTX *);
 
-#endif /* !_CRC32C_H_ */
+#endif /* !CRC32C_H_ */

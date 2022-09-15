@@ -1,5 +1,5 @@
-#ifndef _SEQPTRMAP_H_
-#define _SEQPTRMAP_H_
+#ifndef SEQPTRMAP_H_
+#define SEQPTRMAP_H_
 
 #include <stdint.h>
 
@@ -56,4 +56,4 @@ void seqptrmap_delete(struct seqptrmap *, int64_t);
  */
 void seqptrmap_free(struct seqptrmap *);
 
-#endif /* !_SEQPTRMAP_H_ */
+#endif /* !SEQPTRMAP_H_ */

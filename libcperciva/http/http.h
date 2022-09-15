@@ -1,5 +1,5 @@
-#ifndef _HTTP_H_
-#define _HTTP_H_
+#ifndef HTTP_H_
+#define HTTP_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -74,4 +74,4 @@ void http_request_cancel(void *);
  */
 const char * http_findheader(struct http_header *, size_t, const char *);
 
-#endif /* !_HTTP_H_ */
+#endif /* !HTTP_H_ */

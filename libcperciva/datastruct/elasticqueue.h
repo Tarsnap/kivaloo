@@ -1,5 +1,5 @@
-#ifndef _ELASTICQUEUE_H_
-#define _ELASTICQUEUE_H_
+#ifndef ELASTICQUEUE_H_
+#define ELASTICQUEUE_H_
 
 #include <stddef.h>
 
@@ -61,4 +61,4 @@ void * elasticqueue_get(struct elasticqueue *, size_t);
  */
 void elasticqueue_free(struct elasticqueue *);
 
-#endif /* !_ELASTICQUEUE_H_ */
+#endif /* !ELASTICQUEUE_H_ */

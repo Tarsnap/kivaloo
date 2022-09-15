@@ -1,5 +1,5 @@
-#ifndef _SHA1_H_
-#define _SHA1_H_
+#ifndef SHA1_H_
+#define SHA1_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -83,4 +83,4 @@ void HMAC_SHA1_Final(uint8_t[20], HMAC_SHA1_CTX *);
  */
 void HMAC_SHA1_Buf(const void *, size_t, const void *, size_t, uint8_t[20]);
 
-#endif /* !_SHA1_H_ */
+#endif /* !SHA1_H_ */

@@ -51,6 +51,7 @@ tests/mux/test_mux
 tests/msleep/msleep
 tests/onlinequantile/test_onlinequantile
 tests/s3/test_s3
+tests/valgrind/potential-memleaks
 # test output
 perftests/network-ssl/test_network_ssl_stderr.log
 # test output on FreeBSD

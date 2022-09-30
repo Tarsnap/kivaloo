@@ -1,5 +1,5 @@
-#ifndef _DISK_H_
-#define _DISK_H_
+#ifndef DISK_H_
+#define DISK_H_
 
 #include <stdint.h>
 #include <unistd.h>
@@ -30,4 +30,4 @@ int disk_read(const char *, off_t, size_t, uint8_t *);
  */
 int disk_write(const char *, int, size_t, const uint8_t *, int);
 
-#endif /* !_DISK_H_ */
+#endif /* !DISK_H_ */

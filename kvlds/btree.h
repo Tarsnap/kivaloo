@@ -1,5 +1,5 @@
-#ifndef _BTREE_H_
-#define _BTREE_H_
+#ifndef BTREE_H_
+#define BTREE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -88,4 +88,4 @@ void btree_sanity(struct btree *);
  */
 void btree_free(struct btree *);
 
-#endif /* !_BTREE_H_ */
+#endif /* !BTREE_H_ */

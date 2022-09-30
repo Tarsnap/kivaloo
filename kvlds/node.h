@@ -1,5 +1,5 @@
-#ifndef _NODE_H_
-#define _NODE_H_
+#ifndef NODE_H_
+#define NODE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -193,4 +193,4 @@ node_hasplock(struct node * N)
 	return (N->type != NODE_TYPE_NP);
 }
 
-#endif /* !_NODE_H_ */
+#endif /* !NODE_H_ */

@@ -1,5 +1,5 @@
-#ifndef _BTREE_MUTATE_H_
-#define _BTREE_MUTATE_H_
+#ifndef BTREE_MUTATE_H_
+#define BTREE_MUTATE_H_
 
 /* Opaque types. */
 struct kvldskey;
@@ -33,4 +33,4 @@ int btree_mutate_add(struct node *, struct kvpair_const *,
  */
 int btree_mutate_immutable(struct node *);
 
-#endif /* !_BTREE_MUTATE_H_ */
+#endif /* !BTREE_MUTATE_H_ */

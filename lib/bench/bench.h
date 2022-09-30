@@ -1,5 +1,5 @@
-#ifndef _BENCH_H_
-#define _BENCH_H_
+#ifndef BENCH_H_
+#define BENCH_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -45,4 +45,4 @@ uint64_t bench_median(struct bench *);
  */
 void bench_free(struct bench *);
 
-#endif /* !_BENCH_H_ */
+#endif /* !BENCH_H_ */

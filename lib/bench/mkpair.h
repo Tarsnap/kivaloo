@@ -1,5 +1,5 @@
-#ifndef _MKPAIR_H_
-#define _MKPAIR_H_
+#ifndef MKPAIR_H_
+#define MKPAIR_H_
 
 #include <stdint.h>
 
@@ -25,4 +25,4 @@ void mkkey(uint64_t, uint64_t, uint8_t *);
  */
 void mkval(uint64_t, uint64_t, uint8_t *);
 
-#endif /* !_MKPAIR_H_ */
+#endif /* !MKPAIR_H_ */

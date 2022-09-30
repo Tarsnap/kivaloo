@@ -1,5 +1,5 @@
-#ifndef _POOL_H_
-#define _POOL_H_
+#ifndef POOL_H_
+#define POOL_H_
 
 #include <stddef.h>
 
@@ -143,4 +143,4 @@ pool_rec_unlock(struct pool * P, void * rec)
 		pool_addqueue(P, rec);
 }
 
-#endif /* !_POOL_H_ */
+#endif /* !POOL_H_ */

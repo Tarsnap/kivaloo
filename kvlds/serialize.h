@@ -1,5 +1,5 @@
-#ifndef _SERIALIZE_H_
-#define _SERIALIZE_H_
+#ifndef SERIALIZE_H_
+#define SERIALIZE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -61,4 +61,4 @@ size_t serialize_size(struct node *);
  */
 size_t serialize_merge_size(struct node *);
 
-#endif /* !_SERIALIZE_H_ */
+#endif /* !SERIALIZE_H_ */

@@ -1,5 +1,5 @@
-#ifndef _STORAGE_H_
-#define _STORAGE_H_
+#ifndef STORAGE_H_
+#define STORAGE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -51,4 +51,4 @@ int storage_delete(struct storage_state *, uint64_t);
  */
 int storage_done(struct storage_state *);
 
-#endif /* !_STORAGE_H_ */
+#endif /* !STORAGE_H_ */

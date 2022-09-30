@@ -1,5 +1,5 @@
-#ifndef _DISPATCH_INTERNAL_H_
-#define _DISPATCH_INTERNAL_H_
+#ifndef DISPATCH_INTERNAL_H_
+#define DISPATCH_INTERNAL_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -99,4 +99,4 @@ int dispatch_request_append(struct dispatch_state *,
 int dispatch_request_free(struct dispatch_state *,
     struct proto_lbs_request *);
 
-#endif /* !_DISPATCH_INTERNAL_H_ */
+#endif /* !DISPATCH_INTERNAL_H_ */

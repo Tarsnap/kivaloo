@@ -1,5 +1,5 @@
-#ifndef _WIRE_H_
-#define _WIRE_H_
+#ifndef WIRE_H_
+#define WIRE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -138,4 +138,4 @@ int wire_requestqueue_destroy(struct wire_requestqueue *);
  */
 void wire_requestqueue_free(struct wire_requestqueue *);
 
-#endif /* !_WIRE_H_ */
+#endif /* !WIRE_H_ */

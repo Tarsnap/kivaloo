@@ -1,5 +1,5 @@
-#ifndef _PERFSTATS_H_
-#define _PERFSTATS_H_
+#ifndef PERFSTATS_H_
+#define PERFSTATS_H_
 
 #include <stdint.h>
 
@@ -29,4 +29,4 @@ int perfstats_add(struct perfstats *, uint32_t, double);
  */
 int perfstats_done(struct perfstats *);
 
-#endif /* !_PERFSTATS_H_ */
+#endif /* !PERFSTATS_H_ */

@@ -1,5 +1,5 @@
-#ifndef _BTREE_NODE_H_
-#define _BTREE_NODE_H_
+#ifndef BTREE_NODE_H_
+#define BTREE_NODE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -140,4 +140,4 @@ int btree_node_split(struct btree *, struct node *,
 int btree_node_merge(struct btree *, struct node **, const struct kvldskey **,
     struct node **, const struct kvldskey **, size_t);
 
-#endif /* !_BTREE_NODE_H_ */
+#endif /* !BTREE_NODE_H_ */

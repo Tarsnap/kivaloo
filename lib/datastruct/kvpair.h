@@ -1,5 +1,5 @@
-#ifndef _KVPAIR_H_
-#define _KVPAIR_H_
+#ifndef KVPAIR_H_
+#define KVPAIR_H_
 
 #include <stddef.h>
 
@@ -30,4 +30,4 @@ int kvpair_cmp(void *, const void *, const void *);
  */
 void kvpair_sort(struct kvpair *, size_t, size_t);
 
-#endif /* !_KVPAIR_H_ */
+#endif /* !KVPAIR_H_ */

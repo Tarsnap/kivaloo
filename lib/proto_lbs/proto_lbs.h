@@ -1,5 +1,5 @@
-#ifndef _PROTO_LBS_H_
-#define _PROTO_LBS_H_
+#ifndef PROTO_LBS_H_
+#define PROTO_LBS_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -166,4 +166,4 @@ int proto_lbs_response_append(struct netbuf_write *, uint64_t,
  */
 int proto_lbs_response_free(struct netbuf_write *, uint64_t);
 
-#endif /* !_PROTO_LBS_H_ */
+#endif /* !PROTO_LBS_H_ */

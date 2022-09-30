@@ -1,5 +1,5 @@
-#ifndef _PROTO_S3_H_
-#define _PROTO_S3_H_
+#ifndef PROTO_S3_H_
+#define PROTO_S3_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -154,4 +154,4 @@ int proto_s3_response_data(struct netbuf_write *, uint64_t, int,
 #define proto_s3_response_head(Q, ID, status, len)		\
 	proto_s3_response_data(Q, ID, status, len, NULL)
 
-#endif /* !_PROTO_S3_H_ */
+#endif /* !PROTO_S3_H_ */

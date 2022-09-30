@@ -1,5 +1,5 @@
-#ifndef _FINDLAST_H_
-#define _FINDLAST_H_
+#ifndef FINDLAST_H_
+#define FINDLAST_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -18,4 +18,4 @@ struct wire_requestqueue;
  */
 int findlast(struct wire_requestqueue *, const char *, uint64_t *, size_t *);
 
-#endif /* !_FINDLAST_H_ */
+#endif /* !FINDLAST_H_ */

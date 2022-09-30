@@ -1,5 +1,5 @@
-#ifndef _S3_REQUEST_QUEUE_H_
-#define _S3_REQUEST_QUEUE_H_
+#ifndef S3_REQUEST_QUEUE_H_
+#define S3_REQUEST_QUEUE_H_
 
 #include <stddef.h>
 
@@ -62,4 +62,4 @@ void s3_request_queue_flush(struct s3_request_queue *);
  */
 void s3_request_queue_free(struct s3_request_queue *);
 
-#endif /* !_S3_REQUEST_QUEUE_H_ */
+#endif /* !S3_REQUEST_QUEUE_H_ */

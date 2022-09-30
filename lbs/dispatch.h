@@ -1,5 +1,5 @@
-#ifndef _DISPATCH_H_
-#define _DISPATCH_H_
+#ifndef DISPATCH_H_
+#define DISPATCH_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -44,4 +44,4 @@ int dispatch_close(struct dispatch_state *);
  */
 int dispatch_done(struct dispatch_state *);
 
-#endif /* !_DISPATCH_H_ */
+#endif /* !DISPATCH_H_ */

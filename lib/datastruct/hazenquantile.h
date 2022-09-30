@@ -1,5 +1,5 @@
-#ifndef _HAZENQUANTILE_H_
-#define _HAZENQUANTILE_H_
+#ifndef HAZENQUANTILE_H_
+#define HAZENQUANTILE_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -62,4 +62,4 @@ hazenquantile(size_t N, double x, size_t * i, double * r)
 	assert((0.0 <= *r) && (*r < 1.0));
 }
 
-#endif /* !_HAZENQUANTILE_H_ */
+#endif /* !HAZENQUANTILE_H_ */

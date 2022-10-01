@@ -151,7 +151,7 @@ void
 elasticqueue_free(struct elasticqueue * EQ)
 {
 
-	/* Be compatible with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (EQ == NULL)
 		return;
 

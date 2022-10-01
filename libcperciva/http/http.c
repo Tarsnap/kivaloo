@@ -244,7 +244,7 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
     void * cookie)
 {
 
-    return (http_request2(addrs, request, maxrlen, callback, cookie, NULL));
+	return (http_request2(addrs, request, maxrlen, callback, cookie, NULL));
 }
 
 /**

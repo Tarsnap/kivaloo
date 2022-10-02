@@ -159,7 +159,7 @@ void
 seqptrmap_free(struct seqptrmap * M)
 {
 
-	/* Be compatible with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (M == NULL)
 		return;
 

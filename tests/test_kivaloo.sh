@@ -15,6 +15,11 @@ fi
 out="${bindir}/tests-output"
 out_valgrind="${bindir}/tests-valgrind"
 
+msleep="${bindir}/tests/msleep/msleep"
+lbs="${bindir}/lbs/lbs"
+
+# Functions to help start and stop servers
+. ${scriptdir}/kivaloo_servers.sh
 
 ### Run tests using project-specific constants
 run_scenarios ${test_scenarios}

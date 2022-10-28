@@ -122,6 +122,9 @@ clean:	test-clean
 test:	all
 	${TEST_CMD}
 
+test-libcperciva-framework:	all
+	./tests/test_kivaloo.sh
+
 test-clean:
 	rm -rf tests-output/ tests-valgrind/
 

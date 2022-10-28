@@ -54,6 +54,8 @@ tests/s3/test_s3
 tests/valgrind/potential-memleaks
 # test output
 perftests/network-ssl/test_network_ssl_stderr.log
+tests-output/
+tests-valgrind/
 # test output on FreeBSD
 tests/*/.depend
 tests/*/*.debug

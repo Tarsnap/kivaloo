@@ -810,8 +810,8 @@ http_request_cancel(void * cookie)
 		(network_ssl_close_func)(H->ssl);
 
 	/* Close the socket if we are connected. */
-	if (H->s != -1)
-		close(H->s);
+	if ((H->s != -1) && close(H->s))
+		warnp("close");
 
 	/* Free duplicated SSL target hostname if we have one. */
 	free(H->sslhost);

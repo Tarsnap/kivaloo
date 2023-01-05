@@ -211,10 +211,13 @@ main(int argc, char * argv[])
 	wire_requestqueue_free(Q_t);
 
 	/* Close sockets. */
-	for (i = 0; i < opt_s_size; i++)
-		close(socks_s[i]);
+	for (i = 0; i < opt_s_size; i++) {
+		if (close(socks_s[i]))
+			warnp("close");
+	}
 	free(socks_s);
-	close(sock_t);
+	if (close(sock_t))
+		warnp("close");
 
 	/* Free source socket addresses. */
 	for (i = 0; i < addrlist_getsize(opt_s); i++)

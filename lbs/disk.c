@@ -53,7 +53,8 @@ disk_syncdir(const char * path)
 	return (0);
 
 err1:
-	close(fd);
+	if (close(fd))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -130,7 +131,8 @@ disk_read(const char * path, off_t offset, size_t nbytes, uint8_t * buf)
 	return (0);
 
 err1:
-	close(fd);
+	if (close(fd))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -193,7 +195,8 @@ disk_write(const char * path, int create, size_t nbytes, const uint8_t * buf,
 	return (0);
 
 err1:
-	close(fd);
+	if (close(fd))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);

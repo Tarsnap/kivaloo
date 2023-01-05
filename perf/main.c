@@ -223,8 +223,10 @@ main(int argc, char * argv[])
 	wire_requestqueue_free(Q_t);
 
 	/* Close sockets. */
-	close(sock_t);
-	close(sock_s);
+	if (close(sock_t))
+		warnp("close");
+	if (close(sock_s))
+		warnp("close");
 
 	/* Free socket addresses. */
 	sock_addr_freelist(sas_t);

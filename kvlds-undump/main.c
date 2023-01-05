@@ -69,14 +69,16 @@ readfile(const char * dir, const char * fname)
 		goto err2;
 
 	/* Close file and free file name. */
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 	free(s);
 
 	/* Success! */
 	return (k);
 
 err2:
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 err1:
 	free(s);
 err0:

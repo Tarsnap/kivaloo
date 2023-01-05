@@ -272,8 +272,10 @@ err5:
 err4:
 	network_read_cancel(D->wakeup_cookie);
 err3:
-	close(D->spair[1]);
-	close(D->spair[0]);
+	if (close(D->spair[1]))
+		warnp("close");
+	if (close(D->spair[0]))
+		warnp("close");
 err2:
 	free(D->readers_idle);
 err1:
@@ -358,7 +360,8 @@ err3:
 err2:
 	netbuf_write_free(D->writeq);
 err1:
-	close(D->sconn);
+	if (close(D->sconn))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);

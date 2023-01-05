@@ -44,14 +44,16 @@ writefile(const char * dir, const char * fname, const struct kvldskey * v)
 	}
 
 	/* Close file and free file name. */
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 	free(s);
 
 	/* Success! */
 	return (0);
 
 err2:
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 err1:
 	free(s);
 err0:

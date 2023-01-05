@@ -280,7 +280,8 @@ forkdns(const char * target, int readfd, int writefd, unsigned int freq)
 	 * In child process.  Close read socket so that we will notice if we
 	 * try to write after the parent dies.
 	 */
-	close(readfd);
+	if (close(readfd))
+		warnp("close");
 
 	/* Become a session leader. */
 	setsid();
@@ -397,7 +398,8 @@ serverpool_create(const char * target, unsigned int freq, time_t ttl)
 	}
 
 	/* Close write socket; only the child needs it. */
-	close(fd[1]);
+	if (close(fd[1]))
+		warnp("close");
 
 	/* Free the initial list of addresses. */
 	sock_addr_freelist(sas);
@@ -408,8 +410,10 @@ serverpool_create(const char * target, unsigned int freq, time_t ttl)
 err5:
 	kill(P->pid, SIGTERM);
 err4:
-	close(fd[1]);
-	close(fd[0]);
+	if (close(fd[1]))
+		warnp("close");
+	if (close(fd[0]))
+		warnp("close");
 err3:
 	sock_addr_freelist(sas);
 	for (i = serverpool_addrs_getsize(P->A); i > 0; i--)

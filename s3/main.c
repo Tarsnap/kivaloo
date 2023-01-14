@@ -253,7 +253,8 @@ main(int argc, char * argv[])
 		logging_close(logfile);
 
 	/* Close the listening socket. */
-	close(s);
+	if (close(s))
+		warnp("close");
 
 	/* Free the address structures. */
 	sock_addr_freelist(sas);

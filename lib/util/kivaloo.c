@@ -54,7 +54,8 @@ kivaloo_open(const char * addr, struct wire_requestqueue ** Q)
 	return (K);
 
 err3:
-	close(K->s);
+	if (close(K->s))
+		warnp("close");
 err2:
 	sock_addr_freelist(K->sas);
 err1:
@@ -79,7 +80,8 @@ kivaloo_close(void * cookie)
 	wire_requestqueue_free(K->Q);
 
 	/* Close the socket. */
-	close(K->s);
+	if (close(K->s))
+		warnp("close");
 
 	/* Free socket addresses. */
 	sock_addr_freelist(K->sas);

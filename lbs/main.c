@@ -209,7 +209,8 @@ main(int argc, char * argv[])
 	storage_done(S);
 
 	/* Close the listening socket. */
-	close(s);
+	if (close(s))
+		warnp("close");
 
 	/* Free the address structures. */
 	sock_addr_freelist(sas);
@@ -227,7 +228,8 @@ err5:
 err4:
 	storage_done(S);
 err3:
-	close(s);
+	if (close(s))
+		warnp("close");
 err2:
 	sock_addr_freelist(sas);
 err1:

@@ -253,9 +253,12 @@ main(int argc, char * argv[])
 	wire_requestqueue_free(Q_DDBKV);
 
 	/* Close sockets. */
-	close(s_m);
-	close(s_t);
-	close(s);
+	if (close(s_m))
+		warnp("close");
+	if (close(s_t))
+		warnp("close");
+	if (close(s))
+		warnp("close");
 
 	/* Free socket addresses. */
 	sock_addr_freelist(sas_m);

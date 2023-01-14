@@ -93,7 +93,8 @@ aws_readkeys(const char * fname, char ** key_id, char ** key_secret)
 err3:
 	warn0("Lines in %s must be ACCESS_KEY_(ID|SECRET)=...", fname);
 err2:
-	fclose(f);
+	if (fclose(f))
+		warnp("fclose");
 err1:
 	free(*key_id);
 	if (*key_secret) {

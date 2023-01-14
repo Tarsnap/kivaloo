@@ -235,8 +235,10 @@ err3:
 err2:
 	kill(pid, SIGTERM);
 err1:
-	close(fd[1]);
-	close(fd[0]);
+	if (close(fd[1]))
+		warnp("close");
+	if (close(fd[0]))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (NULL);

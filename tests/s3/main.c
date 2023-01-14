@@ -207,9 +207,12 @@ main(int argc, char * argv[])
 	kivaloo_close(K);
 
 	/* Close all streams, in order to free malloced internal buffers. */
-	fclose(stdin);
-	fclose(stdout);
-	fclose(stderr);
+	if (fclose(stdin))
+		warnp("fclose");
+	if (fclose(stdout))
+		warnp("fclose");
+	if (fclose(stderr))
+		warnp("fclose");
 
 	/* Success! */
 	exit(0);

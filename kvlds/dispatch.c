@@ -702,7 +702,8 @@ err3:
 err2:
 	netbuf_write_free(D->writeq);
 err1:
-	close(D->s);
+	if (close(D->s))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);

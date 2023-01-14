@@ -413,7 +413,8 @@ err3:
 err2:
 	netbuf_write_free(D->writeq);
 err1:
-	close(D->sconn);
+	if (close(D->sconn))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -454,7 +455,8 @@ dispatch_done(struct dispatch_state * D)
 	netbuf_write_free(D->writeq);
 
 	/* Close the connection. */
-	close(D->sconn);
+	if (close(D->sconn))
+		warnp("close");
 
 	/* Free allocated memory. */
 	free(D);

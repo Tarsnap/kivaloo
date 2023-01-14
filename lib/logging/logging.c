@@ -76,7 +76,8 @@ done:
 	return (fd);
 
 err1:
-	close(fd);
+	if (close(fd))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -116,7 +117,8 @@ callback_timer(void * cookie)
 
 reopen:
 	/* We need to close and re-open the log file. */
-	close(F->fd);
+	if (close(F->fd))
+		warnp("close");
 	if ((F->fd = doopen(F->path)) == -1)
 		goto err0;
 
@@ -171,7 +173,8 @@ logging_open(const char * path)
 	return (F);
 
 err3:
-	close(F->fd);
+	if (close(F->fd))
+		warnp("close");
 err2:
 	free(F->path);
 err1:
@@ -272,8 +275,8 @@ logging_close(struct logging_file * F)
 		events_timer_cancel(F->timer_cookie);
 
 	/* Close the log file if we have it open. */
-	if (F->fd != -1)
-		close(F->fd);
+	if ((F->fd != -1) && close(F->fd))
+		warnp("close");
 
 	/* Free the duplicated path string. */
 	free(F->path);

@@ -198,7 +198,8 @@ err3:
 err2:
 	free(S);
 err1:
-	close(s);
+	if (close(s))
+		warnp("close");
 err0:
 	/* Failure! */
 	return (-1);
@@ -439,7 +440,8 @@ dropconn(struct sock_active * S)
 err2:
 	netbuf_read_free(S->readq);
 	netbuf_write_free(S->writeq);
-	close(S->s);
+	if (close(S->s))
+		warnp("close");
 err1:
 	free(S);
 

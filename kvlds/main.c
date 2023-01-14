@@ -284,8 +284,10 @@ main(int argc, char * argv[])
 	wire_requestqueue_free(Q_lbs);
 
 	/* Close sockets. */
-	close(s_lbs);
-	close(s);
+	if (close(s_lbs))
+		warnp("close");
+	if (close(s))
+		warnp("close");
 
 	/* Free socket addresses. */
 	sock_addr_freelist(sas_l);

@@ -17,7 +17,7 @@ SRCS	=	main.c
 SRCS	+=	capacity.c
 SRCS	+=	dispatch.c
 
-# licperciva includes
+# libcperciva includes
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/aws
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/events
 IDIRS	+=	-I ${LIBCPERCIVA_DIR}/http

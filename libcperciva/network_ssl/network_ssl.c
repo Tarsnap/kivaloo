@@ -80,7 +80,7 @@ static int poke(struct network_ssl_ctx *);
 
 /* Free the SSL context upon exit. */
 static void
-freectx(void)
+network_ssl_atexit(void)
 {
 
 	assert(ctx != NULL);
@@ -132,7 +132,7 @@ init(void)
 	}
 
 	/* Release the context when we exit. */
-	atexit(freectx);
+	atexit(network_ssl_atexit);
 
 	/* Success! */
 	return (0);

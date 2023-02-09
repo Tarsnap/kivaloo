@@ -5,7 +5,7 @@ SRCS=	main.c
 LIBCPERCIVA_DIR	=	../../libcperciva
 LIB_DIR	=	../../lib
 
-# Libreary code required
+# Library code required
 LDADD_REQ	= -lssl -lcrypto
 
 # libcperciva imports

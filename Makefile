@@ -24,6 +24,7 @@ TEST_CMD=	cd tests && ${MAKE} test
 
 ### Shared code between Tarsnap projects.
 
+.PHONY:	all
 all:	toplevel
 	export CFLAGS="$${CFLAGS:-${CFLAGS_DEFAULT}}";	\
 	. ./posix-flags.sh;				\
@@ -41,6 +42,7 @@ toplevel:	apisupport-config.h cflags-filter.sh	\
 		posix-flags.sh
 
 # For "loop-back" building of a subdirectory
+.PHONY:	buildsubdir
 buildsubdir: toplevel
 	. ./posix-flags.sh;				\
 	. ./cpusupport-config.h;			\
@@ -50,7 +52,7 @@ buildsubdir: toplevel
 	cd ${BUILD_SUBDIR} && ${MAKE} ${BUILD_TARGET}
 
 # For "loop-back" building of the library
-.PHONY: liball
+.PHONY:	liball
 liball: cflags-filter.sh cpusupport-config.h posix-flags.sh
 	. ./posix-flags.sh;				\
 	. ./cpusupport-config.h;			\
@@ -106,31 +108,37 @@ cpusupport-config.h:
 		printf "#define CPUSUPPORT_NONE 1\n";			\
 	fi >> $@
 
+.PHONY:	install
 install:	all
 	export BINDIR=$${BINDIR:-${BINDIR_DEFAULT}};	\
 	for D in ${PROGS}; do				\
 		( cd $${D} && ${MAKE} install ) || exit 2;	\
 	done
 
+.PHONY:	clean
 clean:	test-clean
 	rm -f apisupport-config.h cflags-filter.sh cpusupport-config.h posix-flags.sh
 	for D in liball ${PROGS} ${TESTS}; do			\
 		( cd $${D} && ${MAKE} clean ) || exit 2;	\
 	done
 
-.PHONY:	test test-clean
+.PHONY:	test
 test:	all
 	${TEST_CMD}
 
+.PHONY:	test-libcperciva-framework
 test-libcperciva-framework:	all
 	./tests/test_kivaloo.sh
 
+.PHONY:	test-clean
 test-clean:
 	rm -rf tests-output/ tests-valgrind/
 
 # Developer targets: These only work with BSD make
+.PHONY:	Makefiles
 Makefiles:
 	${MAKE} -f Makefile.BSD Makefiles
 
+.PHONY:	publish
 publish:
 	${MAKE} -f Makefile.BSD publish

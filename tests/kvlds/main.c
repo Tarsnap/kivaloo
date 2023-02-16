@@ -399,8 +399,14 @@ mutate(struct wire_requestqueue * Q)
 {
 	struct kvldskey * key = kvldskey_create((const uint8_t *)"key", 3);
 	struct kvldskey * value = kvldskey_create((const uint8_t *)"value", 5);
-	struct kvldskey * value2 = kvldskey_create((const uint8_t *)"value2",
-	    100);
+	struct kvldskey * value2;
+	uint8_t buf[100];
+	uint8_t i;
+
+	/* Initialize value2. */
+	for (i = 0; i < 100; i++)
+		buf[i] = i;
+	value2 = kvldskey_create(buf, 100);
 
 	/*
 	 * Test B+Tree mutation code paths, one by one:

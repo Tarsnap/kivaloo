@@ -246,13 +246,13 @@ delete(struct wire_requestqueue * Q, const struct kvldskey * key)
 	op_done = 0;
 	op_count = 1;
 	if (proto_kvlds_request_delete(Q, key, callback_done, NULL)) {
-		warnp("Error sending SET request");
+		warnp("Error sending DELETE request");
 		goto err0;
 	}
 
 	/* Wait for it to finish. */
 	if (events_spin(&op_done) || op_failed) {
-		warnp("SET request failed");
+		warnp("DELETE request failed");
 		goto err0;
 	}
 

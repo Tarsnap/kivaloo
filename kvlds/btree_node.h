@@ -49,7 +49,7 @@ static inline void
 btree_node_unlock(struct btree * T, struct node * N)
 {
 
-	/* Lock the node in the pool. */
+	/* Unlock the node in the pool. */
 	if (N != NULL)
 		pool_rec_unlock(T->P, N);
 }

@@ -400,7 +400,7 @@ batch_run(struct batch * B)
 			}
 
 			/* Otherwise, fall through to the MODIFY path. */
-			/* FALLTHROUGH. */
+			/* FALLTHROUGH */
 		case OP_MODIFY:
 			/* Modify the key. */
 			pos->v = R->value;

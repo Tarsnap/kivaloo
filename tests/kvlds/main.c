@@ -246,13 +246,13 @@ delete(struct wire_requestqueue * Q, const struct kvldskey * key)
 	op_done = 0;
 	op_count = 1;
 	if (proto_kvlds_request_delete(Q, key, callback_done, NULL)) {
-		warnp("Error sending SET request");
+		warnp("Error sending DELETE request");
 		goto err0;
 	}
 
 	/* Wait for it to finish. */
 	if (events_spin(&op_done) || op_failed) {
-		warnp("SET request failed");
+		warnp("DELETE request failed");
 		goto err0;
 	}
 
@@ -399,8 +399,14 @@ mutate(struct wire_requestqueue * Q)
 {
 	struct kvldskey * key = kvldskey_create((const uint8_t *)"key", 3);
 	struct kvldskey * value = kvldskey_create((const uint8_t *)"value", 5);
-	struct kvldskey * value2 = kvldskey_create((const uint8_t *)"value2",
-	    100);
+	struct kvldskey * value2;
+	uint8_t buf[100];
+	uint8_t i;
+
+	/* Initialize value2. */
+	for (i = 0; i < 100; i++)
+		buf[i] = i;
+	value2 = kvldskey_create(buf, 100);
 
 	/*
 	 * Test B+Tree mutation code paths, one by one:

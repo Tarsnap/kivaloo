@@ -318,6 +318,7 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
 
 	/* Sanity check. */
 	assert(callback != NULL);
+	assert(nblks > 0);
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct append_cookie))) == NULL)

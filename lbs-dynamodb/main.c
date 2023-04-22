@@ -60,7 +60,8 @@ main(int argc, char * argv[])
 	struct sock_addr ** sas_s;
 	struct sock_addr ** sas_t;
 	struct sock_addr ** sas_m;
-	uint64_t itemsz;
+	uint64_t itemsz_64;
+	size_t itemsz;
 	uint8_t tableid[32];
 	const char * ch;
 
@@ -180,16 +181,17 @@ main(int argc, char * argv[])
 	 * Create a metadata handler; this also atomically takes ownership of
 	 * the metadata with respect to other lbs-dynamodb processes.
 	 */
-	if ((M = metadata_init(Q_DDBKV_M, &itemsz, tableid)) == NULL) {
+	if ((M = metadata_init(Q_DDBKV_M, &itemsz_64, tableid)) == NULL) {
 		warnp("Error initializing state metadata handler");
 		exit(1);
 	}
 
 	/* Sanity-check the item size recorded in the metadata. */
-	if ((itemsz < 512) || (itemsz > 8192)) {
-		warn0("Invalid lbs-dynamodb item size: %" PRIu64, itemsz);
+	if ((itemsz_64 < 512) || (itemsz_64 > 8192)) {
+		warn0("Invalid lbs-dynamodb item size: %" PRIu64, itemsz_64);
 		exit(1);
 	}
+	itemsz = (size_t)itemsz_64;
 
 	/* Create a deleter. */
 	if ((deleter = deleteto_init(Q_DDBKV, M)) == NULL) {

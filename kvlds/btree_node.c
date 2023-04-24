@@ -455,6 +455,7 @@ btree_node_dirty(struct btree * T, struct node * N)
 	/* Sanity check the node. */
 	assert(node_present(N));
 	assert(N->state == NODE_STATE_CLEAN);
+	assert(pool_rec_lockcount(T->P, N) > 0);
 
 	/* Notify the cleaner. */
 	btree_cleaning_notify_dirtying(T->cstate, N);

@@ -7,6 +7,8 @@ replies.  The protocol uses CRCs to provide some error-detection, but has no
 encryption, authentication, or authorization mechanisms; if required, these
 should be handled externally.
 
+If a badly-formed request is sent to the server, it will drop the connection.
+
 Wire protocol
 -------------
 

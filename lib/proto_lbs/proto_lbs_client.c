@@ -61,6 +61,9 @@ proto_lbs_request_params(struct wire_requestqueue * Q,
 	struct params_cookie * C;
 	uint8_t buf[4];
 
+	/* Sanity check. */
+	assert(callback != NULL);
+
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct params_cookie))) == NULL)
 		goto err0;
@@ -133,6 +136,9 @@ proto_lbs_request_params2(struct wire_requestqueue * Q,
 {
 	struct params2_cookie * C;
 	uint8_t buf[4];
+
+	/* Sanity check. */
+	assert(callback != NULL);
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct params2_cookie))) == NULL)
@@ -210,6 +216,9 @@ proto_lbs_request_get(struct wire_requestqueue * Q,
 {
 	struct get_cookie * C;
 	uint8_t * buf;
+
+	/* Sanity check. */
+	assert(callback != NULL);
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct get_cookie))) == NULL)
@@ -306,6 +315,10 @@ proto_lbs_request_append_blks(struct wire_requestqueue * Q,
 	size_t len = 16 + nblks * blklen;
 	uint8_t * buf;
 	size_t i;
+
+	/* Sanity check. */
+	assert(callback != NULL);
+	assert(nblks > 0);
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct append_cookie))) == NULL)
@@ -440,6 +453,9 @@ proto_lbs_request_free(struct wire_requestqueue * Q, uint64_t blkno,
 {
 	struct free_cookie * C;
 	uint8_t * buf;
+
+	/* Sanity check. */
+	assert(callback != NULL);
 
 	/* Bake a cookie. */
 	if ((C = malloc(sizeof(struct free_cookie))) == NULL)

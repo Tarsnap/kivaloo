@@ -205,6 +205,7 @@ dispatch_request_append(struct dispatch_state * dstate,
 		if (proto_lbs_response_append(dstate->writeq, R->ID, 1,
 		    (uint64_t)(-1)))
 			goto err1;
+		goto badblkno;
 	}
 
 	/* Give the writer the work. */
@@ -214,6 +215,14 @@ dispatch_request_append(struct dispatch_state * dstate,
 		goto err1;
 
 	/* Free the request but NOT the buffer, since the thread owns that. */
+	free(R);
+
+	/* Success! */
+	return (0);
+
+badblkno:
+	/* Free request AND included buffer. */
+	free(R->r.append.buf);
 	free(R);
 
 	/* Success! */

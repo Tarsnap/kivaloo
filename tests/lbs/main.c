@@ -8,6 +8,9 @@
 #include "proto_lbs.h"
 #include "warnp.h"
 
+/* The tests will never reach this block number. */
+#define BAD_BLKNO (UINT64_MAX - 2)
+
 /* Total of 256 pages. */
 static size_t npages[] = {
 	15, 1, 2, 14, 13, 3, 4, 12, 8, 8, 8, 8, 8, 8, 8, 8,
@@ -20,8 +23,10 @@ static size_t params_blklen;
 static uint64_t params_nextblk;
 static int append_done;
 static int append_failed;
+static int append_bad_start_response;
 static int get_done;
 static int get_failed;
+static int get_not_exist_response;
 static int gets_done;
 static int gets_failed;
 static int gets_ndone;
@@ -59,6 +64,29 @@ callback_append(void * cookie, int failed, int status, uint64_t blkno)
 	if (status)
 		append_failed = 1;
 	params_nextblk = blkno;
+
+	/* We're done. */
+	append_done = 1;
+
+	/* Success! */
+	return (0);
+}
+
+/* Callback for APPEND request for "the starting block # is incorrect". */
+static int
+callback_append_should_bad_start(void * cookie, int failed, int status,
+    uint64_t blkno)
+{
+
+	(void)cookie; /* UNUSED */
+	(void)blkno; /* UNUSED */
+
+	/* Parsed the response? */
+	append_failed = failed;
+
+	/* The status should be "the starting block # is incorrect". */
+	if (status != 1)
+		append_bad_start_response = 1;
 
 	/* We're done. */
 	append_done = 1;
@@ -105,6 +133,29 @@ callback_gets(void * cookie, int failed, int status, const uint8_t * buf)
 	gets_ndone += 1;
 	if (gets_ndone == 256)
 		gets_done = 1;
+
+	/* Success! */
+	return (0);
+}
+
+/* Callback for GET request for "block does not exist". */
+static int
+callback_get_should_not_exist(void * cookie, int failed, int status,
+    const uint8_t * buf)
+{
+
+	(void)cookie; /* UNUSED */
+	(void)buf; /* UNUSED */
+
+	/* Parsed the response? */
+	get_failed = failed;
+
+	/* The status should be "block does not exist". */
+	if (status != 1)
+		get_not_exist_response = 1;
+
+	/* We're done. */
+	get_done = 1;
 
 	/* Success! */
 	return (0);
@@ -200,6 +251,22 @@ main(int argc, char * argv[])
 		}
 	}
 
+	/* Attempt to write with a bad starting block #. */
+	append_done = append_failed = append_bad_start_response = 0;
+	if (proto_lbs_request_append(Q, 1, BAD_BLKNO, params_blklen,
+	    buf, callback_append_should_bad_start, NULL)) {
+		warnp("Failed to send APPEND request");
+		goto err2;
+	}
+	if (events_spin(&append_done) || append_failed) {
+		warnp("APPEND request failed");
+		goto err2;
+	}
+	if (append_bad_start_response) {
+		warnp("APPEND request failed to return bad-starting-blkno");
+		goto err2;
+	}
+
 	/* Read pages sequentially. */
 	for (i = 0; i < 512; i++) {
 		get_done = get_failed = 0;
@@ -231,6 +298,22 @@ main(int argc, char * argv[])
 	}
 	if (events_spin(&gets_done) || gets_failed) {
 		warnp("GET request(s) failed");
+		goto err2;
+	}
+
+	/* Attempt to read a non-existent block. */
+	get_done = get_failed = get_not_exist_response = 0;
+	if (proto_lbs_request_get(Q, BAD_BLKNO, params_blklen,
+	    callback_get_should_not_exist, NULL)) {
+		warnp("Failed to send GET request");
+		goto err2;
+	}
+	if (events_spin(&get_done) || get_failed) {
+		warnp("GET request failed");
+		goto err2;
+	}
+	if (get_not_exist_response) {
+		warnp("GET request failed to return does-not-exist");
 		goto err2;
 	}
 

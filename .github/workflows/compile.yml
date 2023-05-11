@@ -20,7 +20,7 @@ env:
   CFLAGS_GCC_LIBCPERCIVA: -Wall -Wextra -Werror -Wpedantic
                           -pedantic-errors -Wno-clobbered
   # Variables for specific projects / platforms / compilers.
-  CFLAGS_CLANG_PROJECT: -Wno-comma -Wno-thread-safety-analysis
+  CFLAGS_CLANG_PROJECT: -Wno-thread-safety-analysis
                         -Wno-implicit-fallthrough -Wno-documentation
   CFLAGS_GCC_PROJECT: -Wno-float-equal -Wno-alloc-zero -Wno-format-overflow
                       -Wno-jump-misses-init

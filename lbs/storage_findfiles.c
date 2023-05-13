@@ -68,7 +68,12 @@ storage_findfiles(const char * path)
 	 * Look for files named "blks_<64-bit hexified first block #>" and
 	 * create storage_file structures for each.
 	 */
-	while ((errno = 0), ((dp = readdir(dir)) != NULL)) {
+	while (1) {
+		/* Get a pointer to the next directory entry. */
+		errno = 0;
+		if ((dp = readdir(dir)) == NULL)
+			break;
+
 		/* Skip anything which isn't the right length. */
 		if (strlen(dp->d_name) != strlen("blks_0123456789abcdef"))
 			continue;

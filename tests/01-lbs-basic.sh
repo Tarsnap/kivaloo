@@ -41,7 +41,7 @@ lbs_check_basic() {
 	fi
 
 	# Start a server.
-	server_lbs_start "${sock}" "${stor}" "${is_single}"	\
+	lbs_start "${sock}" "${stor}" "${is_single}"		\
 		"${lbs_pidfile}" "${this_read_delay}"		\
 		"lbs ${description}"
 
@@ -58,7 +58,7 @@ lbs_check_basic() {
 	fi
 
 	# Clean up.
-	server_lbs_stop "${lbs_pidfile}" "${is_single}"
+	lbs_stop "${lbs_pidfile}" "${is_single}"
 	clean_storage
 }
 
@@ -71,7 +71,7 @@ lbs_check_unclean_disconnect() {
 	clean_storage
 
 	# Start a server.
-	server_lbs_start "${sock}" "${stor}" "0"		\
+	lbs_start "${sock}" "${stor}" "0"			\
 		"${lbs_pidfile}" "${lbs_basic_read_delay}"	\
 		"lbs server unclean disconnect"
 
@@ -86,7 +86,7 @@ lbs_check_unclean_disconnect() {
 	echo "$?" > "${c_exitfile}"
 
 	# Clean up.
-	server_lbs_stop "${lbs_pidfile}" "0"
+	lbs_stop "${lbs_pidfile}" "0"
 	clean_storage
 }
 
@@ -99,7 +99,7 @@ lbs_check_connections_queue() {
 	clean_storage
 
 	# Start a server.
-	server_lbs_start "${sock}" "${stor}" "0"		\
+	lbs_start "${sock}" "${stor}" "0"			\
 		"${lbs_pidfile}" "${lbs_basic_read_delay}"	\
 		"lbs server unclean disconnect"
 
@@ -116,7 +116,7 @@ lbs_check_connections_queue() {
 	echo "$?" > "${c_exitfile}"
 
 	# Clean up.
-	server_lbs_stop "${lbs_pidfile}" "0"
+	lbs_stop "${lbs_pidfile}" "0"
 	clean_storage
 }
 
@@ -130,7 +130,7 @@ lbs_check_addresses() {
 	for S in "localhost:1234" "[127.0.0.1]:1235" "[::1]:1236"; do
 		this_lbs_pidfile="${s_basename}-$S.pid"
 		# Start a server.
-		server_lbs_start "${S}" "${stor}" "0"		\
+		lbs_start "${S}" "${stor}" "0"				\
 			"${this_lbs_pidfile}" "${lbs_basic_read_delay}"	\
 			"lbs server ${S}"
 
@@ -140,7 +140,7 @@ lbs_check_addresses() {
 		echo "$?" > "${c_exitfile}"
 
 		# Clean up.
-		server_lbs_stop "${this_lbs_pidfile}" "0"
+		lbs_stop "${this_lbs_pidfile}" "0"
 		clean_storage
 	done
 }

@@ -10,7 +10,7 @@
 
 /* Parse a length-prefixed string and increment pos. */
 static char *
-mkstr(uint8_t * buf, size_t len, size_t *pos)
+mkstr(uint8_t * buf, size_t len, size_t * pos)
 {
 	char * s;
 	size_t slen;

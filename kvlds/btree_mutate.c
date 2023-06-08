@@ -45,7 +45,7 @@ err0:
  * in which it belongs.
  */
 struct kvpair_const *
-btree_mutate_find(struct node * N, const struct kvldskey *k)
+btree_mutate_find(struct node * N, const struct kvldskey * k)
 {
 	struct kvpair_const * kv;
 

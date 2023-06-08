@@ -1,22 +1,48 @@
 .POSIX:
 
 PKG=	kivaloo
-PROGS=	lbs kvlds mux s3 lbs-s3 dynamodb-kv lbs-dynamodb	\
-	lbs-dynamodb-init kvlds-dump kvlds-undump perf
+PROGS=	dynamodb-kv						\
+	kvlds							\
+	kvlds-dump						\
+	kvlds-undump						\
+	lbs							\
+	lbs-dynamodb						\
+	lbs-dynamodb-init					\
+	lbs-s3							\
+	mux							\
+	perf							\
+	s3
 LIBS=	liball
-BENCHES= bench/bulk_insert bench/bulk_update bench/bulk_extract	\
-	bench/hotspot_read bench/random_mixed bench/random_read	\
-	bench/mkpairs
+BENCHES=bench/bulk_extract					\
+	bench/bulk_insert					\
+	bench/bulk_update					\
+	bench/hotspot_read					\
+	bench/mkpairs						\
+	bench/random_mixed					\
+	bench/random_read
 # For compatibility with other libcperciva software, we don't use
 # ${BENCHES} in the shared code, so we add it to ${TESTS}.
-TESTS=	tests/lbs tests/kvlds tests/mux tests/s3 tests/kvlds-s3 \
-	tests/kvlds-blocking tests/kvlds-dump tests/kvlds-ddbkv \
-	tests/msleep tests/onlinequantile tests/valgrind	\
-	perftests/kvldsperf perftests/kvldsclean		\
-	perftests/s3 perftests/s3_put perftests/serverpool	\
-	perftests/dynamodb_sign perftests/dynamodb_request	\
-	perftests/dynamodb_queue perftests/dynamodb_kv		\
+TESTS=	perftests/dynamodb_kv					\
+	perftests/dynamodb_queue				\
+	perftests/dynamodb_request				\
+	perftests/dynamodb_sign					\
+	perftests/kvldsclean					\
 	perftests/kvldsclean-ddbkv				\
+	perftests/kvldsperf					\
+	perftests/s3						\
+	perftests/s3_put					\
+	perftests/serverpool					\
+	tests/kvlds						\
+	tests/kvlds-blocking					\
+	tests/kvlds-ddbkv					\
+	tests/kvlds-dump					\
+	tests/kvlds-s3						\
+	tests/lbs						\
+	tests/msleep						\
+	tests/mux						\
+	tests/onlinequantile					\
+	tests/s3						\
+	tests/valgrind						\
 	${BENCHES}
 BINDIR_DEFAULT=	/usr/local/bin
 CFLAGS_DEFAULT=	-O2

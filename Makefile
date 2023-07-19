@@ -80,7 +80,7 @@ buildsubdir: toplevel
 
 # For "loop-back" building of libraries
 .PHONY:	libs
-libs: cflags-filter.sh cpusupport-config.h posix-flags.sh
+libs: apisupport-config.h cflags-filter.sh cpusupport-config.h posix-flags.sh
 	. ./posix-flags.sh;				\
 	. ./cpusupport-config.h;			\
 	. ./cflags-filter.sh;				\

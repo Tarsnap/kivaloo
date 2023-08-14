@@ -220,7 +220,7 @@ CRC32C_Update(CRC32C_CTX * ctx, const uint8_t * buf, size_t len)
  * Castagnoli polynomial.
  */
 void
-CRC32C_Final(uint8_t cbuf[4], CRC32C_CTX * ctx)
+CRC32C_Final(uint8_t cbuf[4], const CRC32C_CTX * ctx)
 {
 
 	/* Copy state out. */

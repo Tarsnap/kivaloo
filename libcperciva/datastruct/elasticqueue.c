@@ -118,7 +118,7 @@ elasticqueue_delete(struct elasticqueue * EQ)
  * Return the length of the elastic queue ${EQ}.
  */
 size_t
-elasticqueue_getlen(struct elasticqueue * EQ)
+elasticqueue_getlen(const struct elasticqueue * EQ)
 {
 
 	return (EQ->len);

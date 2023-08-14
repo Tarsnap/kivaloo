@@ -106,7 +106,7 @@ seqptrmap_get(struct seqptrmap * M, int64_t i)
  * -1 if the map is empty.  This function cannot fail.
  */
 int64_t
-seqptrmap_getmin(struct seqptrmap * M)
+seqptrmap_getmin(const struct seqptrmap * M)
 {
 
 	/* If the underlying elastic queue is empty, return -1. */

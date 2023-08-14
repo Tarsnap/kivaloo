@@ -33,6 +33,6 @@ void CRC32C_Update(CRC32C_CTX *, const uint8_t *, size_t);
  * significant bit of the byte in the lowest address, is a product of the
  * Castagnoli polynomial.
  */
-void CRC32C_Final(uint8_t[4], CRC32C_CTX *);
+void CRC32C_Final(uint8_t[4], const CRC32C_CTX *);
 
 #endif /* !CRC32C_H_ */

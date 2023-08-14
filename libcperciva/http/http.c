@@ -140,7 +140,7 @@ toobig(struct http_cookie * H)
 
 /* Find the first \r\n in the buffer, or return buflen. */
 static size_t
-findeol(uint8_t * buf, size_t buflen)
+findeol(const uint8_t * buf, size_t buflen)
 {
 	size_t bufpos;
 

@@ -12,7 +12,9 @@ PROGS=	dynamodb-kv						\
 	mux							\
 	perf							\
 	s3
-LIBS=	liball
+LIBS=	liball							\
+	liball/optional_mutex_normal				\
+	liball/optional_mutex_pthread
 BENCHES=bench/bulk_extract					\
 	bench/bulk_insert					\
 	bench/bulk_update					\

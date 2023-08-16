@@ -24,6 +24,8 @@ lbs-dynamodb/lbs-dynamodb
 lbs-s3/lbs-s3
 lbs/lbs
 liball/liball.a
+liball/optional_mutex_normal/liball_optional_mutex_normal.a
+liball/optional_mutex_pthread/liball_optional_mutex_pthread.a
 mux/mux
 perf/perf
 perftests/dynamodb_kv/test_dynamodb_kv

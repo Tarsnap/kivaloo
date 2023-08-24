@@ -1,4 +1,3 @@
-#include <sys/types.h>
 #include <sys/socket.h>
 
 #include <netinet/in.h>
@@ -11,7 +10,6 @@
 
 #include "network.h"
 #include "queue.h"
-#include "warnp.h"
 
 #include "netbuf.h"
 #include "netbuf_ssl_internal.h"

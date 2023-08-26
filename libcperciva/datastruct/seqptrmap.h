@@ -42,7 +42,7 @@ void * seqptrmap_get(struct seqptrmap *, int64_t);
  * Return the minimum integer associated with a pointer in the map ${M}, or
  * -1 if the map is empty.  This function cannot fail.
  */
-int64_t seqptrmap_getmin(struct seqptrmap *);
+int64_t seqptrmap_getmin(const struct seqptrmap *);
 
 /**
  * seqptrmap_delete(M, i):

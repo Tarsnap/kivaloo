@@ -5,7 +5,7 @@ SRCS=main.c
 IDIRS=-I ../../libcperciva/aws -I ../../libcperciva/events -I ../../libcperciva/http -I ../../libcperciva/util -I ../../lib/s3
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=perftests/s3
-LIBALL=../../liball/liball.a
+LIBALL=../../liball/liball.a ../../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

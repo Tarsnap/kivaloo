@@ -5,7 +5,7 @@ SRCS=main.c dispatch.c
 IDIRS=-I ../libcperciva/datastruct -I ../libcperciva/events -I ../libcperciva/netbuf -I ../libcperciva/network -I ../libcperciva/util -I ../lib/wire
 SUBDIR_DEPTH=..
 RELATIVE_DIR=mux
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

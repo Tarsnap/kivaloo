@@ -5,7 +5,7 @@ SRCS=main.c
 IDIRS=-I ../../libcperciva/events -I ../../libcperciva/util -I ../../lib/bench -I ../../lib/datastruct -I ../../lib/proto_kvlds -I ../../lib/wire
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=bench/bulk_extract
-LIBALL=../../liball/liball.a
+LIBALL=../../liball/liball.a ../../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

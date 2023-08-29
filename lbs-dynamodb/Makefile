@@ -5,7 +5,7 @@ SRCS=main.c dispatch.c state.c deleteto.c metadata.c objmap.c
 IDIRS=-I ../libcperciva/events -I ../libcperciva/netbuf -I ../libcperciva/network -I ../libcperciva/util -I ../lib/proto_dynamodb_kv -I ../lib/proto_lbs -I ../lib/wire
 SUBDIR_DEPTH=..
 RELATIVE_DIR=lbs-dynamodb
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

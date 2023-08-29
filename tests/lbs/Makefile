@@ -5,7 +5,7 @@ SRCS=main.c
 IDIRS=-I ../../libcperciva/events -I ../../libcperciva/util -I ../../lib/proto_lbs -I ../../lib/util
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=tests/lbs
-LIBALL=../../liball/liball.a
+LIBALL=../../liball/liball.a ../../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

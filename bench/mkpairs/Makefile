@@ -5,7 +5,7 @@ SRCS=main.c
 IDIRS=-I ../../libcperciva/util -I ../../lib/bench
 SUBDIR_DEPTH=../..
 RELATIVE_DIR=bench/mkpairs
-LIBALL=../../liball/liball.a
+LIBALL=../../liball/liball.a ../../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

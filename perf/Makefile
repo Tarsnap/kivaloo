@@ -5,7 +5,7 @@ SRCS=main.c dispatch.c perfstats.c reqtypes.c
 IDIRS=-I ../lib/proto_kvlds -I ../lib/proto_lbs -I ../lib/proto_s3 -I ../lib/proto_dynamodb_kv -I ../libcperciva/datastruct -I ../libcperciva/events -I ../libcperciva/netbuf -I ../libcperciva/network -I ../libcperciva/util -I ../lib/datastruct -I ../lib/logging -I ../lib/wire
 SUBDIR_DEPTH=..
 RELATIVE_DIR=perf
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

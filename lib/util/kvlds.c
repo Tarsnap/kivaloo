@@ -18,6 +18,7 @@ callback_done(void * cookie, int failed)
 	C->failed = failed;
 	C->done = 1;
 
+	/* Success! */
 	return (0);
 }
 
@@ -280,6 +281,7 @@ callback_get(void * cookie, int failed, struct kvldskey * value)
 	/* Save the value passed by the GET request. */
 	C->value = value;
 
+	/* Success! */
 	return (0);
 }
 

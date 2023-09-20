@@ -5,7 +5,7 @@ SRCS=main.c dispatch.c s3state.c deleteto.c findlast.c objmap.c
 IDIRS=-I ../libcperciva/alg -I ../libcperciva/events -I ../libcperciva/netbuf -I ../libcperciva/network -I ../libcperciva/util -I ../lib/proto_lbs -I ../lib/proto_s3 -I ../lib/wire
 SUBDIR_DEPTH=..
 RELATIVE_DIR=lbs-s3
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

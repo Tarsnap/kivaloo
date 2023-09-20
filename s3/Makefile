@@ -5,7 +5,7 @@ SRCS=main.c dns.c dispatch.c
 IDIRS=-I ../libcperciva/aws -I ../libcperciva/events -I ../libcperciva/http -I ../libcperciva/netbuf -I ../libcperciva/network -I ../libcperciva/util -I ../lib/logging -I ../lib/proto_s3 -I ../lib/s3 -I ../lib/wire
 SUBDIR_DEPTH=..
 RELATIVE_DIR=s3
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

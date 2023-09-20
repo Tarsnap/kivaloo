@@ -6,7 +6,7 @@ IDIRS=-I ../libcperciva/alg -I ../libcperciva/datastruct -I ../libcperciva/event
 LDADD_REQ=-lpthread
 SUBDIR_DEPTH=..
 RELATIVE_DIR=lbs
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_pthread/liball_optional_mutex_pthread.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

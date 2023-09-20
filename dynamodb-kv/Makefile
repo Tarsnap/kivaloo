@@ -6,7 +6,7 @@ IDIRS=-I ../libcperciva/aws -I ../libcperciva/events -I ../libcperciva/http -I .
 LDADD_REQ=-lssl -lcrypto
 SUBDIR_DEPTH=..
 RELATIVE_DIR=dynamodb-kv
-LIBALL=../liball/liball.a
+LIBALL=../liball/liball.a ../liball/optional_mutex_normal/liball_optional_mutex_normal.a
 
 all:
 	if [ -z "$${HAVE_BUILD_FLAGS}" ]; then \

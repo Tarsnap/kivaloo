@@ -37,7 +37,7 @@ lbs_start() {
 
 	# Set up check-specific variables.
 	setup_check_variables "${_lbs_start_description}"
-	_lbs_start_stderr="${s_basename}-${s_count}-lbs-server.stderr"
+	_lbs_start_stderr="${s_basename}-${c_count_str}-lbs-server.stderr"
 
 	# Make the storage directory.
 	mkdir -p "${_lbs_start_stor}"

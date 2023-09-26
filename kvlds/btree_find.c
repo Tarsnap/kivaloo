@@ -14,8 +14,8 @@
 
 /* Leaf-finding state. */
 struct findleaf_cookie {
-	int (*callback)(void *, struct node *);
-	int (*callback_range)(void *, struct node *, struct kvldskey *);
+	int (* callback)(void *, struct node *);
+	int (* callback_range)(void *, struct node *, struct kvldskey *);
 	void * cookie;
 	struct btree * T;
 	struct node * N;

@@ -41,7 +41,7 @@ struct netbuf_write {
 
 	/* Failure handling. */
 	int failed;			/* Has a write ever failed? */
-	int (*fail_callback)(void *);	/* Callback to invoke on failure. */
+	int (* fail_callback)(void *);	/* Callback to invoke on failure. */
 	void * fail_cookie;		/* Cookie for failure callback. */
 
 	/* Queued buffers. */

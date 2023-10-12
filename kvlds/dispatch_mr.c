@@ -28,7 +28,7 @@ struct req_cookie {
 
 /* State for a batch of modifying requests. */
 struct batch {
-	int (*callback_done)(void *);
+	int (* callback_done)(void *);
 	void * cookie;
 	size_t nreqs;
 	struct btree * T;

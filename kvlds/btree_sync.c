@@ -17,7 +17,7 @@
 
 struct write_cookie {
 	/* Callback to be performed after sync is done. */
-	int (*callback)(void *);
+	int (* callback)(void *);
 	void * cookie;
 
 	/* The B+Tree. */

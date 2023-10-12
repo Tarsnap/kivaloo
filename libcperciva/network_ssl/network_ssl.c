@@ -55,7 +55,7 @@ struct network_ssl_ctx {
 	void * immediate_cookie;
 
 	/* Pending read operation. */
-	int (*read_callback)(void *, ssize_t);
+	int (* read_callback)(void *, ssize_t);
 	void * read_cookie;
 	uint8_t * read_buf;
 	size_t read_buflen;
@@ -65,7 +65,7 @@ struct network_ssl_ctx {
 	int read_needs_w;
 
 	/* Pending write operation. */
-	int (*write_callback)(void *, ssize_t);
+	int (* write_callback)(void *, ssize_t);
 	void * write_cookie;
 	const uint8_t * write_buf;
 	size_t write_buflen;
@@ -239,8 +239,8 @@ err0:
 
 /* Invoke a callback. */
 static int
-docallback(int (*callback)(void *, ssize_t), void * cookie, ssize_t len,
-    int (**callback_ptr)(void *, ssize_t))
+docallback(int (* callback)(void *, ssize_t), void * cookie, ssize_t len,
+    int (** callback_ptr)(void *, ssize_t))
 {
 
 	/*
@@ -261,7 +261,7 @@ doread(struct network_ssl_ctx * ssl)
 	int sslerr;
 	int ret;
 #ifndef SO_NOSIGPIPE
-	void (*oldsig)(int);
+	void (* oldsig)(int);
 #endif
 
 	/*
@@ -362,7 +362,7 @@ dowrite(struct network_ssl_ctx * ssl)
 	int sslerr;
 	int ret;
 #ifndef SO_NOSIGPIPE
-	void (*oldsig)(int);
+	void (* oldsig)(int);
 #endif
 
 	/*

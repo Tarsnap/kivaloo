@@ -23,6 +23,7 @@ callback_status(void * cookie, int status)
 	C->done = 1;
 	C->status = status;
 
+	/* Success! */
 	return (0);
 }
 
@@ -41,6 +42,7 @@ callback_get(void * cookie, int status, const uint8_t * buf, size_t buflen)
 		fprintf(stderr, "no value associated\n");
 	}
 
+	/* Success! */
 	return (0);
 }
 

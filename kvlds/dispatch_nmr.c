@@ -19,7 +19,7 @@
 /* Non-modifying request state. */
 struct nmr_cookie {
 	/* State provided by caller. */
-	int (*callback_done)(void *);
+	int (* callback_done)(void *);
 	void * cookie_done;
 	struct btree * T;
 	struct proto_kvlds_request * R;

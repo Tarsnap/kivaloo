@@ -328,7 +328,7 @@ metadata_nextblk_read(struct metadata * M)
  */
 int
 metadata_nextblk_write(struct metadata * M, uint64_t nextblk,
-    int (*callback)(void *), void * cookie)
+    int (* callback)(void *), void * cookie)
 {
 
 	/* We shouldn't have a callback already. */
@@ -369,7 +369,7 @@ metadata_lastblk_read(struct metadata * M)
  */
 int
 metadata_lastblk_write(struct metadata * M, uint64_t lastblk,
-    int (*callback)(void *), void * cookie)
+    int (* callback)(void *), void * cookie)
 {
 
 	/* We shouldn't have a callback already. */
@@ -425,7 +425,7 @@ metadata_deletedto_write(struct metadata * M, uint64_t deletedto)
  */
 void
 metadata_deletedto_register(struct metadata * M,
-    int (*callback)(void *), void * cookie)
+    int (* callback)(void *), void * cookie)
 {
 
 	/* Record the callback and cookie. */

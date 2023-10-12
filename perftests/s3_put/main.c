@@ -23,6 +23,7 @@ callback_done(void * cookie, int failed)
 	C->done = 1;
 	C->failed = failed;
 
+	/* Success! */
 	return (0);
 }
 

@@ -21,7 +21,7 @@
 
 /* Reader callback. */
 struct reader {
-	int (*callback)(void *);
+	int (* callback)(void *);
 	void * cookie;
 };
 
@@ -37,7 +37,7 @@ struct reading {
 
 /* Descend-into-node state. */
 struct descend {
-	int (*callback)(void *, struct node *);
+	int (* callback)(void *, struct node *);
 	void * cookie;
 	struct node * N;
 };

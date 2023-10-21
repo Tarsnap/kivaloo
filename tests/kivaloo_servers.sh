@@ -36,7 +36,7 @@ lbs_start() {
 	_lbs_start_description=$6
 
 	# Set up check-specific variables.
-	setup_check_variables "${_lbs_start_description}"
+	setup_check "${_lbs_start_description}"
 	_lbs_start_stderr="${s_basename}-${c_count_str}-lbs-server.stderr"
 
 	# Make the storage directory.

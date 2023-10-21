@@ -46,13 +46,13 @@ lbs_check_basic() {
 		"lbs ${description}"
 
 	# Run test.
-	setup_check_variables "test_lbs ${description}"
+	setup_check "test_lbs ${description}"
 	${c_valgrind_cmd} "${testlbs}" "${sock}"
 	echo "$?" > "${c_exitfile}"
 
 	# Run test again (if applicable).
 	if [ "${is_single}" -eq "0" ]; then
-		setup_check_variables "test_lbs ${description} again"
+		setup_check "test_lbs ${description} again"
 		${c_valgrind_cmd} "${testlbs}" "${sock}"
 		echo "$?" > "${c_exitfile}"
 	fi
@@ -81,7 +81,7 @@ lbs_check_unclean_disconnect() {
 	rm "${testlbs_pidfile}"
 
 	# Repeat the test, this time waiting for it to finish.
-	setup_check_variables "test_lbs unclean disconnect"
+	setup_check "test_lbs unclean disconnect"
 	"${testlbs}" "${sock}"
 	echo "$?" > "${c_exitfile}"
 
@@ -111,7 +111,7 @@ lbs_check_connections_queue() {
 
 	# Start the test one more time, this time waiting and checking the
 	# exit code.
-	setup_check_variables "test_lbs unclean disconnect"
+	setup_check "test_lbs unclean disconnect"
 	"${testlbs}" "${sock}"
 	echo "$?" > "${c_exitfile}"
 
@@ -135,7 +135,7 @@ lbs_check_addresses() {
 			"lbs server ${S}"
 
 		# Run the test.
-		setup_check_variables "test_lbs check ${S}"
+		setup_check "test_lbs check ${S}"
 		"${testlbs}" "${S}"
 		echo "$?" > "${c_exitfile}"
 

@@ -245,7 +245,7 @@ docallback(int (* callback)(void *, ssize_t), void * cookie, ssize_t len,
 
 	/*
 	 * Zero the callback pointer; the callback might want to request
-	 * another read/write operation so we need to get out of the way.
+	 * another read/write operation, so we need to get out of the way.
 	 */
 	*callback_ptr = NULL;
 

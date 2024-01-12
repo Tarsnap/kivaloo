@@ -10,7 +10,7 @@
 #ifdef NETWORK_SSL_COMPAT_TLS_CLIENT_METHOD
 /**
  * network_ssl_compat_TLS_client_method(void):
- * Create a SSL_METHOD.
+ * Create an SSL_METHOD.
  *
  * COMPATIBILITY: Behave like TLS_client_method().
  */
@@ -35,7 +35,7 @@ network_ssl_compat_CTL_set_min_proto_version(SSL_CTX * ctx, int version)
 {
 	long options;
 
-	/* This the only version currently supported in this file. */
+	/* This is the only version currently supported in this file. */
 	assert(version == TLS1_2_VERSION);
 
 	/* Disable all protocols lower than TLS1_2_VERSION. */

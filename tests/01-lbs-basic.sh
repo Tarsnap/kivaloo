@@ -25,40 +25,40 @@ clean_storage() {
 # that we should use valgrind.  If ${is_read_delay} is non-zero, add a read
 # delay to the server operations.  Use ${description} for the test framework.
 lbs_check_basic() {
-	is_single=$1
-	is_read_delay=$2
-	description=$3
+	_lbs_check_basic_single=$1
+	_lbs_check_basic_read_delay=$2
+	_lbs_check_basic_description=$3
 
 	# Ensure that we're starting with a clean storage directory.
 	servers_check_leftover
 	clean_storage
 
 	# Set up the read delay (if applicable).
-	if [ "${is_read_delay}" -gt 0 ]; then
-		this_read_delay="${lbs_basic_read_delay}"
+	if [ "${_lbs_check_basic_read_delay}" -gt 0 ]; then
+		_lbs_check_basic_read_delay="${lbs_basic_read_delay}"
 	else
-		this_read_delay="0"
+		_lbs_check_basic_read_delay="0"
 	fi
 
 	# Start a server.
-	lbs_start "${sock}" "${stor}" "${is_single}"		\
-		"${lbs_pidfile}" "${this_read_delay}"		\
-		"lbs ${description}"
+	lbs_start "${sock}" "${stor}" "${_lbs_check_basic_single}"	\
+		"${lbs_pidfile}" "${_lbs_check_basic_read_delay}"	\
+		"lbs ${_lbs_check_basic_description}"
 
 	# Run test.
-	setup_check "test_lbs ${description}"
+	setup_check "test_lbs ${_lbs_check_basic_description}"
 	${c_valgrind_cmd} "${testlbs}" "${sock}"
 	echo "$?" > "${c_exitfile}"
 
 	# Run test again (if applicable).
-	if [ "${is_single}" -eq "0" ]; then
-		setup_check "test_lbs ${description} again"
+	if [ "${_lbs_check_basic_single}" -eq "0" ]; then
+		setup_check "test_lbs ${_lbs_check_basic_description} again"
 		${c_valgrind_cmd} "${testlbs}" "${sock}"
 		echo "$?" > "${c_exitfile}"
 	fi
 
 	# Clean up.
-	lbs_stop "${lbs_pidfile}" "${is_single}"
+	lbs_stop "${lbs_pidfile}" "${_lbs_check_basic_single}"
 	clean_storage
 }
 
@@ -128,10 +128,11 @@ lbs_check_addresses() {
 	clean_storage
 
 	for S in "localhost:1234" "[127.0.0.1]:1235" "[::1]:1236"; do
-		this_lbs_pidfile="${s_basename}-$S.pid"
+		_lbs_check_addresses_pidfile="${s_basename}-$S.pid"
 		# Start a server.
 		lbs_start "${S}" "${stor}" "0"				\
-			"${this_lbs_pidfile}" "${lbs_basic_read_delay}"	\
+			"${_lbs_check_addresses_pidfile}"		\
+			"${lbs_basic_read_delay}"			\
 			"lbs server ${S}"
 
 		# Run the test.
@@ -140,7 +141,7 @@ lbs_check_addresses() {
 		echo "$?" > "${c_exitfile}"
 
 		# Clean up.
-		lbs_stop "${this_lbs_pidfile}" "0"
+		lbs_stop "${_lbs_check_addresses_pidfile}" "0"
 		clean_storage
 	done
 }
@@ -155,7 +156,7 @@ scenario_cmd() {
 	lbs_check_basic 1 0 "single"
 
 	# Check lbs, with the server in normal mode, but still with a read
-	# delay.  Do not use valgrind on the server. but still use it for the
+	# delay.  Do not use valgrind on the server, but still use it for the
 	# test_lbs binary.
 	lbs_check_basic 0 1 "normal"
 

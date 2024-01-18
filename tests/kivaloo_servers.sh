@@ -20,13 +20,14 @@ servers_check_leftover() {
 }
 
 ## lbs_start(addr, storage_directory, is_single, pidfile, read_delay,
-#     description):
+#     description, blocksize=512):
 # Start a new lbs server on address ${addr}, using ${storage_directory}, and
 # storing the pid in ${pidfile}.  If ${is_single} is greater than 0, the
 # server should exit after handling a single connection, and valgrind should
 # not be used, even if ${USE_VALGRIND} would otherwise indicate that we
 # should.  If ${read_delay} is greater than 0, add extra read latency of
 # ${read_delay} nanoseconds.  Use ${description} for the test framework.
+# If ${blocksize} is specified, set it accordingly; otherwise, default to 512.
 lbs_start() {
 	_lbs_start_addr=$1
 	_lbs_start_stor=$2
@@ -34,6 +35,7 @@ lbs_start() {
 	_lbs_start_pidfile=$4
 	_lbs_start_read_delay=$5
 	_lbs_start_description=$6
+	_lbs_start_blocksize=${7:-512}
 
 	# Set up check-specific variables.
 	setup_check "${_lbs_start_description}"
@@ -44,7 +46,8 @@ lbs_start() {
 
 	# How to start the server.
 	_lbs_start_cmd="${lbs} -s ${_lbs_start_addr}			\
-	    -d ${_lbs_start_stor} -p ${_lbs_start_pidfile} -b 512"
+	    -d ${_lbs_start_stor} -p ${_lbs_start_pidfile}		\
+	    -b ${_lbs_start_blocksize}"
 
 	# Add -1 to exit after a single connection (if applicable).
 	if [ "${_lbs_start_is_single}" -gt "0" ]; then

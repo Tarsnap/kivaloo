@@ -86,10 +86,10 @@ lbs_stop() {
 	rm -f "${_lbs_stop_pidfile}"
 
 	# Wait for lbs server to stop.
-	wait_while has_pid "lbs/lbs"
+	wait_while 0 has_pid "lbs/lbs"
 
 	# Give valgrind a chance to finish writing files.
 	if [ -n "${c_valgrind_cmd}" ]; then
-		wait_while valgrind_incomplete
+		wait_while 0 valgrind_incomplete
 	fi
 }

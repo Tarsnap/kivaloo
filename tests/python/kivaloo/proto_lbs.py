@@ -54,7 +54,7 @@ class Proto_lbs():
         if not isinstance(blocks, bytes):
             raise NotBinaryData()
         if len(blocks) % self.block_size != 0:
-            raise Exception("wire append: Invalid blocksize: %i" % len(blocks))
+            raise Exception("wire append: Invalid blocksize: %d" % len(blocks))
         num_bytes = self.block_size * nums
         reply = self.wire.send_recv('>IIQ%ds' % (num_bytes),
                                     0x02, nums, start, blocks)

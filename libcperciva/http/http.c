@@ -491,7 +491,7 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 		return (fail(H));
 	}
 	if ((H->res.status < 100) || (H->res.status > 599)) {
-		warn0("Invalid HTTP status code: %i", H->res.status);
+		warn0("Invalid HTTP status code: %d", H->res.status);
 		return (fail(H));
 	}
 

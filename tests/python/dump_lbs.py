@@ -17,14 +17,14 @@ def main():
         print("No data in the LBS server.")
         lbs.shutdown()
         exit(0)
-    print("lbs has next_block %i, last_block %i" % (next_block, last_block))
+    print("lbs has next_block %d, last_block %d" % (next_block, last_block))
 
     # Print data from blocks
     print("------")
     for i in range(last_block + 1):
         status, data = proto_lbs.get(i)
         if status == 0:
-            print("block %i:" % i)
+            print("block %d:" % i)
             print(data)
     print("------")
 

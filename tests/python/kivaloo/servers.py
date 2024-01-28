@@ -71,7 +71,7 @@ class Server(object):
         cls = type(self)
 
         if cls.proc:
-            logging.info("Server %s, pid %i: exists; reusing", self.cmd[0],
+            logging.info("Server %s, pid %d: exists; reusing", self.cmd[0],
                          self.get_pid_from_file())
             return
         proc_unowned = self._search_for_process()
@@ -95,14 +95,14 @@ class Server(object):
         # Check for server fail
         ret = cls.proc.wait()
         if ret is not 0:
-            msg = "Error when running:\n%s\n\texitcode: %i, stderr:\n%s" % (
+            msg = "Error when running:\n%s\n\texitcode: %d, stderr:\n%s" % (
                 " ".join(self.cmd), ret, self.get_stderr())
             # We don't have a running server
             cls.proc = None
             raise StartError(msg)
 
         # Get server's daemon-forked pid
-        logging.info("Server %s, pid %i: started", self.cmd[0],
+        logging.info("Server %s, pid %d: started", self.cmd[0],
                      self.get_pid_from_file())
 
     def get_stderr(self):
@@ -165,7 +165,7 @@ class Server_lbs(Server):
     disk = os.path.join(_KIVALOO_TEST_DIR, _DISK_LBS)
     # Constants for Server
     sock = LBS_SOCK
-    cmd = ("%s -s %s -d %s -b %i" % (_BIN_LBS, sock, disk,
+    cmd = ("%s -s %s -d %s -b %d" % (_BIN_LBS, sock, disk,
                                      LBS_BLOCKSIZE)).split()
     pidfile = sock + ".pid"
     # Variable shared between all Server_lbs objects

@@ -428,59 +428,59 @@ mutate(struct wire_requestqueue * Q)
 
 	/* Set key = value. */
 	if (set(Q, key, value) || verify(Q, key, value))
-		goto err0;
+		goto err1;
 
 	/* Set key = value2. */
 	if (set(Q, key, value2) || verify(Q, key, value2))
-		goto err0;
+		goto err1;
 
 	/* Add key = value (should be a no-op). */
 	if (add(Q, key, value, 1) || verify(Q, key, value2))
-		goto err0;
+		goto err1;
 
 	/* Delete key. */
 	if (delete(Q, key) || verify(Q, key, NULL))
-		goto err0;
+		goto err1;
 
 	/* Delete key (even though it isn't there). */
 	if (delete(Q, key) || verify(Q, key, NULL))
-		goto err0;
+		goto err1;
 
 	/* Modify key = value (should be a no-op). */
 	if (modify(Q, key, value, 1) || verify(Q, key, NULL))
-		goto err0;
+		goto err1;
 
 	/* Add key = value. */
 	if (add(Q, key, value, 0) || verify(Q, key, value))
-		goto err0;
+		goto err1;
 
 	/* Modify key = value2. */
 	if (modify(Q, key, value, 0) || verify(Q, key, value))
-		goto err0;
+		goto err1;
 
 	/* CAS key = value2 -> value2 (should be a no-op). */
 	if (cas(Q, key, value2, value2, 1) || verify(Q, key, value))
-		goto err0;
+		goto err1;
 
 	/* CAS key = value -> value2. */
 	if (cas(Q, key, value, value2, 0) || verify(Q, key, value2))
-		goto err0;
+		goto err1;
 
 	/* CAD key = value -> NULL (should be a no-op). */
 	if (cad(Q, key, value, 1) || verify(Q, key, value2))
-		goto err0;
+		goto err1;
 
 	/* CAD key = value2 -> NULL. */
 	if (cad(Q, key, value2, 0) || verify(Q, key, NULL))
-		goto err0;
+		goto err1;
 
 	/* CAS key = value -> value2 (should be a no-op). */
 	if (cas(Q, key, value, value2, 1) || verify(Q, key, NULL))
-		goto err0;
+		goto err1;
 
 	/* CAD key = value -> NULL (should be a no-op). */
 	if (cad(Q, key, value, 1) || verify(Q, key, NULL))
-		goto err0;
+		goto err1;
 
 	/* Clean up. */
 	kvldskey_free(value2);
@@ -490,7 +490,11 @@ mutate(struct wire_requestqueue * Q)
 	/* Success! */
 	return (0);
 
-err0:
+err1:
+	kvldskey_free(value2);
+	kvldskey_free(value);
+	kvldskey_free(key);
+
 	/* Failure! */
 	return (-1);
 }
@@ -616,24 +620,30 @@ main(int argc, char * argv[])
 	/* Open a connection to KVLDS. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
 		warnp("Could not connect to KVLDS daemon.");
-		exit(1);
+		goto err0;
 	}
 
 	/* Get maximum key/value lengths. */
 	if (doparams(Q))
-		exit(1);
+		goto err1;
 
 	/* Test B+Tree mutation code paths. */
 	if (mutate(Q))
-		exit(1);
+		goto err1;
 
 	/* Test creating key-value pairs and reading them back. */
 	if (createmany(Q, num_pairs))
-		exit(1);
+		goto err1;
 
 	/* Free the request queue and network connection. */
 	kivaloo_close(K);
 
 	/* Success! */
 	exit(0);
+
+err1:
+	kivaloo_close(K);
+err0:
+	/* Failure! */
+	exit(1);
 }

@@ -12,6 +12,7 @@ out_valgrind="${bindir}/tests-valgrind"
 
 msleep="${bindir}/tests/msleep/msleep"
 lbs="${bindir}/lbs/lbs"
+kvlds="${bindir}/kvlds/kvlds"
 
 # Functions to help start and stop servers
 . "${scriptdir}/kivaloo_servers.sh"

@@ -160,7 +160,7 @@ wait_while() {
 		fi
 
 		# Wait using the appropriate binary
-		if [ -n "${msleep:-}" ];  then
+		if [ -n "${msleep:-}" ]; then
 			"${msleep}" 100
 			_wait_while_ms=$((_wait_while_ms + 100))
 		else

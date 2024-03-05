@@ -112,8 +112,16 @@ btree_mutate_immutable(struct node * N)
 		if (N->v.H->pairs[i].v != NULL)
 			nkeys_hash += 1;
 
-	/* Allocate new array of key-value pairs. */
+	/* How many key-value pairs do we have? */
 	new_nkeys = nkeys_list + nkeys_hash;
+
+	/* If there's nothing to do, do nothing. */
+	if (new_nkeys == 0) {
+		new_pairs = NULL;
+		goto done;
+	}
+
+	/* Allocate new array of key-value pairs. */
 	if (IMALLOC(new_pairs, new_nkeys, struct kvpair_const))
 		goto err0;
 
@@ -151,6 +159,7 @@ btree_mutate_immutable(struct node * N)
 		j++;
 	}
 
+done:
 	/* Free old array of key-value pairs. */
 	free(N->u.pairs);
 

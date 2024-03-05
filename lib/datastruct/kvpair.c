@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 
 #include "kvldskey.h"
@@ -44,6 +45,9 @@ compar(const void * _x, const void * _y)
 void
 kvpair_sort(struct kvpair * pairs, size_t npairs, size_t mlen)
 {
+
+	/* Sanity check. */
+	assert(pairs != NULL);
 
 	/* See above comments about cookie_mlen and non-threadsafety. */
 	cookie_mlen = mlen;

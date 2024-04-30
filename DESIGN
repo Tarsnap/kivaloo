@@ -188,7 +188,7 @@ ProvisionedThroughputExceededException code):
 * GETC(key):
 	Operate as GET(key) except that strong consistency is used.
 * DELETE(key):
-	Delete the provided key and associate value.
+	Delete the provided key and associated value.
 
 Consistency guarantees
 ----------------------
@@ -201,7 +201,7 @@ ordering criteria on requests X and Y to which responses were sent:
   and they were sent over the same connection, then X occurs before Y.
 
 Providing that fsync flushes data to permanent storage, the above semantics
-hold even in the presence of arbirary killing and restarting of components;
+hold even in the presence of arbitrary killing and restarting of components;
 i.e., kivaloo is poweroff-safe.
 
 Configuration

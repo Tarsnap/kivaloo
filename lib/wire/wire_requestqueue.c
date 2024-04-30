@@ -265,7 +265,7 @@ err0:
 /**
  * wire_requestqueue_add_done(Q, wbuf, len):
  * Finish writing a request to the request queue ${Q}.  The value ${wbuf} must
- * be the pointer returned by wire_requesqueue_add_getbuf(), and the value ${len}
+ * be the pointer returned by wire_requestqueue_add_getbuf(), and the value ${len}
  * must be the value which was passed to wire_requestqueue_add_getbuf().
  */
 int

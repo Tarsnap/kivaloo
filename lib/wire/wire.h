@@ -95,7 +95,7 @@ struct wire_requestqueue * wire_requestqueue_init(int);
  * a pointer to where the request packet data should be written.  This must be
  * followed by a call to wire_requestqueue_add_done().
  *
- * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
+ * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a response is received,
  * or with resbuf == NULL if the request failed (because it couldn't be sent
  * or because the connection failed or was destroyed before a response was
  * received).  Note that responses may arrive out-of-order.
@@ -106,7 +106,7 @@ uint8_t * wire_requestqueue_add_getbuf(struct wire_requestqueue *, size_t,
 /**
  * wire_requestqueue_add_done(Q, wbuf, len):
  * Finish writing a request to the request queue ${Q}.  The value ${wbuf} must
- * be the pointer returned by wire_requesqueue_add_getbuf(), and the value ${len}
+ * be the pointer returned by wire_requestqueue_add_getbuf(), and the value ${len}
  * must be the value which was passed to wire_requestqueue_add_getbuf().
  */
 int wire_requestqueue_add_done(struct wire_requestqueue *, uint8_t *, size_t);
@@ -114,7 +114,7 @@ int wire_requestqueue_add_done(struct wire_requestqueue *, uint8_t *, size_t);
 /**
  * wire_requestqueue_add(Q, buf, buflen, callback, cookie):
  * Add the ${buflen}-byte request record ${buf} to the request queue ${Q}.
- * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a reply is received,
+ * Invoke ${callback}(${cookie}, resbuf, resbuflen) when a response is received,
  * or with resbuf == NULL if the request failed (because it couldn't be sent
  * or because the connection failed or was destroyed before a response was
  * received).  Note that responses may arrive out-of-order.  The callback is

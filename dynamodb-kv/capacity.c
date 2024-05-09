@@ -243,7 +243,7 @@ capacity_init(const char * key_id, const char * key_secret,
 	if (readmetadata(M))
 		goto err3;
 
-	/* Wait for reply. */
+	/* Wait for response. */
 	if (events_spin(&M->done))
 		goto err0;
 

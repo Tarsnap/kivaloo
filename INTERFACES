@@ -3,7 +3,7 @@ Kivaloo daemon interfaces
 
 Kivaloo components communicate via sockets (either UNIX domain sockets or TCP
 sockets) using a request-response wire protocol supporting out-of-order
-replies.  The protocol uses CRCs to provide some error-detection, but has no
+responses.  The protocol uses CRCs to provide some error-detection, but has no
 encryption, authentication, or authorization mechanisms; if required, these
 should be handled externally.
 

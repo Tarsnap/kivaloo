@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include <openssl/ssl.h>
 
 int

@@ -74,9 +74,9 @@ request(const char * key_id, const char * key_secret, const char * region,
 
 	/* Send the request and wait for it to complete. */
 	C.done = 0;
-        if (dynamodb_request(sas_ddb, key_id, key_secret, region, reqtype,
-            (const uint8_t *)req, strlen(req), 4096,
-            callback_reqdone, &C) == NULL) {
+	if (dynamodb_request(sas_ddb, key_id, key_secret, region, reqtype,
+	    (const uint8_t *)req, strlen(req), 4096,
+	    callback_reqdone, &C) == NULL) {
 		warnp("Failure sending DynamoDB request");
 		goto err0;
 	}

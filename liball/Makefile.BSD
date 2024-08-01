@@ -89,6 +89,7 @@ SRCS	+=	getopt.c
 SRCS	+=	hexify.c
 SRCS	+=	humansize.c
 SRCS	+=	insecure_memzero.c
+SRCS	+=	ipc_sync.c
 SRCS	+=	json.c
 SRCS	+=	monoclock.c
 SRCS	+=	noeintr.c

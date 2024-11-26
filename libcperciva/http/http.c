@@ -464,6 +464,12 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 		    H->res_headlen - bufpos);
 	}
 
+	/*
+	 * We only call gotheaders() if we've found "\r\n\r\n", so we must have
+	 * at least two EOLs.
+	 */
+	assert(H->res.nheaders >= 2);
+
 	/* # headers = # lines - 1 (status-line) - 1 (blank line). */
 	H->res.nheaders -= 2;
 

@@ -210,7 +210,7 @@ main(int argc, char * argv[])
 
 		/* Close and free the connection. */
 		dispatch_done(dstate);
-        } while (opt_1 == 0);
+	} while (opt_1 == 0);
 
 	/* Output and free performance tracking state */
 	perfstats_done(P);

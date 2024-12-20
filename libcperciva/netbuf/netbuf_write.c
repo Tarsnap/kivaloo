@@ -351,7 +351,7 @@ netbuf_write_free(struct netbuf_write * W)
 {
 	struct writebuf * WB;
 
-        /* Behave consistently with free(NULL). */
+	/* Behave consistently with free(NULL). */
 	if (W == NULL)
 		return;
 

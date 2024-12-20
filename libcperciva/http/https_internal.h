@@ -1,6 +1,13 @@
 #ifndef HTTPS_INTERNAL_H_
 #define HTTPS_INTERNAL_H_
 
+#include <stddef.h>
+
+/* Forward definitions. */
+struct http_request;
+struct http_response;
+struct sock_addr;
+
 /*
  * Function pointers defined in http.c; we set them from https_request in
  * order to avoid requiring unencrypted HTTP code to link to libssl.

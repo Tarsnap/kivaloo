@@ -26,5 +26,7 @@ CPUSUPPORT_FEATURE_DECL(x86, sse42)
 
 unsupported:
 #endif
+
+	/* Not supported. */
 	return (0);
 }

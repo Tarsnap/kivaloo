@@ -69,6 +69,8 @@ network_ssl_compat_set1_host(SSL * ssl, const char * hostname)
 	X509_VERIFY_PARAM * param;
 
 	param = SSL_get0_param(ssl);
+
+	/* Use older OpenSSL function. */
 	return (X509_VERIFY_PARAM_set1_host(param, hostname, strlen(hostname)));
 }
 #endif

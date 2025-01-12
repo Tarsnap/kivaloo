@@ -244,6 +244,7 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
     void * cookie)
 {
 
+	/* Call the real function (without SSL). */
 	return (http_request2(addrs, request, maxrlen, callback, cookie, NULL));
 }
 

@@ -160,6 +160,7 @@ struct netbuf_write *
 netbuf_write_init(int s, int (* fail_callback)(void *), void * fail_cookie)
 {
 
+	/* Call the real function (without SSL). */
 	return (netbuf_write_init2(s, NULL, fail_callback, fail_cookie));
 }
 

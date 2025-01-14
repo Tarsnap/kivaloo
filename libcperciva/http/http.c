@@ -244,6 +244,7 @@ http_request(struct sock_addr * const * addrs, struct http_request * request,
     void * cookie)
 {
 
+	/* Call the real function (without SSL). */
 	return (http_request2(addrs, request, maxrlen, callback, cookie, NULL));
 }
 
@@ -463,6 +464,12 @@ gotheaders(struct http_cookie * H, uint8_t * buf, size_t buflen)
 		linelen = findeol(&H->res_head[bufpos],
 		    H->res_headlen - bufpos);
 	}
+
+	/*
+	 * We only call gotheaders() if we've found "\r\n\r\n", so we must have
+	 * at least two EOLs.
+	 */
+	assert(H->res.nheaders >= 2);
 
 	/* # headers = # lines - 1 (status-line) - 1 (blank line). */
 	H->res.nheaders -= 2;

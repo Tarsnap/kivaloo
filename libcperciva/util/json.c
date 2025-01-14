@@ -85,6 +85,8 @@ skip_number(const uint8_t * buf, const uint8_t * end)
 			break;
 		buf++;
 	}
+
+	/* Return our current position. */
 	return (buf);
 }
 

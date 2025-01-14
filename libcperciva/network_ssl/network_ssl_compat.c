@@ -69,6 +69,8 @@ network_ssl_compat_set1_host(SSL * ssl, const char * hostname)
 	X509_VERIFY_PARAM * param;
 
 	param = SSL_get0_param(ssl);
+
+	/* Use older OpenSSL function. */
 	return (X509_VERIFY_PARAM_set1_host(param, hostname, strlen(hostname)));
 }
 #endif
@@ -118,9 +120,7 @@ network_ssl_compat_write_ex(SSL * ssl, const void * buf, size_t num,
 		num = INT_MAX;
 
 	/* Attempt to send data. */
-	ret = SSL_write(ssl, buf, (int)num);
-
-	if (ret > 0) {
+	if ((ret = SSL_write(ssl, buf, (int)num)) > 0) {
 		/* Sanity check. */
 		assert(ret <= (int)num);
 
@@ -165,9 +165,7 @@ network_ssl_compat_read_ex(SSL * ssl, void * buf, size_t num,
 		num = INT_MAX;
 
 	/* Attempt to read data. */
-	ret = SSL_read(ssl, buf, (int)num);
-
-	if (ret > 0) {
+	if ((ret = SSL_read(ssl, buf, (int)num)) > 0) {
 		/* Sanity check. */
 		assert(ret <= (int)num);
 

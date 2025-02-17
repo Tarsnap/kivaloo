@@ -32,7 +32,7 @@ env:
 jobs:
   Ubuntu:
     name: Ubuntu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Update apt-get
       run: sudo apt-get update
@@ -42,7 +42,7 @@ jobs:
       uses: actions/checkout@v4
     - name: Compile with clang
       env:
-        CC: clang-10
+        CC: clang-13
         CFLAGS: ${{ env.CFLAGS_ALL }}
                 ${{ env.CFLAGS_CLANG_LIBCPERCIVA }}
                 ${{ env.CFLAGS_CLANG_PROJECT }}

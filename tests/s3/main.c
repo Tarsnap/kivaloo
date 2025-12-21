@@ -187,7 +187,7 @@ main(int argc, char * argv[])
 
 	/* Open a connection to S3. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
-		warnp("Could not connect to S3 daemon.");
+		warnp("Could not connect to S3 daemon");
 		exit(1);
 	}
 

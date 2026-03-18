@@ -81,6 +81,10 @@ int proto_lbs_request_append(struct wire_requestqueue *,
 int proto_lbs_request_free(struct wire_requestqueue *, uint64_t,
     int (*)(void *, int), void *);
 
+/* Block size limits (from ./DESIGN). */
+#define PROTO_LBS_BLKLEN_MIN	512		/* 2^9 */
+#define PROTO_LBS_BLKLEN_MAX	131072		/* 2^17 */
+
 /* Packet types. */
 #define PROTO_LBS_PARAMS	0
 #define PROTO_LBS_PARAMS2	4

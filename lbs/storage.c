@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "elasticqueue.h"
+#include "proto_lbs.h"
 #include "warnp.h"
 
 #include "disk.h"
@@ -42,12 +43,8 @@ storage_init(const char * storagedir, size_t blocklen, long latency,
 	off_t num_blocks;
 
 	/* Sanity-check the block size. */
-	assert(blocklen > 0);
-#ifdef OFF_MAX
-	assert(blocklen <= OFF_MAX);
-#else
-	assert(blocklen <= INT32_MAX);
-#endif
+	assert(blocklen >= PROTO_LBS_BLKLEN_MIN);
+	assert(blocklen <= PROTO_LBS_BLKLEN_MAX);
 
 	/* Allocate structure and fill in static data. */
 	if ((S = malloc(sizeof(struct storage_state))) == NULL)

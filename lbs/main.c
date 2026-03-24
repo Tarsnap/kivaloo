@@ -9,6 +9,7 @@
 #include "events.h"
 #include "getopt.h"
 #include "parsenum.h"
+#include "proto_lbs.h"
 #include "sock.h"
 #include "warnp.h"
 
@@ -62,8 +63,12 @@ main(int argc, char * argv[])
 		GETOPT_OPTARG("-b"):
 			if (opt_b != (size_t)(-1))
 				usage();
-			if (PARSENUM(&opt_b, optarg, 512, 128 * 1024)) {
-				warn0("Block size must be in [2^9, 2^17]");
+			if (PARSENUM(&opt_b, optarg,
+			    PROTO_LBS_BLKLEN_MIN,
+			    PROTO_LBS_BLKLEN_MAX)) {
+				warn0("Block size must be in [%zu, %zu]",
+				    (size_t)PROTO_LBS_BLKLEN_MIN,
+				    (size_t)PROTO_LBS_BLKLEN_MAX);
 				goto err1;
 			}
 			break;

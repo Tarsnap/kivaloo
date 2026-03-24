@@ -189,6 +189,13 @@ btree_init(struct wire_requestqueue * Q_lbs, uint64_t npages,
 		goto err1;
 	}
 
+	/* Validate the block size. */
+	if (T->pagelen < PROTO_LBS_BLKLEN_MIN ||
+	    T->pagelen > PROTO_LBS_BLKLEN_MAX) {
+		warn0("LBS returned invalid block size: %zu", T->pagelen);
+		goto err1;
+	}
+
 	/* If we have neither npages nor npagebytes, set a default. */
 	if ((npages == (uint64_t)(-1)) && (npagebytes == (uint64_t)(-1))) {
 #if 128 * 1024 * 1024 < SIZE_MAX

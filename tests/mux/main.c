@@ -355,7 +355,7 @@ main(int argc, char * argv[])
 
 	/* Open a connection to MUX. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
-		warnp("Could not connecto to MUX daemon.");
+		warnp("Could not connecto to MUX daemon");
 		exit(1);
 	}
 

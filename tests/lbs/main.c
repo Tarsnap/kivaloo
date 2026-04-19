@@ -196,7 +196,7 @@ main(int argc, char * argv[])
 
 	/* Open a connection to LBS. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
-		warnp("Could not connect to LBS daemon.");
+		warnp("Could not connect to LBS daemon");
 		goto err0;
 	}
 

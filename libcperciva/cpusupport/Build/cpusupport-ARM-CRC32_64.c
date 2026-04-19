@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifdef __ARM_ACLE
 #include <arm_acle.h>
 #endif

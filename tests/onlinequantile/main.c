@@ -38,7 +38,7 @@ parse_line(FILE * fp, char * instr, double * val)
 	/* Get instruction and value from the line. */
 	*instr = line[0];
 	if (PARSENUM(val, &line[2])) {
-		warnp("parsenum");
+		warnp("PARSENUM");
 		goto err0;
 	}
 

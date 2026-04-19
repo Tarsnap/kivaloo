@@ -25,6 +25,9 @@ cd "${D}"
 SUBDIR_DEPTH=$(${MAKEBSD} -v SUBDIR_DEPTH)
 LIBCPERCIVA_DIR=$(${MAKEBSD} -v LIBCPERCIVA_DIR)
 
+# Some versions of bmake add extra spaces to the end of SRCS, so we trim them.
+var_SRCS=$(${MAKEBSD} -v SRCS | sed 's/ *$//')
+
 # Set up *-config.h so that we don't have missing headers.  If we don't
 # have a LIBCPERCIVA_DIR, then we assume that we don't have cpusupport and
 # apisupport.
@@ -131,7 +134,7 @@ join_str() {
 
 add_object_files() {
 	# Set up useful variables
-	OBJ=$(${MAKEBSD} -v SRCS |				\
+	OBJ=$(printf "%s\n" "${var_SRCS}" |			\
 	    sed -e 's| apisupport-config.h||' |			\
 	    sed -e 's| cpusupport-config.h||' |			\
 	    tr ' ' '\n' |					\
@@ -178,9 +181,9 @@ fi
 copyvar MAN1
 
 # SRCS is trickier to handle, as we need to remove any -config.h from the list.
-if [ -n "$(${MAKEBSD} -v SRCS)" ]; then
+if [ -n "${var_SRCS}" ]; then
 	printf "SRCS=" >> "${OUT}"
-	${MAKEBSD} -v SRCS |				\
+	printf "%s\n" "${var_SRCS}" |			\
 	    sed -e 's| apisupport-config.h||' |		\
 	    sed -e 's| cpusupport-config.h||' >> "${OUT}"
 fi
@@ -192,7 +195,7 @@ printf "RELATIVE_DIR=%s\n" "${D}" >> "${OUT}"
 # Add all, install, clean, $PROG
 if [ -n "$(${MAKEBSD} -v LIB)" ]; then
 	cat "${SUBDIR_DEPTH}/release-tools/Makefile.lib" >> "${OUT}"
-elif [ -n "$(${MAKEBSD} -v SRCS)" ]; then
+elif [ -n "${var_SRCS}" ]; then
 	# This *must* come after SUBDIR_DEPTH has been copied into
 	# the Makefile, because it depends on being able to run:
 	#     make -v SUBDIR_DEPTH
@@ -203,7 +206,7 @@ else
 fi
 
 # Add all object files (if applicable)
-if [ -n "$(${MAKEBSD} -v SRCS)" ]; then
+if [ -n "${var_SRCS}" ]; then
 	add_object_files
 fi
 

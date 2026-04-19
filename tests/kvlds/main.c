@@ -612,14 +612,14 @@ main(int argc, char * argv[])
 	/* Override the default number of pairs to test. */
 	if (argc == 3) {
 		if (PARSENUM(&num_pairs, argv[2])) {
-			warnp("parsnum");
+			warnp("PARSENUM");
 			exit(1);
 		}
 	}
 
 	/* Open a connection to KVLDS. */
 	if ((K = kivaloo_open(argv[1], &Q)) == NULL) {
-		warnp("Could not connect to KVLDS daemon.");
+		warnp("Could not connect to KVLDS daemon");
 		goto err0;
 	}
 

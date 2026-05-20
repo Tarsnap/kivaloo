@@ -1,10 +1,11 @@
 To build and install kivaloo, run:
 # make BINDIR=/path/to/target/directory install
 
-Kivaloo should build and run on any IEEE Std 1003.1 (POSIX) compliant system
-which includes the Software Development Utilities and Threads options.  If it
-doesn't, this is a bug -- please report it!
-
+Kivaloo should build and run on any IEEE Std 1003.1 (POSIX) compliant
+system which
+  1. Includes the Software Development Utilities option,
+  2. Has OpenSSL available via -lcrypto and #include <openssl/foo>, and
+  3. Provides /dev/urandom.
 
 Tests
 -----
@@ -54,6 +55,12 @@ kivaloo, that info should be saved in a text file with the form:
 
 Platform-specific notes
 -----------------------
+
+- On macOS, OpenSSL installed via Homebrew is not in the default compiler
+  search path.  If `make` fails with a missing OpenSSL header such as
+  `openssl/err.h`, build with the OpenSSL paths specified explicitly:
+      make CFLAGS="-O2 -I/opt/homebrew/opt/openssl@3/include" \
+          LDADD_EXTRA="-L/opt/homebrew/opt/openssl@3/lib"
 
 - The performance of SSL networking can be improved if SO_NOSIGPIPE is
   available in <sys/socket.h>.  To get this in FreeBSD, define __BSD_VISIBLE,

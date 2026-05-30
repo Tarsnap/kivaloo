@@ -1,11 +1,8 @@
 name: Compile & test
 
-# Run whenever we push to any branch without a "/", other than [coverity-scan].
+# Run whenever there's a new commit in a PR.
 on:
-  push:
-    branches:
-    - '*'
-    - '!coverity-scan'
+  pull_request:
 
 env:
   # Shared variables amongst all projects / platforms / compilers.

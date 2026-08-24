@@ -709,9 +709,9 @@ callback_chunkedheader(void * cookie, int status)
 			return (docallback(H));
 
 		/* Otherwise, check that it's not too big. */
-		if (clen > H->res_bodylen_max - H->res.bodylen)
-			return (toobig(H));
 		if (clen > SIZE_MAX - 2)
+			return (toobig(H));
+		if (clen + 2 > H->res_bodylen_max - H->res.bodylen)
 			return (toobig(H));
 
 		/* Read the chunk data plus extra EOL (we strip it later). */

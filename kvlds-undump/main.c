@@ -129,7 +129,7 @@ callback_pair(void * cookie, struct kvldskey ** key, struct kvldskey ** value)
 		 * Read that many bytes from stdin; we don't accept eof here
 		 * because that would indicate a buffer underrun in buf.
 		 */
-		if (fread(&buf, len, 1, stdin) != 1)
+		if ((len > 0) && (fread(&buf, len, 1, stdin) != 1))
 			goto err0;
 		if ((*key = kvldskey_create(buf, len)) == NULL)
 			goto err0;
@@ -137,7 +137,7 @@ callback_pair(void * cookie, struct kvldskey ** key, struct kvldskey ** value)
 		/* Read value from stdin (same security rationale as above). */
 		if (fread(&len, 1, 1, stdin) != 1)
 			goto err1;
-		if (fread(&buf, len, 1, stdin) != 1)
+		if ((len > 0) && (fread(&buf, len, 1, stdin) != 1))
 			goto err1;
 		if ((*value = kvldskey_create(buf, len)) == NULL)
 			goto err1;

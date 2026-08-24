@@ -79,6 +79,10 @@ multiset_send(struct multisetcookie * C)
 	}
 
 done:
+	/* If we are done sending and have no requests in flight, we are done. */
+	if ((C->eof || C->failed) && (C->inflight == 0))
+		C->done = 1;
+
 	/* Success! */
 	return (0);
 

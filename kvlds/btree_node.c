@@ -327,6 +327,20 @@ callback_fetch(void * cookie, int failed, int status, const uint8_t * buf)
 			goto err2;
 		}
 
+		/* Validate node metadata. */
+		if (N->root && (N != R->T->root_dirty) && (N != R->T->root_shadow)) {
+			warn0("Non-root page has root bit set");
+			goto err2;
+		}
+		if (N->p_shadow && (N->height >= N->p_shadow->height)) {
+			warn0("Child page height is not less than parent's height");
+			goto err2;
+		}
+		if (N->p_dirty && (N->height >= N->p_dirty->height)) {
+			warn0("Child page height is not less than parent's height");
+			goto err2;
+		}
+
 		/* If this was a root, parse global tree data. */
 		if (N->root) {
 			if (deserialize_root(R->T, buf)) {

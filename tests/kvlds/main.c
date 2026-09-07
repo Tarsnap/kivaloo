@@ -499,6 +499,80 @@ err1:
 	return (-1);
 }
 
+struct range_check_cookie {
+	uint64_t next;
+	uint64_t end;
+	int failed;
+	int done;
+};
+
+static int
+callback_check_range(void * cookie,
+    const struct kvldskey * key, const struct kvldskey * value)
+{
+	struct range_check_cookie * C = cookie;
+
+	(void)value; /* UNUSED */
+
+	/* Every key must be in the half-open range, without gaps. */
+	if ((key->len != 8) || (C->next >= C->end) ||
+	    (be64dec(key->buf) != C->next)) {
+		C->failed = 1;
+	} else {
+		C->next += 1;
+	}
+
+	return (0);
+}
+
+static int
+callback_check_range_done(void * cookie, int failed)
+{
+	struct range_check_cookie * C = cookie;
+
+	if (failed || (C->next != C->end))
+		C->failed = 1;
+	C->done = 1;
+	return (0);
+}
+
+static int
+check_range(struct wire_requestqueue * Q, uint64_t start, uint64_t end,
+    int unbounded)
+{
+	struct range_check_cookie C = {start, end, 0, 0};
+	struct kvldskey * first;
+	struct kvldskey * last;
+	uint8_t buf[8];
+
+	be64enc(buf, start);
+	if ((first = kvldskey_create(buf, 8)) == NULL)
+		goto err0;
+	be64enc(buf, end);
+	if ((last = kvldskey_create(buf, unbounded ? 0 : 8)) == NULL)
+		goto err1;
+
+	if (proto_kvlds_request_range2(Q, first, last,
+	    callback_check_range, callback_check_range_done, &C))
+		goto err2;
+	if (events_spin(&C.done) || C.failed) {
+		warn0("RANGE returned keys outside its half-open bounds, "
+		    "or omitted keys");
+		goto err2;
+	}
+
+	kvldskey_free(last);
+	kvldskey_free(first);
+	return (0);
+
+err2:
+	kvldskey_free(last);
+err1:
+	kvldskey_free(first);
+err0:
+	return (-1);
+}
+
 static int
 createmany(struct wire_requestqueue * Q, size_t N)
 {
@@ -561,6 +635,18 @@ createmany(struct wire_requestqueue * Q, size_t N)
 	for (i = 0; i < N; i++)
 		kvldskey_free(values[i]);
 	free(values);
+
+	/* Check empty, bounded, and unbounded ranges before deleting keys. */
+	if (N > 0) {
+		if (check_range(Q, 0, 0, 0) ||
+		    check_range(Q, 0, N - 1, 0) ||
+		    check_range(Q, N - 1, N - 1, 0) ||
+		    check_range(Q, 0, N, 0) ||
+		    check_range(Q, N, N, 0) ||
+		    check_range(Q, N - 1, N, 1) ||
+		    check_range(Q, 0, N, 1))
+			goto err0;
+	}
 
 	/* Delete all the values. */
 	be64enc(keybuf, 0);
@@ -629,6 +715,10 @@ main(int argc, char * argv[])
 
 	/* Test B+Tree mutation code paths. */
 	if (mutate(Q))
+		goto err1;
+
+	/* Check ranges while all keys fit into a single leaf. */
+	if (createmany(Q, 3))
 		goto err1;
 
 	/* Test creating key-value pairs and reading them back. */

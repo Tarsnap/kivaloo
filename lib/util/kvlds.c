@@ -79,6 +79,10 @@ multiset_send(struct multisetcookie * C)
 	}
 
 done:
+	/* If nothing is in flight, the event loop has nothing to wait for. */
+	if (C->inflight == 0)
+		C->done = 1;
+
 	/* Success! */
 	return (0);
 

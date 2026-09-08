@@ -59,9 +59,11 @@ readfile(const char * dir, const char * fname)
 	}
 
 	/* Read value. */
-	if (fread(buf, (size_t)sb.st_size, 1, f) != 1) {
-		warnp("fread(%s)", s);
-		goto err2;
+	if (sb.st_size > 0) {
+		if (fread(buf, (size_t)sb.st_size, 1, f) != 1) {
+			warnp("fread(%s)", s);
+			goto err2;
+		}
 	}
 
 	/* Construct kvlds key. */
@@ -129,16 +131,20 @@ callback_pair(void * cookie, struct kvldskey ** key, struct kvldskey ** value)
 		 * Read that many bytes from stdin; we don't accept eof here
 		 * because that would indicate a buffer underrun in buf.
 		 */
-		if (fread(&buf, len, 1, stdin) != 1)
-			goto err0;
+		if (len > 0) {
+			if (fread(&buf, len, 1, stdin) != 1)
+				goto err0;
+		}
 		if ((*key = kvldskey_create(buf, len)) == NULL)
 			goto err0;
 
 		/* Read value from stdin (same security rationale as above). */
 		if (fread(&len, 1, 1, stdin) != 1)
 			goto err1;
-		if (fread(&buf, len, 1, stdin) != 1)
-			goto err1;
+		if (len > 0) {
+			if (fread(&buf, len, 1, stdin) != 1)
+				goto err1;
+		}
 		if ((*value = kvldskey_create(buf, len)) == NULL)
 			goto err1;
 	}

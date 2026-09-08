@@ -141,6 +141,16 @@ class Wire(object):
         self.msgnum += 1
         self.sock.sendall(data)
 
+    def _recv_exact(self, size):
+        """ Read exactly size bytes, or fail if the stream ends early. """
+        data = bytearray()
+        while len(data) < size:
+            chunk = self.sock.recv(size - len(data))
+            if not chunk:
+                raise EOFError("Connection closed during wire response")
+            data.extend(chunk)
+        return bytes(data)
+
     def send_recv(self, *msg):
         """ Send a message and receive the response (blocking).  Supports
             responses up to wire.MAX_RESPONSE_BYTES.
@@ -155,8 +165,16 @@ class Wire(object):
         self.msgnum += 1
         self.sock.sendall(data)
 
-        # Wait for a response
-        idnum, record = split_packet(self.sock.recv(MAX_RESPONSE_BYTES))
+        # A stream read need not return a whole packet.  Read and validate
+        # the header before using its length to read the rest of the packet.
+        header = self._recv_exact(16)
+        _, record_length, crc_header = struct.unpack('>QII', header)
+        if crc_header != _checksum(header[:12]):
+            raise Exception("Mismatch in header checksums")
+        if record_length + 20 > MAX_RESPONSE_BYTES:
+            raise ValueError("Wire response is too large")
+        packet = header + self._recv_exact(record_length + 4)
+        idnum, record = split_packet(packet)
         assert idnum == self.msgnum - 1
 
         return Response(record)

@@ -356,8 +356,10 @@ callback_range2(void * cookie, int failed, size_t nkeys,
 
 	/* Invoke callbacks. */
 	for (i = 0; i < nkeys; i++) {
-		if ((C->callback_item)(C->cookie, keys[i], values[i]))
-			rc = -1;
+		if ((C->callback_item)(C->cookie, keys[i], values[i])) {
+			C->failed = 1;
+			break;
+		}
 	}
 
 	/* Free keys. */

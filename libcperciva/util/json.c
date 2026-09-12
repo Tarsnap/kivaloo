@@ -94,6 +94,8 @@ skip_number(const uint8_t * buf, const uint8_t * end)
 static const uint8_t *
 skip_array(const uint8_t * buf, const uint8_t * end)
 {
+	const uint8_t * stack[1024];
+	int depth = 0;
 
 	/* Advance past the opening '[' and following whitespace. */
 	buf++;
@@ -131,6 +133,8 @@ skip_array(const uint8_t * buf, const uint8_t * end)
 static const uint8_t *
 skip_object(const uint8_t * buf, const uint8_t * end)
 {
+	const uint8_t * stack[1024];
+	int depth = 0;
 
 	/* Advance past the opening '{' and following whitespace. */
 	buf++;
@@ -239,62 +243,50 @@ match_str(const uint8_t * buf, const uint8_t * end, const char * s,
 			case '"':
 				ch = '"';
 				break;
-			case '\\':
-				ch = '\\';
-				break;
 			case '/':
 				ch = '/';
 				break;
+			case '\\':
+				ch = '\\';
+				break;
 			case 'b':
-				ch = 0x08;
+				ch = '\b';
 				break;
 			case 'f':
-				ch = 0x0C;
+				ch = '\f';
 				break;
 			case 'n':
-				ch = 0x0A;
+				ch = '\n';
 				break;
 			case 'r':
-				ch = 0x0D;
+				ch = '\r';
 				break;
 			case 't':
-				ch = 0x09;
+				ch = '\t';
 				break;
 			case 'u':
+				/*
+				 * We don't support unicode escapes, so
+				 * just skip the 4 hex digits.
+				 */
 				if (end - buf < 4)
 					return (end);
-				*foundit = 0;	/* Assume non-matching. */
 				buf += 4;
+				ch = 0;
 				break;
 			default:
-				/* Invalid JSON. */
-				*foundit = 0;
+				/* Invalid escape sequence. */
 				return (end);
 			}
 		}
 
-		/* Did this character match? */
-		if (ch != s[0])
+		/* Does this character match? */
+		if (ch != *s++)
 			*foundit = 0;
-
-		/* Advance in the target if we haven't hit the end. */
-		if (*s)
-			s++;
 	} while (1);
-
-	/* NOTREACHED */
 }
 
-/* Helper for scanning for a character. */
-#define SCAN(buf, end, ch) do {			\
-	buf = skip_ws(buf, end);		\
-	if (buf == end)				\
-		return (end);			\
-	if (*buf++ != ch)			\
-		return (end);			\
-} while (0)
-
-/**
+/*
  * json_find(buf, end, s):
  * If there is a valid JSON object which starts at ${buf} and ends before or
  * at ${end} and said object contains a name/value pair with name ${s},
@@ -305,40 +297,50 @@ json_find(const uint8_t * buf, const uint8_t * end, const char * s)
 {
 	int foundit;
 
-	/* After optional whitespace there should be a '{'. */
-	SCAN(buf, end, '{');
+	/* Advance past the opening '{' and following whitespace. */
+	if ((buf == end) || (*buf != '{'))
+		return (end);
+	buf++;
+	buf = skip_ws(buf, end);
 
-	/* Scan the object looking for the child we want. */
+	/* Is this an empty object? */
+	if (buf == end)
+		return (end);
+	if (*buf == '}')
+		return (end);
+
+	/* Skip entries until we get to the end. */
 	do {
-		/*
-		 * After optional whitespace we should have a '"' (unless
-		 * the object is empty, in which case the key we're looking
-		 * for is not present).
-		 */
-		SCAN(buf, end, '"');
-
-		/* Is this the string we want? */
+		/* Skip a string and optional whitespace. */
 		buf = match_str(buf, end, s, &foundit);
-
-		/* After optional whitespace we should have a ':'. */
-		SCAN(buf, end, ':');
-
-		/* Skip whitespace looking for the associated value. */
 		buf = skip_ws(buf, end);
 
-		/* Return the value if this is the one we wanted. */
+		/* We should have a colon next. */
+		if (buf == end)
+			return (end);
+		if (*buf++ != ':')
+			return (end);
+
+		/* Skip a whitespace. */
+		buf = skip_ws(buf, end);
+
+		/* If we found the string, return the value. */
 		if (foundit)
 			return (buf);
 
-		/* Skip this JSON object. */
+		/* Skip the value and more whitespace. */
 		buf = skip_value(buf, end);
+		buf = skip_ws(buf, end);
 
-		/*
-		 * After optional whitespace we should have a ','.  (Or we
-		 * could hit the closing '}' of the object, but that would
-		 * mean that we don't have the key we're looking for anyway.)
-		 */
-		SCAN(buf, end, ',');
+		/* Are we at the end? */
+		if (buf == end)
+			return (end);
+		if (*buf == '}')
+			return (end);
+
+		/* Otherwise we should have a comma. */
+		if (*buf++ != ',')
+			return (end);
 	} while (1);
 
 	/* NOTREACHED */

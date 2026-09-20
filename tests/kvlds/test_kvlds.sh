@@ -9,6 +9,15 @@ STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCKL=$STOR/sock_lbs
 SOCKK=$STOR/sock_kvlds
 
+# Exercise findleaf() failed-fetch parent-lock unwinding before services.
+printf "Testing btree_find fetch failure unwind... "
+if sh ./test_btree_find_fetch_unwind.sh; then
+	echo " PASSED!"
+else
+	echo " FAILED!"
+	exit 1
+fi
+
 # Clean up any old tests
 rm -rf $STOR
 

@@ -186,6 +186,8 @@ findleaf(void * cookie)
 	}
 
 err2:
+	/* We locked NP above and the fetch didn't take it over. */
+	btree_node_unlock(C->T, NP);
 	kvldskey_free(C->e);
 err1:
 	mpool_findleaf_free(C);

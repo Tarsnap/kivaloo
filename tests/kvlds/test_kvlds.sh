@@ -9,6 +9,15 @@ STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCKL=$STOR/sock_lbs
 SOCKK=$STOR/sock_kvlds
 
+# Exercise the splitroot() failure unwind before starting any services.
+printf "Testing splitroot failure unwind... "
+if ./test_splitroot_unwind.sh; then
+	echo " PASSED!"
+else
+	echo " FAILED!"
+	exit 1
+fi
+
 # Clean up any old tests
 rm -rf $STOR
 

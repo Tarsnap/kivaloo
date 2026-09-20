@@ -232,8 +232,15 @@ err3:
 	N->root = 1;
 	btree_node_lock(T, N);
 
+	/* ${N} has no parent again; give back the lock which came with it. */
+	N->p_dirty = NULL;
+	btree_node_unlock(T, R);
+
 	/* Release the root lock on ${R}. */
 	btree_node_unlock(T, R);
+
+	/* We did not end up creating a node after all. */
+	T->nnodes--;
 
 	/*
 	 * Destroy ${R}, including key and child arrays, but don't free
@@ -242,6 +249,12 @@ err3:
 	 */
 	R->nkeys = (size_t)(-1);
 	btree_node_destroy(T, R);
+
+#ifdef SANITY_CHECKS
+	/* Verify that the failed root split restored the tree invariants. */
+	btree_sanity(T);
+#endif
+
 	goto err0;
 err2:
 	free(children);

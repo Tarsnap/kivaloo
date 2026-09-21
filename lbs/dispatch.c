@@ -403,9 +403,12 @@ dispatch_close(struct dispatch_state * D)
 	netbuf_write_free(D->writeq);
 
 	/* Close the connection. */
-	while (close(D->sconn)) {
-		if (errno == EINTR)
-			continue;
+	/*
+	 * Do not retry on EINTR: POSIX leaves the state of the descriptor
+	 * unspecified in that case, and on some systems it has already been
+	 * released, so a retry could close an unrelated descriptor.
+	 */
+	if (close(D->sconn) && (errno != EINTR)) {
 		warnp("close");
 		goto err0;
 	}
@@ -441,15 +444,16 @@ dispatch_done(struct dispatch_state * D)
 	network_read_cancel(D->wakeup_cookie);
 
 	/* Close the work completion message conduit. */
-	while (close(D->spair[1])) {
-		if (errno == EINTR)
-			continue;
+	/*
+	 * Do not retry on EINTR: POSIX leaves the state of the descriptor
+	 * unspecified in that case, and on some systems it has already been
+	 * released, so a retry could close an unrelated descriptor.
+	 */
+	if (close(D->spair[1]) && (errno != EINTR)) {
 		warnp("close");
 		rc = -1;
 	}
-	while (close(D->spair[0])) {
-		if (errno == EINTR)
-			continue;
+	if (close(D->spair[0]) && (errno != EINTR)) {
 		warnp("close");
 		rc = -1;
 	}

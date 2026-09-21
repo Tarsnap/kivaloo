@@ -1,0 +1,19 @@
+PROG=	test_dispatch_close_loop
+SRCS=	main.c
+MAN1=
+
+LIBCPERCIVA_DIR=	../../libcperciva
+LIB_DIR=	../../lib
+
+IDIRS+=	-I ../../lbs
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/datastruct
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/netbuf
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/network
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/util
+IDIRS+=	-I ${LIB_DIR}/proto_lbs
+IDIRS+=	-I ${LIB_DIR}/wire
+
+test: all
+	@./${PROG}
+
+.include <bsd.prog.mk>

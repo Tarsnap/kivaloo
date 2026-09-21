@@ -362,9 +362,12 @@ dispatch_done(struct dispatch_state * D)
 	netbuf_write_free(D->writeq);
 
 	/* Close the connection. */
-	while (close(D->sconn)) {
-		if (errno == EINTR)
-			continue;
+	/*
+	 * Do not retry on EINTR: POSIX leaves the state of the descriptor
+	 * unspecified in that case, and on some systems it has already been
+	 * released, so a retry could close an unrelated descriptor.
+	 */
+	if (close(D->sconn) && (errno != EINTR)) {
 		warnp("close");
 		goto err0;
 	}

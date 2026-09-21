@@ -42,6 +42,7 @@ TESTS=	perftests/dynamodb_kv					\
 	tests/mux						\
 	tests/onlinequantile					\
 	tests/s3						\
+	tests/dispatch-close-loop				\
 	tests/valgrind						\
 	${BENCHES}
 SUBST_VERSION_FILES=	dynamodb-kv/main.c			\

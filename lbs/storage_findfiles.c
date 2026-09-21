@@ -121,13 +121,13 @@ next:
 		goto err3;
 	}
 
-	/* Close the storage directory. */
-	while (closedir(dir)) {
-		/* Retry if we were interrupted. */
-		if (errno == EINTR)
-			continue;
-
-		/* Oops, something bad happened. */
+	/*
+	 * Close the storage directory.  Do not retry on EINTR: POSIX leaves
+	 * the state of the directory stream unspecified in that case, and
+	 * closedir() owns it, so a retry would be operating on an object it
+	 * may already have released.
+	 */
+	if (closedir(dir) && (errno != EINTR)) {
 		warnp("Error closing storage directory: %s", path);
 		goto err2;
 	}

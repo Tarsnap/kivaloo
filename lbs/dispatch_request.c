@@ -212,7 +212,7 @@ dispatch_request_append(struct dispatch_state * dstate,
 	dstate->writer_busy = 1;
 	if (worker_assign(writer, 1, R->r.append.blkno, R->r.append.nblks,
 	    R->r.append.buf, R->ID))
-		goto err1;
+		goto err2;
 
 	/* Free the request but NOT the buffer, since the thread owns that. */
 	free(R);
@@ -228,6 +228,9 @@ badblkno:
 	/* Success! */
 	return (0);
 
+err2:
+	/* The writer didn't take the work after all. */
+	dstate->writer_busy = 0;
 err1:
 	/* Free request AND included buffer. */
 	free(R->r.append.buf);
@@ -253,7 +256,7 @@ dispatch_request_free(struct dispatch_state * dstate,
 		dstate->deleter_busy = 1;
 		if (worker_assign(deleter,
 		    2, R->r.free.blkno, 0, NULL, R->ID))
-			goto err1;
+			goto err2;
 	}
 
 	/*
@@ -270,6 +273,9 @@ dispatch_request_free(struct dispatch_state * dstate,
 	/* Success! */
 	return (0);
 
+err2:
+	/* The deleter didn't take the work after all. */
+	dstate->deleter_busy = 0;
 err1:
 	free(R);
 

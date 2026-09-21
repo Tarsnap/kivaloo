@@ -233,6 +233,8 @@ worker_assign(struct workctl * ctl, int op, uint64_t blkno, size_t nblks,
 	return (0);
 
 err1:
+	/* The thread must not act on work we failed to hand over. */
+	ctl->haswork = 0;
 	pthread_mutex_unlock(&ctl->mtx);
 err0:
 	/* Failure! */

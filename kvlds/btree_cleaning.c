@@ -339,7 +339,10 @@ done:
 	return (0);
 
 err1:
+	/* Unlink the group; the next one's back pointer is ours. */
 	C->head = CG->next;
+	if (CG->next != NULL)
+		CG->next->prev = CG->prev;
 	C->group_pending = 0;
 	free(CG);
 err0:

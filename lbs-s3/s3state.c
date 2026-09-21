@@ -272,6 +272,10 @@ callback_append(void * cookie, int failed)
 	return (rc);
 
 err1:
+	/* We aren't going to perform a callback after all. */
+	S->npending -= 1;
+
+	/* Free our cookie. */
 	free(C);
 
 	/* Failure! */

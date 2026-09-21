@@ -139,6 +139,12 @@ callback_reqdone(void * cookie, struct http_response * res)
 	return (rc);
 
 tryagain:
+	/* The retry path retains no response object; free its body now. */
+	if (res != NULL) {
+		free(res->body);
+		res->body = NULL;
+	}
+
 	/* Add this request back to the queue. */
 	R->prev = Q->reqs_queued_tail;
 	R->next = NULL;
@@ -398,6 +404,10 @@ s3_request_queue_flush(struct s3_request_queue * Q)
 		http_request_cancel(R->http_cookie);
 		Q->reqs_ip_head = R->next;
 		sock_addr_free(R->addrs[0]);
+
+		/* This request is no longer in progress. */
+		Q->reqsip -= 1;
+
 		free(R);
 	}
 	Q->reqs_ip_tail = NULL;

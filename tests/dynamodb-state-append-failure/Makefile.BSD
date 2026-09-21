@@ -1,0 +1,15 @@
+PROG=	test_dynamodb_state_append_failure
+SRCS=	main.c
+MAN1=
+
+IDIRS+=	-I ../../lbs-dynamodb
+IDIRS+=	-I ../../lib/proto_dynamodb_kv
+IDIRS+=	-I ../../lib/proto_lbs
+IDIRS+=	-I ../../libcperciva/events
+IDIRS+=	-I ../../libcperciva/util
+IDIRS+=	-I ../../lib/wire
+
+test: all
+	@./${PROG}
+
+.include <bsd.prog.mk>

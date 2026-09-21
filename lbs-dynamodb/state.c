@@ -52,6 +52,7 @@ struct append_cookie {
 	void * cookie;
 	uint64_t nblks_left;
 	uint64_t nextblk_old;
+	int failed;
 };
 
 /* Overhead per KV item: Item size minus block size. */
@@ -225,8 +226,10 @@ callback_get(void * cookie, int status, const uint8_t * buf, size_t buflen)
 	 */
 	if ((status == 2) && (C->consistent == 0)) {
 		C->consistent = 1;
-		return (proto_dynamodb_kv_request_getc(S->Q,
-		    objmap(R->r.get.blkno), callback_get, C));
+		if (proto_dynamodb_kv_request_getc(S->Q,
+		    objmap(R->r.get.blkno), callback_get, C))
+			goto err0;
+		return (0);
 	}
 
 	/* If we got data, verify the block size. */
@@ -259,6 +262,12 @@ callback_get(void * cookie, int status, const uint8_t * buf, size_t buflen)
 	return (rc);
 
 err0:
+	/* We aren't going to perform a callback after all. */
+	S->npending -= 1;
+
+	/* Free our cookie. */
+	free(C);
+
 	/* Failure! */
 	return (-1);
 }
@@ -282,8 +291,9 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	C->R = R;
 	C->callback = callback;
 	C->cookie = cookie;
-	C->nblks_left = R->r.append.nblks;
+	C->nblks_left = 0;
 	C->nextblk_old = S->nextblk;
+	C->failed = 0;
 
 	/* Update nextblk. */
 	S->nextblk += R->r.append.nblks;
@@ -298,6 +308,7 @@ state_append(struct state * S, struct proto_lbs_request * R,
 	return (0);
 
 err1:
+	S->nextblk = C->nextblk_old;
 	free(C);
 err0:
 	/* Failure! */
@@ -313,19 +324,41 @@ callback_append_put_nextblk(void * cookie)
 	struct proto_lbs_request * R = C->R;
 	size_t i;
 
-	/* Store all the blocks. */
+	/*
+	 * Store all the blocks.  Count only requests which were actually
+	 * accepted by the request queue: if a later request cannot be issued,
+	 * earlier requests still own this shared cookie until their callbacks
+	 * have all run.
+	 */
 	for (i = 0; i < R->r.append.nblks; i++) {
+		C->nblks_left += 1;
 		if (proto_dynamodb_kv_request_put(S->Q,
 		    objmap(C->nextblk_old + i),
 		    &R->r.append.buf[i * S->blklen], S->blklen,
-		    callback_append_put_blks, C))
-			goto err0;
+		    callback_append_put_blks, C)) {
+			C->nblks_left -= 1;
+			C->failed = 1;
+			break;
+		}
 	}
 
-	/* Success! */
+	/*
+	 * If nothing is in flight, unwind now.  Otherwise the final block
+	 * callback will do so after the outstanding requests have drained.
+	 */
+	if (C->failed && (C->nblks_left == 0))
+		goto err0;
+
+	/* Success, or failure deferred until pending callbacks have drained. */
 	return (0);
 
 err0:
+	/* We aren't going to perform a callback after all. */
+	S->npending -= 1;
+
+	/* Free our cookie. */
+	free(C);
+
 	/* Failure! */
 	return (-1);
 }
@@ -340,27 +373,39 @@ callback_append_put_blks(void * cookie, int status)
 	/* Sanity-check: We should be storing blocks. */
 	assert(C->nblks_left != 0);
 
-	/* Failures are bad. */
+	/* Remember a failed write, but keep the shared cookie alive. */
 	if (status) {
 		warn0("DynamoDB-KV failed storing data block");
-		goto err0;
+		C->failed = 1;
 	}
 
-	/* We've stored a block. */
+	/* This block request has finished. */
 	C->nblks_left--;
 
-	/* If we've stored all the blocks, record a new lastblk value. */
-	if (C->nblks_left == 0) {
-		S->lastblk = S->nextblk - 1;
-		if (metadata_lastblk_write(S->M, S->lastblk,
-		    callback_append_put_lastblk, C))
-			goto err0;
-	}
+	/* If other block requests are still in flight, let them drain. */
+	if (C->nblks_left != 0)
+		return (0);
+
+	/* A failed block or partial scheduling failure ends the append here. */
+	if (C->failed)
+		goto err0;
+
+	/* All blocks are stored; record the new lastblk value. */
+	if (metadata_lastblk_write(S->M, S->nextblk - 1,
+	    callback_append_put_lastblk, C))
+		goto err0;
+	S->lastblk = S->nextblk - 1;
 
 	/* Success! */
 	return (0);
 
 err0:
+	/* We aren't going to perform a callback after all. */
+	S->npending -= 1;
+
+	/* Free our cookie. */
+	free(C);
+
 	/* Failure! */
 	return (-1);
 }

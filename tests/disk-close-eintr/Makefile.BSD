@@ -1,0 +1,13 @@
+PROG=	test_disk_close_eintr
+SRCS=	main.c
+MAN1=
+
+LIBCPERCIVA_DIR=	../../libcperciva
+
+IDIRS+=	-I ../../lbs
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/util
+
+test: all
+	@./${PROG}
+
+.include <bsd.prog.mk>

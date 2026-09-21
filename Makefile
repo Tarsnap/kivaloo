@@ -44,6 +44,7 @@ TESTS=	perftests/dynamodb_kv					\
 	tests/mux						\
 	tests/onlinequantile					\
 	tests/s3						\
+	tests/disk-close-eintr					\
 	tests/valgrind						\
 	${BENCHES}
 BINDIR_DEFAULT=	/usr/local/bin

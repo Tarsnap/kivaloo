@@ -42,11 +42,16 @@ disk_syncdir(const char * path)
 			goto err1;
 		}
 	}
-	while (close(fd)) {
-		if (errno != EINTR) {
-			warnp("close(%s)", path);
-			goto err0;
-		}
+
+	/*
+	 * Close the file.  Do not retry on EINTR: POSIX leaves the state of
+	 * the descriptor unspecified in that case, and on some systems (e.g.
+	 * Linux) it has already been released -- so a retry could close a
+	 * descriptor which another thread has opened in the meantime.
+	 */
+	if (close(fd) && (errno != EINTR)) {
+		warnp("close(%s)", path);
+		goto err0;
 	}
 
 	/* Success! */
@@ -119,12 +124,15 @@ disk_read(const char * path, off_t offset, size_t nbytes, uint8_t * buf)
 		}
 	}
 
-	/* Close the file. */
-	while (close(fd)) {
-		if (errno != EINTR) {
-			warnp("close(%s)", path);
-			goto err0;
-		}
+	/*
+	 * Close the file.  Do not retry on EINTR: POSIX leaves the state of
+	 * the descriptor unspecified in that case, and on some systems (e.g.
+	 * Linux) it has already been released -- so a retry could close a
+	 * descriptor which another thread has opened in the meantime.
+	 */
+	if (close(fd) && (errno != EINTR)) {
+		warnp("close(%s)", path);
+		goto err0;
 	}
 
 	/* Success! */
@@ -183,12 +191,15 @@ disk_write(const char * path, int create, size_t nbytes, const uint8_t * buf,
 		}
 	}
 
-	/* Close the file. */
-	while (close(fd)) {
-		if (errno != EINTR) {
-			warnp("close(%s)", path);
-			goto err0;
-		}
+	/*
+	 * Close the file.  Do not retry on EINTR: POSIX leaves the state of
+	 * the descriptor unspecified in that case, and on some systems (e.g.
+	 * Linux) it has already been released -- so a retry could close a
+	 * descriptor which another thread has opened in the meantime.
+	 */
+	if (close(fd) && (errno != EINTR)) {
+		warnp("close(%s)", path);
+		goto err0;
 	}
 
 	/* Success! */

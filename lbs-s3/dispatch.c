@@ -95,6 +95,9 @@ gotrequest(void * cookie, int status)
 			warn0("Update to a newer version of kvlds");
 			goto drop1;
 		case PROTO_LBS_PARAMS2:
+			/* PARAMS2 is not allowed while APPEND is in progress. */
+			if (D->appendip != 0)
+				goto drop1;
 			if (proto_lbs_response_params2(D->writeq, R->ID,
 			    D->S->blklen, D->S->nextblk, D->S->lastblk))
 				goto err1;

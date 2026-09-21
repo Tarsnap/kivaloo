@@ -82,9 +82,12 @@ proto_s3_request_parse(const struct wire_packet * P,
 		pos += 4;
 		if (P->len != pos + R->r.put.len)
 			goto err2;
-		if ((R->r.put.buf = malloc(R->r.put.len)) == NULL)
-			goto err2;
-		memcpy(R->r.put.buf, &P->buf[pos], R->r.put.len);
+		R->r.put.buf = NULL;
+		if (R->r.put.len > 0) {
+			if ((R->r.put.buf = malloc(R->r.put.len)) == NULL)
+				goto err2;
+			memcpy(R->r.put.buf, &P->buf[pos], R->r.put.len);
+		}
 		break;
 	case PROTO_S3_GET:
 		if (P->len != pos + 4)

@@ -56,6 +56,12 @@ class Proto_lbs():
         if len(blocks) % self.block_size != 0:
             raise Exception("wire append: Invalid blocksize: %d" % len(blocks))
         num_bytes = self.block_size * nums
+        if num_bytes != len(blocks):
+            raise Exception("wire append: block count mismatch: "
+                             "nums=%d * block_size=%d (%d bytes) "
+                             "!= len(blocks)=%d" %
+                             (nums, self.block_size, num_bytes,
+                              len(blocks)))
         response = self.wire.send_recv('>IIQ%ds' % (num_bytes),
                                     0x02, nums, start, blocks)
         status = response.get_int()

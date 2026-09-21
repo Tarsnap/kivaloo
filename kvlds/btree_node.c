@@ -248,6 +248,8 @@ err3:
 err2:
 	free(N->u.reading);
 err1:
+	btree_node_unlock(T, N->p_shadow);
+	btree_node_unlock(T, N->p_dirty);
 	pool_rec_free(T->P, N);
 	N->pool_cookie = NULL;
 err0:

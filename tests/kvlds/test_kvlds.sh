@@ -9,6 +9,15 @@ STOR=${KIVALOO_TESTDIR:-`pwd`/stor}
 SOCKL=$STOR/sock_lbs
 SOCKK=$STOR/sock_kvlds
 
+# Exercise btree_node_fetch_canfail() startup-failure unwinding before services.
+printf "Testing btree_node_fetch startup failure unwind... "
+if sh ./test_btree_node_fetch_unwind.sh; then
+	echo " PASSED!"
+else
+	echo " FAILED!"
+	exit 1
+fi
+
 # Clean up any old tests
 rm -rf $STOR
 

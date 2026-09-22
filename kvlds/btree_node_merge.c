@@ -96,8 +96,9 @@ merge_parent(struct btree * T, struct node ** c_in,
 	/* Copy keys into new array. */
 	for (j = i = 0; i < nsep; i++) {
 		/* Separator keys within a merging node. */
-		memcpy(&keys[j], c_in[i]->u.keys,
-		    c_in[i]->nkeys * sizeof(const struct kvldskey *));
+		if (c_in[i]->nkeys > 0)
+			memcpy(&keys[j], c_in[i]->u.keys,
+			    c_in[i]->nkeys * sizeof(const struct kvldskey *));
 		j += c_in[i]->nkeys;
 
 		/* Separator keys between merging nodes. */

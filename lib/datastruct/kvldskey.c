@@ -24,7 +24,8 @@ kvldskey_create(const uint8_t * buf, size_t len)
 
 	/* Copy data. */
 	K->len = (uint8_t)len;
-	memcpy(K->buf, buf, len);
+	if (len > 0)
+		memcpy(K->buf, buf, len);
 
 	/* Success! */
 	return (K);

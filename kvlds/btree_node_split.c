@@ -219,7 +219,8 @@ makeparent(struct btree * T, int height, size_t nkeys,
 	/* Allocate new key array and copy pointers to keys. */
 	if (IMALLOC(new_keys, nkeys, const struct kvldskey *))
 		goto err0;
-	memcpy(new_keys, keys, nkeys * sizeof(const struct kvldskey *));
+	if (nkeys > 0)
+		memcpy(new_keys, keys, nkeys * sizeof(const struct kvldskey *));
 
 	/* Allocate new child array and copy pointers to children. */
 	if (IMALLOC(new_children, nkeys + 1, struct node *))

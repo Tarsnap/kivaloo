@@ -491,15 +491,17 @@ btree_node_dirty(struct btree * T, struct node * N)
 		/* Duplicate key-value pairs. */
 		if (IMALLOC(N_dirty->u.pairs, N->nkeys, struct kvpair_const))
 			goto err1;
-		memcpy(N_dirty->u.pairs, N->u.pairs,
-		    N->nkeys * sizeof(struct kvpair_const));
+		if (N->nkeys > 0)
+			memcpy(N_dirty->u.pairs, N->u.pairs,
+			    N->nkeys * sizeof(struct kvpair_const));
 	} else {
 		/* Duplicate keys. */
 		if (IMALLOC(N_dirty->u.keys, N->nkeys,
 		    const struct kvldskey *))
 			goto err1;
-		memcpy(N_dirty->u.keys, N->u.keys,
-		    N->nkeys * sizeof(const struct kvldskey *));
+		if (N->nkeys > 0)
+			memcpy(N_dirty->u.keys, N->u.keys,
+			    N->nkeys * sizeof(const struct kvldskey *));
 
 		/* Copy child vector. */
 		if (IMALLOC(N_dirty->v.children, N->nkeys + 1, struct node *))

@@ -94,7 +94,7 @@ class Server(object):
 
         # Check for server fail
         ret = cls.proc.wait()
-        if ret is not 0:
+        if ret != 0:
             msg = "Error when running:\n%s\n\texitcode: %d, stderr:\n%s" % (
                 " ".join(self.cmd), ret, self.get_stderr())
             # We don't have a running server

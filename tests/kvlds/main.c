@@ -5,6 +5,7 @@
 
 #include "events.h"
 #include "kivaloo.h"
+#include "kvlds.h"
 #include "kvldskey.h"
 #include "parsenum.h"
 #include "proto_kvlds.h"
@@ -134,6 +135,19 @@ callback_range(void * cookie,
 
 err0:
 	/* Failure! */
+	return (-1);
+}
+
+static int
+callback_range_fail(void * cookie,
+    const struct kvldskey * key, const struct kvldskey * value)
+{
+
+	(void)cookie; /* UNUSED */
+	(void)key; /* UNUSED */
+	(void)value; /* UNUSED */
+
+	/* Reject this item. */
 	return (-1);
 }
 
@@ -556,6 +570,24 @@ createmany(struct wire_requestqueue * Q, size_t N)
 		warn0("Bad value returned by GET!");
 		goto err1;
 	}
+
+	/* Verify that a failed RANGE item callback leaves the queue usable. */
+	be64enc(keybuf, 0);
+	key = kvldskey_create(keybuf, 8);
+	be64enc(keybuf, N);
+	key2 = kvldskey_create(keybuf, 8);
+	if (kvlds_range(Q, key, key2, callback_range_fail, NULL) == 0) {
+		warn0("RANGE item callback failure was not propagated");
+		kvldskey_free(key2);
+		kvldskey_free(key);
+		goto err1;
+	}
+	kvldskey_free(key2);
+	if (verify(Q, key, values[0])) {
+		kvldskey_free(key);
+		goto err1;
+	}
+	kvldskey_free(key);
 
 	/* Free values. */
 	for (i = 0; i < N; i++)

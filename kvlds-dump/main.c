@@ -38,7 +38,8 @@ writefile(const char * dir, const char * fname, const struct kvldskey * v)
 	}
 
 	/* Write value. */
-	if (fwrite(v->buf, v->len, 1, f) != 1) {
+	/* A zero-length value is legal; fwrite(ptr, 0, 1, ...) returns 0. */
+	if ((v->len > 0) && (fwrite(v->buf, 1, v->len, f) != v->len)) {
 		warnp("fwrite(%s)", s);
 		goto err2;
 	}
@@ -82,11 +83,13 @@ callback_pair(void * cookie,
 	} else {
 		if (fwrite(&key->len, 1, 1, stdout) != 1)
 			goto err0;
-		if (fwrite(key->buf, key->len, 1, stdout) != 1)
+		if ((key->len > 0) &&
+		    (fwrite(key->buf, 1, key->len, stdout) != key->len))
 			goto err0;
 		if (fwrite(&value->len, 1, 1, stdout) != 1)
 			goto err0;
-		if (fwrite(value->buf, value->len, 1, stdout) != 1)
+		if ((value->len > 0) &&
+		    (fwrite(value->buf, 1, value->len, stdout) != value->len))
 			goto err0;
 	}
 

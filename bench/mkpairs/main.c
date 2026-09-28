@@ -64,6 +64,12 @@ main(int argc, char * argv[])
 	/* Free buffer. */
 	free(buf);
 
+	/* Report errors while flushing or closing the output stream. */
+	if (fclose(stdout)) {
+		warnp("fclose(stdout)");
+		exit(1);
+	}
+
 	/* Success! */
 	exit(0);
 }

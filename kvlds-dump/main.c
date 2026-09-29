@@ -44,8 +44,10 @@ writefile(const char * dir, const char * fname, const struct kvldskey * v)
 	}
 
 	/* Close file and free file name. */
-	if (fclose(f))
-		warnp("fclose");
+	if (fclose(f)) {
+		warnp("fclose(%s)", s);
+		goto err1;
+	}
 	free(s);
 
 	/* Success! */
@@ -209,6 +211,12 @@ main(int argc, char * argv[])
 	/* Read the range. */
 	if (kvlds_range(Q, nullkey, nullkey, callback_pair, &C)) {
 		warnp("Error occurred while reading key-value pairs");
+		exit(1);
+	}
+
+	/* Flush buffered output, so that write errors are detected. */
+	if (!opt_fs && fflush(stdout)) {
+		warnp("stdout");
 		exit(1);
 	}
 

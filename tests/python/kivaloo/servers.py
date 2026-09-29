@@ -129,14 +129,20 @@ class Server(object):
         # Check existing pidfile
         pid = cls.get_pid_from_file()
         if pid:
-            proc = psutil.Process(pid)
-            if proc.cmdline() == cls.cmd:
-                return proc
+            try:
+                proc = psutil.Process(pid)
+                if proc.cmdline() == cls.cmd:
+                    return proc
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
 
         # Look for the process
         for proc in psutil.process_iter():
-            if proc.cmdline() == cls.cmd:
-                return proc
+            try:
+                if proc.cmdline() == cls.cmd:
+                    return proc
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
         return None
 
     @classmethod

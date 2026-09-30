@@ -96,20 +96,23 @@ merge_parent(struct btree * T, struct node ** c_in,
 	/* Copy keys into new array. */
 	for (j = i = 0; i < nsep; i++) {
 		/* Separator keys within a merging node. */
-		memcpy(&keys[j], c_in[i]->u.keys,
-		    c_in[i]->nkeys * sizeof(const struct kvldskey *));
+		if (c_in[i]->nkeys > 0)
+			memcpy(&keys[j], c_in[i]->u.keys,
+			    c_in[i]->nkeys * sizeof(const struct kvldskey *));
 		j += c_in[i]->nkeys;
 
 		/* Separator keys between merging nodes. */
 		keys[j++] = k_in[i];
 	}
-	memcpy(&keys[j], c_in[i]->u.keys,
-	    c_in[i]->nkeys * sizeof(const struct kvldskey *));
+	if (c_in[i]->nkeys > 0)
+		memcpy(&keys[j], c_in[i]->u.keys,
+		    c_in[i]->nkeys * sizeof(const struct kvldskey *));
 
 	/* Copy children into new array. */
 	for (j = i = 0; i <= nsep; j += c_in[i]->nkeys + 1, i++)
-		memcpy(&children[j], c_in[i]->v.children,
-		    (c_in[i]->nkeys + 1) * sizeof(struct node *));
+		if (c_in[i]->nkeys + 1 > 0)
+			memcpy(&children[j], c_in[i]->v.children,
+			    (c_in[i]->nkeys + 1) * sizeof(struct node *));
 
 	/* Create a node. */
 	if ((N = btree_node_mkparent(T, c_in[0]->height,

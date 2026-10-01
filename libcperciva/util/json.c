@@ -3,7 +3,9 @@
 
 #include "json.h"
 
-static const uint8_t * skip_value(const uint8_t *, const uint8_t *);
+#define JSON_MAX_DEPTH	1024
+
+static const uint8_t * skip_value(const uint8_t *, const uint8_t *, size_t);
 
 /* Advance past whitespace, if any. */
 static const uint8_t *
@@ -92,7 +94,7 @@ skip_number(const uint8_t * buf, const uint8_t * end)
 
 /* Advance past array. */
 static const uint8_t *
-skip_array(const uint8_t * buf, const uint8_t * end)
+skip_array(const uint8_t * buf, const uint8_t * end, size_t depth)
 {
 
 	/* Advance past the opening '[' and following whitespace. */
@@ -108,7 +110,7 @@ skip_array(const uint8_t * buf, const uint8_t * end)
 	/* Skip entries until we get to the end. */
 	do {
 		/* Skip a value. */
-		buf = skip_value(buf, end);
+		buf = skip_value(buf, end, depth + 1);
 
 		/* Skip optional whitespace. */
 		buf = skip_ws(buf, end);
@@ -129,7 +131,7 @@ skip_array(const uint8_t * buf, const uint8_t * end)
 
 /* Advance past object. */
 static const uint8_t *
-skip_object(const uint8_t * buf, const uint8_t * end)
+skip_object(const uint8_t * buf, const uint8_t * end, size_t depth)
 {
 
 	/* Advance past the opening '{' and following whitespace. */
@@ -156,7 +158,7 @@ skip_object(const uint8_t * buf, const uint8_t * end)
 
 		/* Skip a whitespace, a value, and more whitespace. */
 		buf = skip_ws(buf, end);
-		buf = skip_value(buf, end);
+		buf = skip_value(buf, end, depth + 1);
 		buf = skip_ws(buf, end);
 
 		/* Are we at the end? */
@@ -175,8 +177,12 @@ skip_object(const uint8_t * buf, const uint8_t * end)
 
 /* Advance past a JSON value. */
 static const uint8_t *
-skip_value(const uint8_t * buf, const uint8_t * end)
+skip_value(const uint8_t * buf, const uint8_t * end, size_t depth)
 {
+
+	/* Guard against stack overflow from deeply nested input. */
+	if (depth > JSON_MAX_DEPTH)
+		return (end);
 
 	/* If there's nothing here, return. */
 	if (buf == end)
@@ -194,10 +200,10 @@ skip_value(const uint8_t * buf, const uint8_t * end)
 		return (skip_string(buf, end));
 	case '[':
 		/* This must be an array.  Skip it. */
-		return (skip_array(buf, end));
+		return (skip_array(buf, end, depth + 1));
 	case '{':
 		/* This must be an object.  Skip it. */
-		return (skip_object(buf, end));
+		return (skip_object(buf, end, depth + 1));
 	default:
 		/* Could this plausibly be a number? */
 		if (strchr(numchars, buf[0]) != NULL)
@@ -331,7 +337,7 @@ json_find(const uint8_t * buf, const uint8_t * end, const char * s)
 			return (buf);
 
 		/* Skip this JSON object. */
-		buf = skip_value(buf, end);
+		buf = skip_value(buf, end, 0);
 
 		/*
 		 * After optional whitespace we should have a ','.  (Or we

@@ -39,6 +39,7 @@ TESTS=	perftests/dynamodb_kv					\
 	tests/kvlds-ddbkv					\
 	tests/kvlds-dump					\
 	tests/kvlds-s3						\
+	tests/btree-cleaning-failure				\
 	tests/lbs						\
 	tests/msleep						\
 	tests/mux						\

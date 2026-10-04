@@ -157,11 +157,26 @@ callback_clean(void * cookie, struct node * N)
 	N->v.cstate = C;
 
 done:
+	/*
+	 * If we abandoned this node and it was the last one the group was
+	 * waiting for, nothing is left to free the group: free_cg() is
+	 * only otherwise reached from free_cstate(), which runs for nodes
+	 * which acquired a struct cleaning.
+	 */
+	if ((CG->head == NULL) && (CG->pending_fetches == 0))
+		free_cg(CG);
+
 	/* Success! */
 	return (0);
 
 err1:
+	/* We aren't going to clean this node after all. */
+	CG->C->pending_cleans--;
 	btree_node_unlock(CG->C->T, N);
+
+	/* Free the group if this was the last node it was waiting for. */
+	if ((CG->head == NULL) && (CG->pending_fetches == 0))
+		free_cg(CG);
 
 	/* Failure! */
 	return (-1);
@@ -216,7 +231,7 @@ callback_find(void * cookie, struct node * N)
 				CG->pending_fetches++;
 				if (btree_node_descend(C->T, N->v.children[i],
 				    callback_find, CG))
-					goto err1;
+					goto err3;
 				break;
 			}
 		}
@@ -245,7 +260,7 @@ callback_find(void * cookie, struct node * N)
 				    (uint64_t)(-1);
 				if (btree_node_descend(C->T, N->v.children[i],
 				    callback_clean, CG))
-					goto err1;
+					goto err2;
 			}
 		}
 
@@ -264,7 +279,7 @@ callback_find(void * cookie, struct node * N)
 	C->pending_cleans++;
 	N->oldestncleaf = (uint64_t)(-1);
 	if (btree_node_descend(C->T, N, callback_clean, CG))
-		goto err1;
+		goto err2;
 
 	/* Recompute oldestncleaf upwards. */
 	recompute_oncl(N->p_shadow);
@@ -280,7 +295,25 @@ done:
 	/* Success! */
 	return (0);
 
+err3:
+	/* We didn't start looking for a group after all. */
+	C->group_pending = 0;
+	CG->pending_fetches--;
+	goto err1;
+
+err2:
+	/* We didn't start cleaning this node after all. */
+	CG->pending_fetches--;
+	C->pending_cleans--;
+
 err1:
+	/*
+	 * If nothing is left for this group to wait for, nothing else will
+	 * free it: free_cg() is otherwise only reached from free_cstate(),
+	 * which runs for a node which acquired a struct cleaning.
+	 */
+	if ((CG->head == NULL) && (CG->pending_fetches == 0))
+		free_cg(CG);
 	btree_node_unlock(C->T, N);
 err0:
 	/* Failure! */

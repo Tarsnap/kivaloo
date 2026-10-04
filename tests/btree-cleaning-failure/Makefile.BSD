@@ -1,0 +1,12 @@
+PROG=	test_btree_cleaning_failure
+SRCS=	main.c
+MAN1=
+
+IDIRS+=	-I ../../kvlds
+IDIRS+=	-I ../../libcperciva/events
+IDIRS+=	-I ../../libcperciva/util
+
+test: all
+	@./${PROG}
+
+.include <bsd.prog.mk>

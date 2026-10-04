@@ -37,6 +37,36 @@ else
 	exit 1
 fi
 
+# Run test_lbs with a two-second bound.  This keeps a regression in server
+# liveness from hanging the entire test suite.
+run_test_lbs_bounded() {
+	"$TESTLBS" "$SOCK" "$@" &
+	_test_lbs_pid=$!
+	_test_lbs_waits=0
+	while kill -0 "$_test_lbs_pid" 2>/dev/null && \
+	    [ "$_test_lbs_waits" -lt 20 ]; do
+		"$MSLEEP" 100
+		_test_lbs_waits=$((_test_lbs_waits + 1))
+	done
+	if kill -0 "$_test_lbs_pid" 2>/dev/null; then
+		kill "$_test_lbs_pid" 2>/dev/null || true
+		wait "$_test_lbs_pid" 2>/dev/null || true
+		return 1
+	fi
+	wait "$_test_lbs_pid"
+}
+
+# A malformed APPEND is supposed to drop only that client.  Before #331 the
+# dropped request left npending nonzero, so the daemon stayed attached to the
+# dead connection and a new PARAMS client stalled.
+printf "Testing LBS recovery after malformed APPEND..."
+if run_test_lbs_bounded badappend && run_test_lbs_bounded params; then
+	echo " PASSED!"
+else
+	echo " FAILED!"
+	exit 1
+fi
+
 # Check that an unclean disconnect is handled appropriately
 printf "Testing LBS disconnection cleanup..."
 ( $TESTLBS $SOCK & echo $! > $TESTLBS.pid) 2>/dev/null

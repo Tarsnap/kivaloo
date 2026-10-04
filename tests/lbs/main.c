@@ -185,13 +185,27 @@ main(int argc, char * argv[])
 	struct kivaloo_cookie * K;
 	uint8_t * buf;
 	size_t i, j, k;
+	int badappend = 0;
+	int params_only = 0;
 
 	WARNP_INIT;
 
-	/* Check number of arguments. */
-	if (argc != 2) {
-		fprintf(stderr, "usage: test_lbs %s\n", "<socketname>");
+	/* Check arguments. */
+	if ((argc < 2) || (argc > 3)) {
+		fprintf(stderr, "usage: test_lbs %s\n",
+		    "<socketname> [badappend|params]");
 		goto err0;
+	}
+	if (argc == 3) {
+		if (strcmp(argv[2], "badappend") == 0)
+			badappend = 1;
+		else if (strcmp(argv[2], "params") == 0)
+			params_only = 1;
+		else {
+			fprintf(stderr, "usage: test_lbs %s\n",
+			    "<socketname> [badappend|params]");
+			goto err0;
+		}
 	}
 
 	/* Open a connection to LBS. */
@@ -211,10 +225,46 @@ main(int argc, char * argv[])
 		goto err1;
 	}
 
+	/* A lightweight reconnect probe only needs PARAMS to succeed. */
+	if (params_only) {
+		kivaloo_close(K);
+		exit(0);
+	}
+
 	/* Allocate 16 blocks. */
 	if ((buf = malloc(16 * params_blklen)) == NULL) {
 		warnp("malloc");
 		goto err1;
+	}
+
+	/*
+	 * Send an APPEND whose implied block size is one byte too short.  The
+	 * server must reject the request by dropping this connection.  A caller
+	 * uses the params-only mode afterwards to verify that the daemon returned
+	 * to accepting connections rather than retaining a ghost npending count.
+	 */
+	if (badappend) {
+		if (params_blklen < 2) {
+			warn0("Block size too small for malformed APPEND test");
+			goto err2;
+		}
+		append_done = append_failed = 0;
+		if (proto_lbs_request_append(Q, 1, params_nextblk,
+		    params_blklen - 1, buf, callback_append, NULL)) {
+			warnp("Failed to send malformed APPEND request");
+			goto err2;
+		}
+		if (events_spin(&append_done)) {
+			warnp("Malformed APPEND request did not complete");
+			goto err2;
+		}
+		if (!append_failed) {
+			warn0("Malformed APPEND was not rejected");
+			goto err2;
+		}
+		kivaloo_close(K);
+		free(buf);
+		exit(0);
 	}
 
 	/* Write 256 pages in batches of various sizes. */

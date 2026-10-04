@@ -135,14 +135,14 @@ gotrequest(void * cookie, int status)
 		case PROTO_LBS_PARAMS:
 			/* PARAMS is not allowed while APPEND is in progress. */
 			if (D->writer_busy != 0)
-				goto drop1;
+				goto drop2;
 			if (dispatch_request_params(D, R))
 				goto err0;
 			break;
 		case PROTO_LBS_PARAMS2:
 			/* PARAMS is not allowed while APPEND is in progress. */
 			if (D->writer_busy != 0)
-				goto drop1;
+				goto drop2;
 			if (dispatch_request_params2(D, R))
 				goto err0;
 			break;
@@ -154,7 +154,7 @@ gotrequest(void * cookie, int status)
 			/* Make sure the (implied) block length is correct. */
 			if (R->r.append.blklen != D->blocklen) {
 				free(R->r.append.buf);
-				goto drop1;
+				goto drop2;
 			}
 			if (dispatch_request_append(D, R))
 				goto err0;
@@ -182,6 +182,9 @@ gotrequest(void * cookie, int status)
 	/* Success! */
 	return (0);
 
+drop2:
+	/* We aren't going to send a response for this request. */
+	D->npending -= 1;
 drop1:
 	free(R);
 drop:

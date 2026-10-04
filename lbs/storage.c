@@ -209,6 +209,7 @@ storage_read(struct storage_state * S, uint64_t blkno, uint8_t * buf)
 {
 	struct file_state * fs;
 	size_t i;
+	uint64_t fnum;
 	char * s = NULL;	/* free(NULL) simplifies error path. */
 	struct timespec nstime;
 
@@ -229,14 +230,21 @@ storage_read(struct storage_state * S, uint64_t blkno, uint8_t * buf)
 	}
 	assert(fs->start <= blkno);
 
+	/*
+	 * Record which file we're reading from.  We must do this before
+	 * releasing the lock, since fs points into the queue and another
+	 * thread can add or delete records once we no longer hold it.
+	 */
+	fnum = fs->start;
+
 	/* Release the read lock. */
 	if (storage_util_unlock(S))
 		goto err0;
 
 	/* Read the block. */
-	if ((s = storage_util_mkpath(S, fs->start)) == NULL)
+	if ((s = storage_util_mkpath(S, fnum)) == NULL)
 		goto err0;
-	if (disk_read(s, (off_t)((blkno - fs->start) * S->blocklen),
+	if (disk_read(s, (off_t)((blkno - fnum) * S->blocklen),
 	    S->blocklen, buf)) {
 		/*
 		 * If errno is ENOENT, we lost a race against the deleter

@@ -1,0 +1,18 @@
+PROG=	test_storage_read_race
+SRCS=	main.c
+MAN1=
+
+LIBCPERCIVA_DIR=	../../libcperciva
+LIB_DIR=	../../lib
+
+IDIRS+=	-I ../../lbs
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/datastruct
+IDIRS+=	-I ${LIBCPERCIVA_DIR}/util
+IDIRS+=	-I ${LIB_DIR}/proto_lbs
+
+LDADD+=	-lpthread
+
+test: all
+	@./${PROG}
+
+.include <bsd.prog.mk>

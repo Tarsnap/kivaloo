@@ -534,6 +534,15 @@ btree_node_dirty(struct btree * T, struct node * N)
 err2:
 	free(N_dirty->u.keys);
 err1:
+	/*
+	 * Put N back the way we found it: we marked it SHADOW, cleared its
+	 * dirty parent and took a lock for the dirty node which is about to
+	 * be destroyed.  N_dirty->p_dirty still holds N's old parent.
+	 */
+	N->p_dirty = N_dirty->p_dirty;
+	N->state = NODE_STATE_CLEAN;
+	btree_node_unlock(T, N);
+
 	pool_rec_free(T->P, N_dirty);
 	node_free(N_dirty);
 err0:

@@ -359,7 +359,7 @@ run_case(const char * name, unsigned int type, size_t fail_at)
 		fprintf(stderr, "%s: input state was not restored\n", name);
 		return (-1);
 	}
-	if (N.p_dirty != &parent) {
+	if (N.p_dirty != &dirty_parent) {
 		fprintf(stderr, "%s: dirty parent was not restored\n", name);
 		return (-1);
 	}

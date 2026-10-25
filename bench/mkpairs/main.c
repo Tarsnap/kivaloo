@@ -64,6 +64,12 @@ main(int argc, char * argv[])
 	/* Free buffer. */
 	free(buf);
 
+	/* Flush buffered output; fail if the write did not complete. */
+	if (fflush(stdout)) {
+		warnp("fflush");
+		exit(1);
+	}
+
 	/* Success! */
 	exit(0);
 }

@@ -235,6 +235,12 @@ main(int argc, char * argv[])
 	free(opt_t);
 	free(opt_fs);
 
+	/* Flush stdout so buffered output is not lost on exit. */
+	if (fflush(stdout)) {
+		warnp("fflush(stdout)");
+		exit(1);
+	}
+
 	/* Success! */
 	exit(0);
 }

@@ -244,7 +244,7 @@ callback_range_gotleaf(void * cookie, struct node * N)
 
 		/* Is this key too large? */
 		if ((C->R->range_end->len > 0) &&
-		    (kvldskey_cmp(N->u.pairs[i].k, C->R->range_end) > 0))
+		    (kvldskey_cmp(N->u.pairs[i].k, C->R->range_end) >= 0))
 			continue;
 
 		/* Does it fit? */

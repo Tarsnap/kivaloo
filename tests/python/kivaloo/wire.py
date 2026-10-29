@@ -106,12 +106,12 @@ class Response(object):
         """ Get data from the standard kivaloo "length and data" format:
                 [1 byte length][X byte data]
 
-            If the length is 0, return None.
+            If the length is 0, return b'' (empty bytes).
         """
         length, = struct.unpack_from('>B', self.data, offset=self.offset)
         self.offset += 1
         if length == 0:
-            return None
+            return b''
         data, = struct.unpack_from('>%ds' % length,
                                    self.data, offset=self.offset)
         self.offset += length

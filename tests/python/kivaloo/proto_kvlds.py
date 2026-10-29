@@ -128,6 +128,9 @@ class Proto_kvlds():
 
         num_pairs = response.get_int()
         nextkey = response.get_kvlds_data()
+        # Empty nextkey is the end-of-range sentinel; convert to None.
+        if nextkey == b'':
+            nextkey = None
 
         pairs = {}
         for _ in range(num_pairs):

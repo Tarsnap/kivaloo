@@ -428,22 +428,13 @@ storage_delete(struct storage_state * S, uint64_t blkno)
 		/* We want to delete the first file. */
 		fileno = fs->start;
 
-		/* Remove the file from the file queue. */
-		elasticqueue_delete(S->files);
-
-		/* Adjust our first-block-held value. */
-		fs = elasticqueue_get(S->files, 0);
-		S->minblk = fs->start;
-
-		/* Release the lock. */
+		/* Release the lock before doing filesystem operations. */
 		if (storage_util_unlock(S))
 			goto err0;
 
 		/*
-		 * Delete the file.  We don't need to worry about racing
-		 * against the writer, since we will never delete the last
-		 * file; and racing against readers is handled by readers
-		 * treating ENOENT properly.
+		 * Delete the file from disk FIRST, before modifying in-memory
+		 * state.  If unlink fails, we haven't forgotten about the file.
 		 */
 		if ((s = storage_util_mkpath(S, fileno)) == NULL)
 			goto err0;
@@ -456,6 +447,21 @@ storage_delete(struct storage_state * S, uint64_t blkno)
 		/* Make sure the file deletion is flushed to disk. */
 		if (disk_syncdir(S->storagedir))
 			goto err0;
+
+		/*
+		 * Now that the file is deleted on disk, update in-memory state.
+		 */
+		if (storage_util_writelock(S))
+			goto err0;
+
+		/* Remove the file from the file queue. */
+		elasticqueue_delete(S->files);
+
+		/* Adjust our first-block-held value. */
+		fs = elasticqueue_get(S->files, 0);
+		S->minblk = fs->start;
+
+		/* Release the lock. */
 	} while (1);
 
 	/* Release the write lock. */

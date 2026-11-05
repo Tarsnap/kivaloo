@@ -303,6 +303,15 @@ callback_reqdone(void * cookie, struct http_response * res)
 	char * ddberr = NULL;
 
 	/*
+	 * If the response body is the "too large" sentinel (bodylen ==
+	 * (size_t)-1), we must not pass it to the JSON parser or to
+	 * the upstream callback.  Treat it like a transient error.
+	 */
+	if ((res != NULL) && (res->bodylen == (size_t)-1)) {
+		res = NULL;
+	}
+
+	/*
 	 * If we have a response body, extract the number of capacity units
 	 * used, and update our rolling average and current capacity.
 	 */

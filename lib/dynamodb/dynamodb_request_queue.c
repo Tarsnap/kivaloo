@@ -399,7 +399,16 @@ callback_reqdone(void * cookie, struct http_response * res)
 	 * our queue with a timeout callback pending.  We're going to leave
 	 * it that way -- we don't want to retry the failed request until
 	 * the callback fires.
+	 *
+	 * Free the response body since we're not passing it upstream.
+	 * The HTTP API transfers ownership to us; leaking it on retries
+	 * would exhaust memory under persistent 503 conditions.
 	 */
+	if ((res != NULL) && (res->body != NULL)) {
+		free(res->body);
+		res->body = NULL;
+		res->bodylen = 0;
+	}
 
 	/*
 	 * Poke the queue.  If the request failed, it may be possible to

@@ -139,6 +139,18 @@ callback_reqdone(void * cookie, struct http_response * res)
 	return (rc);
 
 tryagain:
+	/*
+	 * Free the response body since we're retrying rather than
+	 * passing it upstream.  The HTTP API transfers ownership to us;
+	 * leaking it on retries would exhaust memory under persistent
+	 * 503 conditions.
+	 */
+	if ((res != NULL) && (res->body != NULL)) {
+		free(res->body);
+		res->body = NULL;
+		res->bodylen = 0;
+	}
+
 	/* Add this request back to the queue. */
 	R->prev = Q->reqs_queued_tail;
 	R->next = NULL;

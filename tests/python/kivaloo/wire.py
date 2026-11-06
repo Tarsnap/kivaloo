@@ -155,8 +155,21 @@ class Wire(object):
         self.msgnum += 1
         self.sock.sendall(data)
 
-        # Wait for a response
-        idnum, record = split_packet(self.sock.recv(MAX_RESPONSE_BYTES))
+        # Wait for a response; handle fragmented stream reads.
+        buf = b''
+        while len(buf) < 16:
+            chunk = self.sock.recv(MAX_RESPONSE_BYTES)
+            if not chunk:
+                raise Exception("Connection closed while reading response header")
+            buf += chunk
+        # Header tells us the full packet length.
+        _, record_length, _ = struct.unpack_from('>QII', buf)
+        while len(buf) < 16 + record_length:
+            chunk = self.sock.recv(MAX_RESPONSE_BYTES)
+            if not chunk:
+                raise Exception("Connection closed while reading response body")
+            buf += chunk
+        idnum, record = split_packet(buf)
         assert idnum == self.msgnum - 1
 
         return Response(record)

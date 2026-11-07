@@ -53,9 +53,10 @@ class Proto_lbs():
         """ Add data to the server. """
         if not isinstance(blocks, bytes):
             raise NotBinaryData()
-        if len(blocks) % self.block_size != 0:
-            raise Exception("wire append: Invalid blocksize: %d" % len(blocks))
         num_bytes = self.block_size * nums
+        if len(blocks) != num_bytes:
+            raise Exception("wire append: data length %d != nums*block_size %d"
+                % (len(blocks), num_bytes))
         response = self.wire.send_recv('>IIQ%ds' % (num_bytes),
                                     0x02, nums, start, blocks)
         status = response.get_int()

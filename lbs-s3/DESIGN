@@ -20,7 +20,7 @@ if lbs-s3 is stopped and restarted.)
 The other options are:
   -p <pidfile>
 	Write the daemon's process ID to the file <pidfile>.  Defaults to
-	-p <s3 socket>.pid.  (Note that if <s3 socket> is not an absolute path,
+	-p <lbs socket>.pid.  (Note that if <lbs socket> is not an absolute path,
 	the default pid file location is in the current directory.)
   -1
 	Exit after handling one connection.

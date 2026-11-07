@@ -35,6 +35,10 @@ kivaloo, that info should be saved in a text file with the form:
      check test_s3.sh.
 
 - tests/kvlds-ddbkv: you must:
+  0) run `lbs-dynamodb-init` to initialize the DynamoDB tables with
+     the required metadata (data table ID, LBS block size, etc.).
+     Without this initialization step, the kvlds-ddbkv test will fail
+     with "metadata table is not initialized" even if the tables exist.
   1) have a ~/.dynamodb/aws.key which contains the access key.
   2) have a unique DynamodDB table name in AWS, with a partition key `K`.
   3) specify the two table names as the TABLE and TABLEM environment

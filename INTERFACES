@@ -238,6 +238,11 @@ GET:	Request type = 0x00010010
 	[4 byte HTTP status]
 	[4 byte object length][X byte object data]
 
+	Note: If the object length field has the reserved value 0xffffffff,
+	there is no object data field; the response record ends immediately
+	after the 4-byte length. This value indicates that the object data
+	is unavailable (e.g., object too large or does not exist).
+
 RANGE:	Request type = 0x00010011
 
 	Request:
@@ -250,6 +255,11 @@ RANGE:	Request type = 0x00010011
 	Response:
 	[4 byte HTTP status]
 	[4 byte object length][X byte object data]
+
+	Note: If the object length field has the reserved value 0xffffffff,
+	there is no object data field; the response record ends immediately
+	after the 4-byte length. This value indicates that the object data
+	is unavailable (e.g., object too large or does not exist).
 
 HEAD:	Request type = 0x00010020
 

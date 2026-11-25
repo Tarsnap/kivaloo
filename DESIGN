@@ -110,7 +110,7 @@ The operations required of the underlying block store are:
 * GET(blkno):
 	Return the data for block number "blkno".
 * APPEND(blkno, nblk, data):
-	If "blkno" is the the first unused block number (as returned by PARAM
+	If "blkno" is the first unused block number (as returned by PARAM
 	or a previous APPEND request) then the "nblk"s blocks of data "data"
 	to blocks number "blkno", "blkno"+1, ... "blkno"+"nblk"-1.  Returns
 	the next available block number, which is not required to be

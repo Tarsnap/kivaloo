@@ -207,6 +207,6 @@ main.c		-- Processes command line, connects to target, initializes
 dispatch.c	-- Reads requests from a connection and drops the connection
 		   if one cannot be read.  Passes requests to s3state.c.
 s3state.c	-- Manages the S3 storage state and processes requests.
-findlast.c	-- Implements the FindLast algorithm used for intialization.
+findlast.c	-- Implements the FindLast algorithm used for initialization.
 deleteto.c	-- Implements the DeleteTo algorithm.
 objmap.c	-- Converts object #s into object names (hash_object#).

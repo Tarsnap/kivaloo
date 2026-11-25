@@ -161,7 +161,7 @@ makes the rebalancing more complex.
 Define: A node is *splittable* if it has serialized size greater than the LBS
 block size.
 Define: A series of adjacent nodes x[0]..x[i-1] with the same parent are
-*mergable* if merging them would produce a node with serialized size at most
+*mergeable* if merging them would produce a node with serialized size at most
 2/3 of the LBS block size.
 
 The algorithm used for rebalancing is as follows:
@@ -169,13 +169,13 @@ The algorithm used for rebalancing is as follows:
    nodes which are splittable.  (If the root needs to be split, add a new
    root.)
 2. Merge: Traverse the dirty subtree in depth-first postorder, merging any
-   mergable sets of nodes to create a new DIRTY node.  If a (non newly
+   mergeable sets of nodes to create a new DIRTY node.  If a (non newly
    created) DIRTY node has no DIRTY children, mark it as MERGED.
 3. If the root node is not marked as MERGED, goto 2.
 4. Deroot: While the tree root is a parent with only one child, delete the
    root and promote the child to roothood.
 
-If a tree starts out satisfying the balacing conditions, has key-value pairs
+If a tree starts out satisfying the balancing conditions, has key-value pairs
 added/modified/deleted in its leaf nodes, and then is rebalanced, it will end
 up satisfying the balancing conditions:
 1. Modifying leaf nodes does not affect parent nodes; Split and Deroot
@@ -192,13 +192,13 @@ up satisfying the balancing conditions:
    condition to be violated.
    The Deroot stage does not increase the size of a node, and thus cannot
    cause this condition to be violated.
-4. Any mergable nodes after a Merge stage has been performed will be children
+4. Any mergeable nodes after a Merge stage has been performed will be children
    of a newly created node.  Said node will be DIRTY; so its ancestors up to
    the root will be DIRTY; and it will be visited on the next Merge pass and
-   the mergable nodes will be merged.  Thus this condition will be satisfied
+   the mergeable nodes will be merged.  Thus this condition will be satisfied
    at the end of step 3.
    The Deroot stage does not act on nodes with siblings, so it cannot cause
-   any nodes to become mergable.
+   any nodes to become mergeable.
 
 We claim, without proof, that the Merge stage will be run at most O(h)
 times; and at most O(N h) nodes will be modified, where N is the number of

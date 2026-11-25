@@ -54,5 +54,5 @@ dispatch_request.c
 		-- Handles incoming requests, translating them and queueing
 		   them into the S3 request queue.
 dispatch_response.c
-		-- Handles completed S3 operations, translating resopnses and
+		-- Handles completed S3 operations, translating responses and
 		   sending them back to the client.

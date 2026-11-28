@@ -46,7 +46,23 @@ static const struct timeval onesec = {.tv_sec = 1, .tv_usec = 0};
 
 static int poke(struct cleaner *);
 
-/* Compute oldestncleaf upwards in the shadow tree. */
+static void recompute_oncl(struct node *);
+
+/*
+ * Recompute oldestncleaf in the parent(s) of ${N}.  A clean node can have
+ * two parents (shadow and dirty) between a node being dirtied and the old
+ * shadow tree being freed; both must be updated.
+ */
+static void
+recompute_parents(struct node * N)
+{
+
+	recompute_oncl(N->p_shadow);
+	if (N->p_dirty != N->p_shadow)
+		recompute_oncl(N->p_dirty);
+}
+
+/* Compute oldestncleaf upwards in the shadow and dirty trees. */
 static void
 recompute_oncl(struct node * N)
 {
@@ -63,8 +79,8 @@ recompute_oncl(struct node * N)
 			N->oldestncleaf = N->v.children[i]->oldestncleaf;
 	}
 
-	/* Move up the tree. */
-	recompute_oncl(N->p_shadow);
+	/* Move up the tree(s). */
+	recompute_parents(N);
 }
 
 /* Unlink and free a cleaning group. */
@@ -267,7 +283,7 @@ callback_find(void * cookie, struct node * N)
 		goto err1;
 
 	/* Recompute oldestncleaf upwards. */
-	recompute_oncl(N->p_shadow);
+	recompute_parents(N);
 
 done:
 	/* Unlock the node. */
